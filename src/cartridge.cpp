@@ -66,7 +66,7 @@ namespace emulator
         return nb_rom_banks;
     }
 
-    uint8_t get_nb_ram_banks(const std::_MakeUniq<FirstRomBank>::__single_object &rom_bank)
+    uint8_t get_nb_ram_banks(FirstRomBank* rom_bank)
     {
         auto nb_ram_banks = rom_bank->get_nb_ram_banks();
         if (nb_ram_banks == INVALID_RAM_BANK_NB)
@@ -92,7 +92,7 @@ namespace emulator
 
         const auto cartridge_type = get_cartridge_type(rom_bank.get());
         const auto nb_rom_banks = get_nb_rom_banks(rom_bank.get());
-        const auto nb_ram_banks = get_nb_ram_banks(rom_bank);
+        const auto nb_ram_banks = get_nb_ram_banks(rom_bank.get());
 
         auto roms = load_roms(stream, nb_rom_banks);
 
