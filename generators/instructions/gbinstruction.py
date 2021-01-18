@@ -22,7 +22,11 @@ class ArgumentType(Enum):
 
 ARGUMENT_TYPE_MAP = {type_.value: type_ for type_ in ArgumentType}
 
-REGISTERS_NAMES = {"AF", "A", "BC", "B", "C", "DE", "D", "E", "HL", "H", "L", "SP", "PC", "NZ", "Z", "NC", "C"}
+REGISTERS_NAME_SIZES = {
+    "AF": 2, "A": 1, "BC": 2, "B": 1, "C": 1,
+    "DE": 2, "D": 1, "E": 1, "HL": 2, "H": 1, "L": 1,
+    "SP": 2, "PC": 2, "NZ": 1, "Z": 1, "NC": 1
+}
 IMMEDIATE_8_BITS_NAME = "d8"
 IMMEDIATE_16_BITS_NAME = "d16"
 UNSIGNED_8_BIT_NAME = "a8"
@@ -30,6 +34,9 @@ ADDRESS_16_BIT_NAME = "a16"
 PC_INCREMENT_8_BIT_NAME = "r8"
 INDICATION_NAME = "CB"
 SPECIAL_MNEMONIC_MAP = {
+    ("LD", ("A", "(C)")): ("LDSpecialC", ("A", "(C)")),
+    ("LD", ("(C)", "A")): ("LDSpecialC", ("(C)", "A")),
+    ("LD", ("A", "(HL+)")): ("LDI", ("A", "(HL)")),
     ("LD", ("A", "(HL+)")): ("LDI", ("A", "(HL)")),
     ("LD", ("(HL+)", "A")): ("LDI", ("(HL)", "A")),
     ("LD", ("A", "(HL-)")): ("LDD", ("A", "(HL)")),
@@ -42,14 +49,19 @@ SPECIAL_MNEMONIC_MAP = {
 class Argument:
     type_: ArgumentType
     is_address: bool
+    nb_bytes: int
     name: str
     value: Optional[int]
+
+    @property
+    def short_repr(self):
+        return f"({self.name})" if self.is_address else self.name
 
 
 def argument_to_csv(argument: Optional[Argument]) -> List[str]:
     if argument is None:
-        return [NONE_STR, NONE_STR, NONE_STR, NONE_STR]
-    return [argument.type_.value, argument.is_address, argument.name, str(argument.value)]
+        return [NONE_STR, NONE_STR, NONE_STR, NONE_STR, NONE_STR]
+    return [argument.type_.value, argument.is_address, argument.nb_bytes, argument.name, str(argument.value)]
 
 
 def argument_from_csv(csv_strs: List[str]) -> Optional[Argument]:
@@ -59,8 +71,9 @@ def argument_from_csv(csv_strs: List[str]) -> Optional[Argument]:
     return Argument(
         ARGUMENT_TYPE_MAP[csv_strs[0]],
         csv_strs[1].strip() == TRUE_STR,
-        csv_strs[2],
-        None if csv_strs[3] == NONE_STR else int(csv_strs[3])
+        int(csv_strs[2]),
+        csv_strs[3],
+        None if csv_strs[4] == NONE_STR else int(csv_strs[4])
     )
 
 
@@ -114,6 +127,7 @@ class InstructionType(Enum):
     STOP = "STOP"
     AND = "AND"
     RETI = "RETI"
+    LDSpecialC = "LDSpecialC"
 
 
 INSTRUCTION_TYPE_MAP = {type_.value: type_ for type_ in InstructionType}
@@ -130,65 +144,75 @@ FLAG_ACTION_MAP = {type_.value: type_ for type_ in FlagAction}
 
 
 @dataclass
-class GbOpcode:
+class GbInstruction:
     value: int
-    instruction: InstructionType
+    type_: InstructionType
     first_arg: Optional[Argument]
     second_arg: Optional[Argument]
     length: int
     duration: int
     duration_no_action: int
-    z_flag: FlagAction
-    n_flag: FlagAction
-    h_flag: FlagAction
-    c_flag: FlagAction
+    zero_flag: FlagAction
+    add_sub_flag: FlagAction
+    half_carry_flag: FlagAction
+    carry_flag: FlagAction
+
+    @property
+    def short_repr(self):
+        representation = f"0x{self.value:X} {self.type_.value}"
+        if self.first_arg:
+            representation += f" {self.first_arg.short_repr}"
+        if self.second_arg:
+            representation += f", {self.second_arg.short_repr}"
+
+        return representation
 
 
 GB_OPCODE_HEADER = [
     "Value", "Instruction",
-    "First Argument Type", "First Argument Is Address", "First Argument Name", "First Argument Value",
-    "Second Argument Type", "Second Argument Is Address", "Second Argument Name", "Second Argument Value",
+    "First Argument Type", "First Argument Is Address", "First Argument Nb Bytes", "First Argument Name", "First Argument Value",
+    "Second Argument Type", "Second Argument Is Address", "Second Argument Nb Bytes", "Second Argument Name", "Second Argument Value",
     "Length (bytes)", "Duration (Cycle)", "Duration no action (Cycle)",
     "Z flag", "N flag", "H flag", "C flag",
 ]
 
 
-def gb_opcode_to_csv(opcode: GbOpcode) -> List[str]:
-    return [str(opcode.value), opcode.instruction.value] + \
-        argument_to_csv(opcode.first_arg) + \
-        argument_to_csv(opcode.second_arg) + [
-            str(opcode.length), str(opcode.duration), str(opcode.duration_no_action),
-            opcode.z_flag.value, opcode.n_flag.value, opcode.h_flag.value, opcode.c_flag.value,
+def gb_instruction_to_csv(instruction: GbInstruction) -> List[str]:
+    return [str(instruction.value), instruction.type_.value] + \
+           argument_to_csv(instruction.first_arg) + \
+           argument_to_csv(instruction.second_arg) + [
+            str(instruction.length), str(instruction.duration), str(instruction.duration_no_action),
+            instruction.zero_flag.value, instruction.add_sub_flag.value, instruction.half_carry_flag.value, instruction.carry_flag.value,
     ]
 
 
-def gb_opcode_from_csv(csv_strs: List[str]) -> GbOpcode:
-    return GbOpcode(
+def gb_instruction_from_csv(csv_strs: List[str]) -> GbInstruction:
+    return GbInstruction(
         int(csv_strs[0]),
         INSTRUCTION_TYPE_MAP[csv_strs[1]],
-        argument_from_csv(csv_strs[2:6]),
-        argument_from_csv(csv_strs[6:10]),
-        int(csv_strs[10]),
-        int(csv_strs[11]),
+        argument_from_csv(csv_strs[2:7]),
+        argument_from_csv(csv_strs[7:12]),
         int(csv_strs[12]),
-        FLAG_ACTION_MAP[csv_strs[13]],
-        FLAG_ACTION_MAP[csv_strs[14]],
+        int(csv_strs[13]),
+        int(csv_strs[14]),
         FLAG_ACTION_MAP[csv_strs[15]],
         FLAG_ACTION_MAP[csv_strs[16]],
+        FLAG_ACTION_MAP[csv_strs[17]],
+        FLAG_ACTION_MAP[csv_strs[18]],
     )
 
 
-def write_gb_opcode_to_csv(filepath, opcodes):
+def write_gb_instruction_to_csv(filepath, opcodes):
     with open(filepath, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file, delimiter=",")
         writer.writerow(GB_OPCODE_HEADER)
         for opcode in opcodes:
-            writer.writerow(gb_opcode_to_csv(opcode))
+            writer.writerow(gb_instruction_to_csv(opcode))
 
 
-def read_opcode_csv(filepath):
+def read_instruction_csv(filepath) -> List[GbInstruction]:
     with open(filepath, 'r', newline='') as csv_file:
         next(csv_file)
         reader = csv.reader(csv_file, delimiter=",")
 
-        return [gb_opcode_from_csv(csv_strs) for csv_strs in reader]
+        return [gb_instruction_from_csv(csv_strs) for csv_strs in reader]

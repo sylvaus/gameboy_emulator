@@ -3,11 +3,10 @@ import urllib.request
 from html.parser import HTMLParser
 from typing import List
 
-from gb_opcode import GbOpcode, InstructionType, FlagAction, SPECIAL_MNEMONIC_MAP, REGISTERS_NAMES, \
+from gbinstruction import GbInstruction, InstructionType, FlagAction, SPECIAL_MNEMONIC_MAP, REGISTERS_NAME_SIZES, \
     IMMEDIATE_8_BITS_NAME, IMMEDIATE_16_BITS_NAME, UNSIGNED_8_BIT_NAME, ADDRESS_16_BIT_NAME, PC_INCREMENT_8_BIT_NAME, \
     ArgumentType, Argument, INDICATION_NAME, INSTRUCTION_TYPE_MAP, \
-    write_gb_opcode_to_csv
-
+    write_gb_instruction_to_csv
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,16 +15,20 @@ def _make_argument_from_str(argument_str):
     is_address = "(" in argument_str
     name = argument_str.strip("() ")
     value = None
-    if name in REGISTERS_NAMES:
+    nb_bytes = 1
+    if name in REGISTERS_NAME_SIZES:
         type_ = ArgumentType.REGISTER
+        nb_bytes = REGISTERS_NAME_SIZES[name]
     elif name == IMMEDIATE_8_BITS_NAME:
         type_ = ArgumentType.IMMEDIATE_8_BITS
     elif name == IMMEDIATE_16_BITS_NAME:
         type_ = ArgumentType.IMMEDIATE_16_BITS
+        nb_bytes = 2
     elif name == UNSIGNED_8_BIT_NAME:
         type_ = ArgumentType.UNSIGNED_8_BIT
     elif name == ADDRESS_16_BIT_NAME:
         type_ = ArgumentType.ADDRESS_16_BIT
+        nb_bytes = 2
     elif name == PC_INCREMENT_8_BIT_NAME:
         type_ = ArgumentType.PC_INCREMENT_8_BIT
     elif name == INDICATION_NAME:
@@ -34,7 +37,7 @@ def _make_argument_from_str(argument_str):
         type_ = ArgumentType.VALUE
         value = int(name.strip("H"), 16 if "H" in name else 10)
 
-    return Argument(type_, is_address, name, value)
+    return Argument(type_, is_address, nb_bytes, name, value)
 
 
 FLAG_MAP = {"1": FlagAction.SET, "0": FlagAction.RESET, "-": FlagAction.NONE}
@@ -52,10 +55,10 @@ class OpcodeHTMLParser(HTMLParser):
         self._col = 0
         self._row = 0
         self._data = []
-        self._opcodes: List[GbOpcode] = []
+        self._opcodes: List[GbInstruction] = []
 
     @property
-    def opcodes(self) -> List[GbOpcode]:
+    def opcodes(self) -> List[GbInstruction]:
         return self._opcodes
 
     def handle_starttag(self, tag, attrs):
@@ -89,7 +92,7 @@ class OpcodeHTMLParser(HTMLParser):
     def _handle_opcode(self):
         value = self._table_nb * 0x100 + (self._row - 1) * 0x10 + (self._col - 1)
         if len(self._data) != 3:
-            self._opcodes.append(GbOpcode(
+            self._opcodes.append(GbInstruction(
                 value, InstructionType.UNKNOWN, None, None, 1, 1, 1
                 , FlagAction.NONE, FlagAction.NONE, FlagAction.NONE, FlagAction.NONE
             ))
@@ -100,7 +103,7 @@ class OpcodeHTMLParser(HTMLParser):
         if (name, argument_strs) in SPECIAL_MNEMONIC_MAP:
             name, argument_strs = SPECIAL_MNEMONIC_MAP[name, argument_strs]
 
-        instruction = INSTRUCTION_TYPE_MAP[name]
+        type_ = INSTRUCTION_TYPE_MAP[name]
         arguments = {i: _make_argument_from_str(argument_str) for i, argument_str in enumerate(argument_strs)}
 
         length, *durations = map(int, self._data[1].strip().replace("/", " ").split())
@@ -114,8 +117,12 @@ class OpcodeHTMLParser(HTMLParser):
             self._data[2].split()
         )
 
-        self._opcodes.append(GbOpcode(
-            value, instruction, arguments.get(0), arguments.get(1),
+        # Issue in the source
+        if value in {0xE2, 0xF2}:
+            length = 1
+
+        self._opcodes.append(GbInstruction(
+            value, type_, arguments.get(0), arguments.get(1),
             length, duration, duration_no_action,
             z_flag, n_flag, h_flag, c_flag
         ))
@@ -129,7 +136,7 @@ def main():
         parser = OpcodeHTMLParser()
         parser.feed(f.read().decode())
 
-    write_gb_opcode_to_csv(os.path.join(THIS_FOLDER, "opcodes.csv"), parser.opcodes)
+    write_gb_instruction_to_csv(os.path.join(THIS_FOLDER, "instructions.csv"), parser.opcodes)
 
 
 if __name__ == '__main__':
