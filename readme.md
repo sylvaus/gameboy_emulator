@@ -13,6 +13,7 @@ TODO
 
 Resources
 ---------
+* [Gameboy Programming Manual](https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf)
 * [Game Boy technical reference](https://gbdev.io/pandocs/#video-display)
 * [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 * [Rust implementation](https://mattbruv.github.io/gameboy-crust/)

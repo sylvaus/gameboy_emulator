@@ -22,11 +22,13 @@ namespace emulator
             CartridgeType cartridge_type
         );
 
-        virtual void set_rom(uint32_t address, uint8_t value) = 0;
-        virtual void set_ram(uint32_t address, uint8_t value) = 0;
-
-        [[nodiscard]] virtual uint8_t get_rom(uint32_t  address) const = 0;
-        [[nodiscard]] virtual uint8_t get_ram(uint32_t  address) const = 0;
+        virtual void set(uint32_t address, uint8_t value) = 0;
+        void set16bits(uint32_t address, uint16_t value)
+        {
+            set(address, value & 0xFF);
+            set(address + 1, (value >> 8) & 0xFF);
+        }
+        [[nodiscard]] virtual uint8_t get(uint32_t  address) const = 0;
 
         virtual ~MemoryController() = default;
 
@@ -54,11 +56,9 @@ namespace emulator
                 CartridgeType cartridge_type
         );
 
-        void set_rom(uint32_t address, uint8_t value) override;
-        void set_ram(uint32_t address, uint8_t value) override;
+        void set(uint32_t address, uint8_t value) override;
 
-        [[nodiscard]]  uint8_t get_rom(uint32_t  address) const;
-        [[nodiscard]]  uint8_t get_ram(uint32_t  address) const;
+        [[nodiscard]]  uint8_t get(uint32_t  address) const;
     private:
         static Logger LOGGER;
     };

@@ -31,39 +31,14 @@ namespace emulator
     ): MemoryController(std::move(first_rom), rom_banks, nb_ram_banks, cartridge_type)
     {}
 
-    void MemoryControllerNoExternal::set_rom(uint32_t address, uint8_t value)
+    void MemoryControllerNoExternal::set(uint32_t address, uint8_t value)
     {
-        if (address < START_ROM_1_N)
-            first_rom_->data[address] = value;
-        rom_banks_[0][address - START_ROM_1_N] = value;
+        // TODO
     }
 
-    void MemoryControllerNoExternal::set_ram(uint32_t address, uint8_t value)
+    uint8_t MemoryControllerNoExternal::get(uint32_t address) const
     {
-        if (external_ram_banks_.empty())
-        {
-            LOGGER.warn("Trying to set value in non existing ram");
-            return;
-        }
-
-        external_ram_banks_[0][address - START_EXT_RAM] = value;
-    }
-
-    uint8_t MemoryControllerNoExternal::get_rom(uint32_t address) const
-    {
-        if (address < START_ROM_1_N)
-            return first_rom_->data[address];
-        return rom_banks_[0][address - START_ROM_1_N];
-    }
-
-    uint8_t MemoryControllerNoExternal::get_ram(uint32_t address) const
-    {
-        if (external_ram_banks_.empty())
-        {
-            LOGGER.warn("Trying to access non existing ram");
-            return 0xFF;
-        }
-
-        return external_ram_banks_[0][address - START_EXT_RAM];
+        // TODO
+        return 0;
     }
 }

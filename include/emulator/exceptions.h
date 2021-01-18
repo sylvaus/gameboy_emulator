@@ -11,7 +11,7 @@ namespace emulator
         BaseEmulatorException(): BaseEmulatorException("Error happened") {};
         explicit BaseEmulatorException(std::string what): what_(std::move(what)) {};
 
-        [[nodiscard]] const char * what () const noexcept override {
+        [[nodiscard]] const char* what () const noexcept override {
             return what_.c_str();
         }
     private:

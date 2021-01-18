@@ -6,7 +6,7 @@ namespace emulator
 {
     union CPURegisters
     {
-        uint16_t data[8];
+        uint16_t data[6];
         struct
         {
             union
@@ -14,12 +14,19 @@ namespace emulator
                 uint16_t AF;
                 struct
                 {
+                    union
+                    {
+                        uint8_t F;
+                        struct
+                        {
+                            uint8_t unused: 4;
+                            bool cy: 1;
+                            bool h: 1;
+                            bool n: 1;
+                            bool zf: 1;
+                        };
+                    };
                     uint8_t A;
-                    uint8_t unused:4;
-                    uint8_t cy:1;
-                    uint8_t h:1;
-                    uint8_t n:1;
-                    uint8_t zf:1;
                 };
             };
             union
@@ -27,8 +34,8 @@ namespace emulator
                 uint16_t BC;
                 struct
                 {
-                    uint8_t B;
                     uint8_t C;
+                    uint8_t B;
                 };
             };
             union
@@ -36,8 +43,8 @@ namespace emulator
                 uint16_t DE;
                 struct
                 {
-                    uint8_t D;
                     uint8_t E;
+                    uint8_t D;
                 };
             };
             union
@@ -45,12 +52,12 @@ namespace emulator
                 uint16_t HL;
                 struct
                 {
-                    uint8_t H;
                     uint8_t L;
+                    uint8_t H;
                 };
             };
-            uint32_t SP;
-            uint32_t PC;
+            uint16_t SP;
+            uint16_t PC;
         };
 
     };
