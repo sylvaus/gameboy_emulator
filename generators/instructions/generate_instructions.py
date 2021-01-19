@@ -1,10 +1,18 @@
 import os
 from dataclasses import dataclass
 from typing import Dict, Callable, Optional, Tuple, List
+from collections import OrderedDict
 
 from gbinstruction import read_instruction_csv, InstructionType, GbInstruction, Argument, ArgumentType, FlagAction
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+PROJECT_FOLDER = os.path.abspath(os.path.join(THIS_FOLDER, "..", ".."))
+
+FILE_NAME = "instructions"
+GENERATED_FOLDER_NAME = "generated"
+SRC_FILE = os.path.join(PROJECT_FOLDER, "src", GENERATED_FOLDER_NAME, f"{FILE_NAME}.cpp")
+INCLUDE_FILE = os.path.join(PROJECT_FOLDER, "include", "emulator", GENERATED_FOLDER_NAME, f"{FILE_NAME}.h")
+NAMESPACE = "emulator::generated"
 
 INDENT = "    "
 
@@ -14,9 +22,8 @@ FLAG_ADD_SUB_OFFSET = 6
 FLAG_ZERO_OFFSET = 7
 FLAG_CARRY = "FLAG_CARRY"
 FLAG_HALF_CARRY = "FLAG_HALF_CARRY"
-FLAG_ADD_SUB = "FLAG_CARRY"
-FLAG_ZERO = "FLAG_CARRY"
-
+FLAG_ADD_SUB = "FLAG_AD_SUB"
+FLAG_ZERO = "FLAG_ZERO"
 
 CONSTANTS = f"""constexpr uint8_t {FLAG_CARRY} = {FLAG_CARRY_OFFSET};
 constexpr uint8_t {FLAG_HALF_CARRY} = {FLAG_HALF_CARRY_OFFSET};
@@ -34,13 +41,13 @@ ARGUMENT_STRUCT = f"""union {ARGUMENT_STRUCT_NAME}
         uint8_t uint8;
         uint8_t unused;
     }};
-}}"""
+}};"""
 
 ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
 MEMORY_CONTROLLER = "controller"
 OPCODE_FUNC_ARGUMENTS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
-                        f"CPURegisters& {REGISTERS}, MemoryController& {MEMORY_CONTROLLER})"
+                        f"emulator::Registers& {REGISTERS}, emulator::MemoryController& {MEMORY_CONTROLLER})"
 
 ARGUMENT_UINT8 = f"{ARGUMENT_NAME}.uint8"
 ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
@@ -49,22 +56,31 @@ REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
 REGISTERS_PROGRAM_COUNTER = f"{REGISTERS}.PC"
 REGISTERS_HL = f"{REGISTERS}.HL"
 
+SRC_HEADER = f"""#pragma once\n
+#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n
+{CONSTANTS}\n\n"""
+
+INCLUDE_HEADER = f"""#include <cstdint>
+#include "emulator/registers.h"
+#include "emulator/memory_controller.h"\n\n"""
+
 
 @dataclass
-class GbOpcodeFunction:
+class InstructionFunction:
     name: str
-    code: str
-    opcode: GbInstruction
+    declaration: str
+    definition: str
+    instruction: GbInstruction
 
     @property
     def instruction_opcode(self):
-        return self.opcode.value
+        return self.instruction.value
 
     def instruction_length(self):
-        return self.opcode.length
+        return self.instruction.length
 
 
-GENERATORS: Dict[InstructionType, Callable[[GbInstruction], GbOpcodeFunction]] = {}
+GENERATORS: Dict[InstructionType, Callable[[GbInstruction], InstructionFunction]] = OrderedDict()
 
 
 def register_generator(*instructions: InstructionType):
@@ -87,23 +103,29 @@ def get_argument_name(argument: Argument):
     return name
 
 
+def indent_code(code: str) -> str:
+    return indent_code_lines(code.splitlines(False))
+
+
+def indent_code_lines(code_lines: List[str]) -> str:
+    return INDENT + f"\n{INDENT}".join(code_lines)
+
+
 def make_function(
         instruction: GbInstruction, code: str, remove_pc_update: bool = False, remove_duration_return: bool = False
-) -> GbOpcodeFunction:
-
-    func_name = f"{instruction.type_.value.lower()}_{instruction.value}"
-
+) -> InstructionFunction:
     code_lines = code.splitlines(False)
     if not remove_pc_update:
         code_lines.append(f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};")
     if not remove_duration_return:
         code_lines.append(f"return {instruction.duration};")
 
-    tabbed_code = f"\n{INDENT}".join(code_lines)
-    func = f"uint16_t {func_name}{OPCODE_FUNC_ARGUMENTS} // {instruction.short_repr}\n" \
-           f"{{\n{INDENT}{tabbed_code}\n}}"
+    func_name = f"{instruction.type_.value.lower()}_{instruction.value:03x}"
+    signature = f"uint16_t {func_name}{OPCODE_FUNC_ARGUMENTS}"
+    declaration = f"{signature}; // {instruction.short_repr}"
+    definition = f"{signature} // {instruction.short_repr}\n{{\n{indent_code_lines(code_lines)}\n}}"
 
-    return GbOpcodeFunction(func_name, func, instruction)
+    return InstructionFunction(func_name, declaration, definition, instruction)
 
 
 def make_get_code(argument: Argument, address_offset: Optional[str] = None):
@@ -154,8 +176,8 @@ def make_set_code(
     if dst.type_ == ArgumentType.REGISTER:
         return f"{REGISTERS}.{dst.name} = {code_value}"
     elif dst.type_ in {
-            ArgumentType.IMMEDIATE_8_BITS, ArgumentType.IMMEDIATE_16_BITS, ArgumentType.UNSIGNED_8_BIT,
-            ArgumentType.ADDRESS_16_BIT, ArgumentType.PC_INCREMENT_8_BIT, ArgumentType.VALUE, ArgumentType.INDICATION}:
+        ArgumentType.IMMEDIATE_8_BITS, ArgumentType.IMMEDIATE_16_BITS, ArgumentType.UNSIGNED_8_BIT,
+        ArgumentType.ADDRESS_16_BIT, ArgumentType.PC_INCREMENT_8_BIT, ArgumentType.VALUE, ArgumentType.INDICATION}:
         raise RuntimeError(f"Argument Type cannot be a destination for set {dst.type_}")
 
     raise RuntimeError(f"Unknown Destination Argument Type {dst.type_}")
@@ -186,8 +208,8 @@ def make_add_sub_flag_code(instruction: GbInstruction, is_add: bool) -> Tuple[st
 
     return (
         f"result & {carry_max_value}",
-        f"int32_t lhs = {make_get_code(instruction.first_arg)};\n" 
-        f"int32_t rhs = {make_get_code(instruction.second_arg)};\n" 
+        f"int32_t lhs = {make_get_code(instruction.first_arg)};\n"
+        f"int32_t rhs = {make_get_code(instruction.second_arg)};\n"
         f"int32_t result = lhs {sign} rhs;\n"
         f"{make_flag_code(instruction, flags)}"
     )
@@ -206,18 +228,18 @@ def make_flag_code(instruction: GbInstruction, flags: List[str]) -> str:
 
     additional_flags = ' +\n    '.join(flags)
     return (
-        f"{REGISTERS_FLAGS} &= {current_flag_mask};\n" 
+        f"{REGISTERS_FLAGS} &= {current_flag_mask};\n"
         f"{REGISTERS_FLAGS} |= {initial_flag:08b} +\n    {additional_flags};"
     )
 
 
 @register_generator(InstructionType.NOP)
-def nop_generator(instruction: GbInstruction) -> GbOpcodeFunction:
+def nop_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_function(instruction, "// Nothing to be done")
 
 
 @register_generator(InstructionType.UNKNOWN)
-def unknown_generator(instruction: GbInstruction) -> GbOpcodeFunction:
+def unknown_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_function(
         instruction,
         f"""throw std::runtime_error("Unknown opcode 0x{instruction.value:X}");""",
@@ -228,7 +250,7 @@ def unknown_generator(instruction: GbInstruction) -> GbOpcodeFunction:
 @register_generator(
     InstructionType.LD, InstructionType.LDI, InstructionType.LDD, InstructionType.LDH, InstructionType.LDSpecialC
 )
-def ld_generator(instruction: GbInstruction) -> GbOpcodeFunction:
+def ld_generator(instruction: GbInstruction) -> InstructionFunction:
     address_offset = "0xFF00" if instruction.type_ in {InstructionType.LDH, InstructionType.LDSpecialC} else None
 
     code = f"{make_set_code(instruction.first_arg, instruction.second_arg, address_offset, address_offset)};"
@@ -241,18 +263,32 @@ def ld_generator(instruction: GbInstruction) -> GbOpcodeFunction:
 
 
 @register_generator(InstructionType.LDHL)
-def ldhl_generator(instruction: GbInstruction) -> GbOpcodeFunction:
+def ldhl_generator(instruction: GbInstruction) -> InstructionFunction:
     result_value, code = make_add_sub_flag_code(instruction, True)
     code = f"{code}\n{REGISTERS_HL} = {result_value};"
 
     return make_function(instruction, code)
 
 
+def put_code_in_namespace(code: str) -> str:
+    return f"namespace {NAMESPACE}\n{{\n{indent_code(code)}\n}}"
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
-    for instruction in instructions:
-        if instruction.type_ in GENERATORS:
-            print(GENERATORS[instruction.type_](instruction).code)
+    functions = [
+        GENERATORS[instruction.type_](instruction)
+        for instruction in instructions if instruction.type_ in GENERATORS
+    ]
+
+    with open(INCLUDE_FILE, "w") as f:
+        f.write(INCLUDE_HEADER)
+        code = f"{ARGUMENT_STRUCT}\n\n" + "\n\n".join(func.declaration for func in functions)
+        f.write(put_code_in_namespace(code))
+
+    with open(SRC_FILE, "w") as f:
+        f.write(SRC_HEADER)
+        f.write(put_code_in_namespace("\n\n".join(func.definition for func in functions)))
 
 
 if __name__ == '__main__':

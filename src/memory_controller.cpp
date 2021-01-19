@@ -2,33 +2,13 @@
 
 namespace emulator
 {
-    MemoryController::MemoryController(
+    MemoryControllerNoExternal::MemoryControllerNoExternal(
         unique_ptr<FirstRomBank> first_rom,
         vector<RomBank> &rom_banks,
         uint8_t nb_ram_banks,
         CartridgeType cartridge_type
     ): first_rom_(std::move(first_rom)), rom_banks_(std::move(rom_banks)),
        external_ram_banks_(nb_ram_banks), cartridge_type_(cartridge_type)
-    {}
-
-    Logger MemoryControllerNoExternal::LOGGER = Logging::get_logger("MemoryControllerNoExternal");
-
-    std::unique_ptr<MemoryController>
-    MemoryControllerNoExternal::create(
-        unique_ptr<FirstRomBank> first_rom,
-        vector<RomBank> &rom_banks,
-        uint8_t nb_ram_banks,
-        CartridgeType cartridge_type)
-    {
-        return std::make_unique<MemoryControllerNoExternal>(std::move(first_rom), rom_banks, nb_ram_banks, cartridge_type);
-    }
-
-    MemoryControllerNoExternal::MemoryControllerNoExternal(
-        unique_ptr<FirstRomBank> first_rom,
-        vector<RomBank> &rom_banks,
-        uint8_t nb_ram_banks,
-        CartridgeType cartridge_type
-    ): MemoryController(std::move(first_rom), rom_banks, nb_ram_banks, cartridge_type)
     {}
 
     void MemoryControllerNoExternal::set(uint32_t address, uint8_t value)

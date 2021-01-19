@@ -4,7 +4,7 @@
 
 namespace emulator
 {
-    union CPURegisters
+    union Registers
     {
         uint16_t data[6];
         struct

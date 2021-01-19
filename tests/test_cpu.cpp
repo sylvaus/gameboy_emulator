@@ -1,13 +1,13 @@
 #include "gtest/gtest.h"
-#include "emulator/cpu.h"
+#include "emulator/registers.h"
 
-using emulator::CPURegisters;
+using emulator::Registers;
 
 namespace
 {
     TEST(CPUTest, CPU)
     {
-        CPURegisters registers{{0x1234, 0x1598, 0x3578, 0x4568, 0x3219, 0x4571}};
+        Registers registers{{0x1234, 0x1598, 0x3578, 0x4568, 0x3219, 0x4571}};
         EXPECT_EQ(0x1234, registers.AF);
         EXPECT_EQ(0x1598, registers.BC);
         EXPECT_EQ(0x3578, registers.DE);
@@ -18,7 +18,7 @@ namespace
 
     TEST(CPUTest, CPUAF)
     {
-        CPURegisters registers{};
+        Registers registers{};
         registers.AF = 0x1234;
         EXPECT_EQ(0x12, registers.A);
         EXPECT_EQ(0x34, registers.F);
@@ -39,7 +39,7 @@ namespace
 
     TEST(CPUTest, CPUBC)
     {
-        CPURegisters registers{};
+        Registers registers{};
         registers.BC = 0x1234;
         EXPECT_EQ(0x12, registers.B);
         EXPECT_EQ(0x34, registers.C);
@@ -50,7 +50,7 @@ namespace
 
     TEST(CPUTest, CPUDE)
     {
-        CPURegisters registers{};
+        Registers registers{};
         registers.DE = 0x1234;
         EXPECT_EQ(0x12, registers.D);
         EXPECT_EQ(0x34, registers.E);
@@ -61,7 +61,7 @@ namespace
 
     TEST(CPUTest, CPUHL)
     {
-        CPURegisters registers{};
+        Registers registers{};
         registers.HL = 0x1234;
         EXPECT_EQ(0x12, registers.H);
         EXPECT_EQ(0x34, registers.L);
