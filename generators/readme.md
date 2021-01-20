@@ -1,9 +1,9 @@
-GameBoy Instruction Set 
-========================
+Generators
+===========
 
 Introduction 
 ------------
-This python code generates c++ functions to be able to handle the GameBoy instruction set
+This python code generates c++ functions to be able to handle the GameBoy instruction set and memory layout
 
 
 Main Sources 

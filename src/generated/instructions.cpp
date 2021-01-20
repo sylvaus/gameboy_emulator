@@ -26,7 +26,7 @@ namespace emulator::generated
     
     uint16_t ld_002(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x2 LD (BC), A
     {
-        controller.set16bits(controller.get(registers.BC), registers.A);
+        controller.set(controller.get(registers.BC), registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -68,7 +68,7 @@ namespace emulator::generated
     
     uint16_t ld_012(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x12 LD (DE), A
     {
-        controller.set16bits(controller.get(registers.DE), registers.A);
+        controller.set(controller.get(registers.DE), registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -103,7 +103,7 @@ namespace emulator::generated
     
     uint16_t ldi_022(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x22 LDI (HL), A
     {
-        controller.set16bits(controller.get(registers.HL), registers.A);
+        controller.set(controller.get(registers.HL), registers.A);
         ++registers.HL;
         registers.PC += 1;
         return 8;
@@ -140,7 +140,7 @@ namespace emulator::generated
     
     uint16_t ldd_032(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x32 LDD (HL), A
     {
-        controller.set16bits(controller.get(registers.HL), registers.A);
+        controller.set(controller.get(registers.HL), registers.A);
         --registers.HL;
         registers.PC += 1;
         return 8;
@@ -148,7 +148,7 @@ namespace emulator::generated
     
     uint16_t ld_036(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x36 LD (HL), d8
     {
-        controller.set16bits(controller.get(registers.HL), arguments.uint8);
+        controller.set(controller.get(registers.HL), arguments.uint8);
         registers.PC += 2;
         return 12;
     }
@@ -506,49 +506,49 @@ namespace emulator::generated
     
     uint16_t ld_070(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x70 LD (HL), B
     {
-        controller.set16bits(controller.get(registers.HL), registers.B);
+        controller.set(controller.get(registers.HL), registers.B);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_071(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x71 LD (HL), C
     {
-        controller.set16bits(controller.get(registers.HL), registers.C);
+        controller.set(controller.get(registers.HL), registers.C);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_072(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x72 LD (HL), D
     {
-        controller.set16bits(controller.get(registers.HL), registers.D);
+        controller.set(controller.get(registers.HL), registers.D);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_073(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x73 LD (HL), E
     {
-        controller.set16bits(controller.get(registers.HL), registers.E);
+        controller.set(controller.get(registers.HL), registers.E);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_074(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x74 LD (HL), H
     {
-        controller.set16bits(controller.get(registers.HL), registers.H);
+        controller.set(controller.get(registers.HL), registers.H);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_075(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x75 LD (HL), L
     {
-        controller.set16bits(controller.get(registers.HL), registers.L);
+        controller.set(controller.get(registers.HL), registers.L);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_077(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0x77 LD (HL), A
     {
-        controller.set16bits(controller.get(registers.HL), registers.A);
+        controller.set(controller.get(registers.HL), registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -650,7 +650,7 @@ namespace emulator::generated
     
     uint16_t ld_0ea(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0xEA LD (a16), A
     {
-        controller.set16bits(controller.get(arguments.uint16), registers.A);
+        controller.set(controller.get(arguments.uint16), registers.A);
         registers.PC += 3;
         return 16;
     }

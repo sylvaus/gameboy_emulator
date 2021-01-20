@@ -4,6 +4,7 @@ from typing import Dict, Callable, Optional, Tuple, List
 from collections import OrderedDict
 
 from gbinstruction import read_instruction_csv, InstructionType, GbInstruction, Argument, ArgumentType, FlagAction
+from utils.formatters import indent_code, make_function
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PROJECT_FOLDER = os.path.abspath(os.path.join(THIS_FOLDER, "..", ".."))
@@ -13,8 +14,6 @@ GENERATED_FOLDER_NAME = "generated"
 SRC_FILE = os.path.join(PROJECT_FOLDER, "src", GENERATED_FOLDER_NAME, f"{FILE_NAME}.cpp")
 INCLUDE_FILE = os.path.join(PROJECT_FOLDER, "include", "emulator", GENERATED_FOLDER_NAME, f"{FILE_NAME}.h")
 NAMESPACE = "emulator::generated"
-
-INDENT = "    "
 
 FLAG_CARRY_OFFSET = 4
 FLAG_HALF_CARRY_OFFSET = 5
@@ -103,15 +102,7 @@ def get_argument_name(argument: Argument):
     return name
 
 
-def indent_code(code: str) -> str:
-    return indent_code_lines(code.splitlines(False))
-
-
-def indent_code_lines(code_lines: List[str]) -> str:
-    return INDENT + f"\n{INDENT}".join(code_lines)
-
-
-def make_function(
+def make_instruction_function(
         instruction: GbInstruction, code: str, remove_pc_update: bool = False, remove_duration_return: bool = False
 ) -> InstructionFunction:
     code_lines = code.splitlines(False)
@@ -123,7 +114,7 @@ def make_function(
     func_name = f"{instruction.type_.value.lower()}_{instruction.value:03x}"
     signature = f"uint16_t {func_name}{OPCODE_FUNC_ARGUMENTS}"
     declaration = f"{signature}; // {instruction.short_repr}"
-    definition = f"{signature} // {instruction.short_repr}\n{{\n{indent_code_lines(code_lines)}\n}}"
+    definition = make_function(f"{signature} // {instruction.short_repr}", code_lines)
 
     return InstructionFunction(func_name, declaration, definition, instruction)
 
@@ -169,15 +160,15 @@ def make_set_code(
         if dst_address_offset:
             code_address = f"({code_address}) + {dst_address_offset}"
 
-        if (not value.is_address) and (dst.nb_bytes == 2):
+        if (not value.is_address) and (value.nb_bytes == 2):
             return f"{MEMORY_CONTROLLER}.set16bits({code_address}, {code_value})"
         return f"{MEMORY_CONTROLLER}.set({code_address}, {code_value})"
 
     if dst.type_ == ArgumentType.REGISTER:
         return f"{REGISTERS}.{dst.name} = {code_value}"
     elif dst.type_ in {
-        ArgumentType.IMMEDIATE_8_BITS, ArgumentType.IMMEDIATE_16_BITS, ArgumentType.UNSIGNED_8_BIT,
-        ArgumentType.ADDRESS_16_BIT, ArgumentType.PC_INCREMENT_8_BIT, ArgumentType.VALUE, ArgumentType.INDICATION}:
+            ArgumentType.IMMEDIATE_8_BITS, ArgumentType.IMMEDIATE_16_BITS, ArgumentType.UNSIGNED_8_BIT,
+            ArgumentType.ADDRESS_16_BIT, ArgumentType.PC_INCREMENT_8_BIT, ArgumentType.VALUE, ArgumentType.INDICATION}:
         raise RuntimeError(f"Argument Type cannot be a destination for set {dst.type_}")
 
     raise RuntimeError(f"Unknown Destination Argument Type {dst.type_}")
@@ -235,12 +226,12 @@ def make_flag_code(instruction: GbInstruction, flags: List[str]) -> str:
 
 @register_generator(InstructionType.NOP)
 def nop_generator(instruction: GbInstruction) -> InstructionFunction:
-    return make_function(instruction, "// Nothing to be done")
+    return make_instruction_function(instruction, "// Nothing to be done")
 
 
 @register_generator(InstructionType.UNKNOWN)
 def unknown_generator(instruction: GbInstruction) -> InstructionFunction:
-    return make_function(
+    return make_instruction_function(
         instruction,
         f"""throw std::runtime_error("Unknown opcode 0x{instruction.value:X}");""",
         remove_pc_update=True, remove_duration_return=True
@@ -259,7 +250,7 @@ def ld_generator(instruction: GbInstruction) -> InstructionFunction:
         code += f"\n++{REGISTERS_HL};"
     if instruction.type_ == InstructionType.LDD:
         code += f"\n--{REGISTERS_HL};"
-    return make_function(instruction, code)
+    return make_instruction_function(instruction, code)
 
 
 @register_generator(InstructionType.LDHL)
@@ -267,7 +258,7 @@ def ldhl_generator(instruction: GbInstruction) -> InstructionFunction:
     result_value, code = make_add_sub_flag_code(instruction, True)
     code = f"{code}\n{REGISTERS_HL} = {result_value};"
 
-    return make_function(instruction, code)
+    return make_instruction_function(instruction, code)
 
 
 def put_code_in_namespace(code: str) -> str:
