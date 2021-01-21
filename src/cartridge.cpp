@@ -16,10 +16,7 @@ namespace emulator
     using std::unique_ptr;
     using MemoryBankControllerPtr = std::unique_ptr<MemoryController>;
     using MemoryBankControllerProvider = std::function<MemoryBankControllerPtr(
-        unique_ptr<FirstRomBank>,
-        vector<RomBank>&,
-        uint8_t,
-        CartridgeType
+        vector<RomBank>&, uint8_t nb_ram_banks, CartridgeType
     )>;
 
     auto LOGGER = Logging::get_logger("Cartridge");
@@ -34,48 +31,18 @@ namespace emulator
         return rom_banks;
     }
 
-    MemoryBankControllerPtr providesNull(unique_ptr<FirstRomBank>, vector<RomBank>&, uint8_t, CartridgeType)
+    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t, CartridgeType)
     {
         return nullptr;
     }
 
+
+
     const UnMutableDefaultMap<MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
-    { &providesNull, {
+    {&provides_null, {
         {MemoryBankType::ROM_ONLY, &MemoryControllerNoExternal::create}
     }};
 
-    CartridgeType get_cartridge_type(FirstRomBank* rom_bank)
-    {
-        auto cartridge_type = rom_bank->get_cartridge_type();
-        if (cartridge_type.type == MemoryBankType::UNKNOWN)
-            throw LoadCartridgeError(
-                "Could not load the cartridge, the cartridge type is unknown: " +
-                std::to_string(rom_bank->cartridge_type)
-            );
-        return cartridge_type;
-    }
-
-    uint16_t get_nb_rom_banks(FirstRomBank* rom_bank)
-    {
-        auto nb_rom_banks = rom_bank->get_nb_rom_banks();
-        if (nb_rom_banks == INVALID_ROM_BANK_NB)
-            throw LoadCartridgeError(
-                "Could not load the cartridge, the rom size is unknown: " +
-                std::to_string(rom_bank->rom_size)
-            );
-        return nb_rom_banks;
-    }
-
-    uint8_t get_nb_ram_banks(FirstRomBank* rom_bank)
-    {
-        auto nb_ram_banks = rom_bank->get_nb_ram_banks();
-        if (nb_ram_banks == INVALID_RAM_BANK_NB)
-            throw LoadCartridgeError(
-                "Could not load the cartridge, the ram size is unknown: " +
-                std::to_string(rom_bank->ram_size)
-            );
-        return nb_ram_banks;
-    }
 
     MemoryBankControllerPtr load_cartridge(const std::string &filename)
     {
@@ -83,21 +50,19 @@ namespace emulator
         if (!stream.is_open())
             throw LoadCartridgeError("Could not open the file with the given path" + filename);
 
-        auto rom_bank =  std::make_unique<FirstRomBank>();
-        stream.read(reinterpret_cast<char *>(rom_bank->data), ROM_BANK_SIZE);
+        auto rom_banks =  vector<RomBank>(1);
+        stream.read(reinterpret_cast<char *>(rom_banks[0]), ROM_BANK_SIZE);
 
-        LOGGER.debug("Name of the game: " + rom_bank->get_title());
-        LOGGER.debug("Rom size: " + ROM_SIZE_NAME_MAP.get(rom_bank->get_rom_size()));
-        LOGGER.debug("Ram size: " + RAM_SIZE_NAME_MAP.get(rom_bank->get_ram_size()));
+        LOGGER.debug("Name of the game: " + get_title(rom_banks[0]));
+        LOGGER.debug("Rom size: " + ROM_SIZE_NAME_MAP.get(get_rom_size(rom_banks[0])));
+        LOGGER.debug("Ram size: " + RAM_SIZE_NAME_MAP.get(get_ram_size(rom_banks[0])));
 
-        const auto cartridge_type = get_cartridge_type(rom_bank.get());
-        const auto nb_rom_banks = get_nb_rom_banks(rom_bank.get());
-        const auto nb_ram_banks = get_nb_ram_banks(rom_bank.get());
+        const auto cartridge_type = get_cartridge_type(rom_banks[0]);
+        const auto nb_rom_banks = get_nb_rom_banks(rom_banks[0]);
+        const auto nb_ram_banks = get_nb_ram_banks(rom_banks[0]);
 
         auto roms = load_roms(stream, nb_rom_banks);
 
-        return MEMORY_CONTROLLER_MAP.get(cartridge_type.type)(
-            std::move(rom_bank), roms, nb_ram_banks, cartridge_type
-        );
+        return MEMORY_CONTROLLER_MAP.get(cartridge_type.type)(roms, nb_ram_banks, cartridge_type);
     }
 }

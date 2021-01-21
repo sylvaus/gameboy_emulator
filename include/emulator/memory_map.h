@@ -153,6 +153,8 @@ namespace emulator
         S2KB,
         S8KB,
         S32KB,
+        S128KB,
+        S64KB,
     };
     const UnMutableDefaultMap<uint8_t, RAMSize> RAM_SIZE_MAP
     { RAMSize::UNKNOWN, {
@@ -160,6 +162,8 @@ namespace emulator
         {0x01, RAMSize::S2KB},
         {0x02, RAMSize::S8KB},
         {0x03, RAMSize::S32KB},
+        {0x04, RAMSize::S128KB},
+        {0x05, RAMSize::S64KB},
     }};
     const UnMutableDefaultMap<RAMSize, std::string> RAM_SIZE_NAME_MAP
     { "Unknown Ram Size", {
@@ -167,6 +171,8 @@ namespace emulator
         {RAMSize::S2KB, "2KB External ram"},
         {RAMSize::S8KB, "8KB External ram"},
         {RAMSize::S32KB, "32KB External ram"},
+        {RAMSize::S8KB, "128KB External ram"},
+        {RAMSize::S32KB, "64KB External ram"},
     }};
 
     const uint8_t INVALID_RAM_BANK_NB = 0xFF;
@@ -176,6 +182,8 @@ namespace emulator
         {RAMSize::S2KB, 1},
         {RAMSize::S8KB, 1},
         {RAMSize::S32KB, 4},
+        {RAMSize::S128KB, 16},
+        {RAMSize::S64KB, 8},
     }};
 
     enum class DESTINATION_CODE
@@ -448,52 +456,51 @@ namespace emulator
 
     using RomBank = uint8_t[ROM_BANK_SIZE];
     using VideoRam = uint8_t[0x2000];
-    using ExternalRam = uint8_t[0x2000];
+    using RamBank = uint8_t[0x2000];
     using WorkRamBank = uint8_t[0x2000];
     using EchoRamBank = uint8_t[0x1E00];
     using SpriteAttributeTable = uint8_t[0xA0];
     using HighRam = uint8_t[0x7F];
 
-    const uint8_t SHORT_TITLE_SIZE = 0xB;
-    union FirstRomBank
-    {
-        RomBank data;
-        struct
-        {
-            uint8_t undefined[0x100];
-            uint8_t entry_point[4];                     // 0x0100-103
-            uint8_t logo[0x30];                         // 0x0104-133
-            union
-            {
-                char title[0x10];                       // 0x0134-143
-                struct
-                {
-                    char short_title[SHORT_TITLE_SIZE];              // 0x0134-13E
-                    uint8_t manufacturer_code[4];       // 0x013F-142
-                    uint8_t cbg_flag;                   // 0x0143
-                };
-            };
-            uint8_t new_licensee_code[2];               // 0x0144-145
-            uint8_t sgb_flag;                           // 0x0146
-            uint8_t cartridge_type;                     // 0x0147
-            uint8_t rom_size;                           // 0x0148
-            uint8_t ram_size;                           // 0x0149
-            uint8_t destination_code;                   // 0x014A
-            uint8_t old_license_code;                   // 0x014B
-            uint8_t mask_rom_version_number;            // 0x014C
-            uint8_t header_checksum;                    // 0x014D
-            uint8_t global_checksum[2];                 // 0x014E-14F
-            uint8_t undefined2[0x3EB0];
-        };
+    constexpr uint16_t ADDRESS_ENTRY_POINT = 0x100;
+    constexpr uint16_t ADDRESS_LOGO = 0x104;
+    constexpr uint8_t  SIZE_LOGO = 0x30;
+    constexpr uint16_t ADDRESS_TITLE = 0x134;
+    constexpr uint8_t SIZE_TITLE = 0x10;
+    constexpr uint16_t ADDRESS_SHORT_TITLE = 0x134;
+    const uint8_t SIZE_SHORT_TITLE = 0xB;
+    constexpr uint16_t ADDRESS_MANUFACTURER_CODE = 0x13F;
+    constexpr uint8_t SIZE_MANUFACTURER_CODE = 0x4;
+    constexpr uint16_t ADDRESS_CBG_FLAG = 0x143;
+    constexpr uint16_t ADDRESS_NEW_LICENSEE_CODE = 0x144;
+    constexpr uint8_t SIZE_NEW_LICENSEE_CODE = 0x2;
+    constexpr uint16_t ADDRESS_SGB_FLAG = 0x146;
+    constexpr uint16_t ADDRESS_CARTRIDGE_TYPE = 0x147;
+    constexpr uint16_t ADDRESS_ROM_SIZE = 0x148;
+    constexpr uint16_t ADDRESS_RAM_SIZE = 0x149;
+    constexpr uint16_t ADDRESS_DESTINATION_CODE = 0x14A;
+    constexpr uint16_t ADDRESS_OLD_LICENSE_CODE = 0x14B;
+    constexpr uint16_t ADDRESS_MASK_ROM_VERSION_NUMBER = 0x14C;
+    constexpr uint16_t ADDRESS_HEADER_CHECKSUM = 0x14D;
+    constexpr uint16_t ADDRESS_GLOBAL_CHECKSUM = 0x14E;
+    constexpr uint8_t SIZE_GLOBAL_CHECKSUM = 0x2;
 
-        CartridgeType get_cartridge_type() const;
-        ROMSize get_rom_size() const;
-        uint16_t get_nb_rom_banks() const;
-        RAMSize get_ram_size() const;
-        uint8_t get_nb_ram_banks() const;
-        std::string get_title() const;
-    };
-
+    CartridgeType get_cartridge_type(const RomBank& rom);
+    ROMSize get_rom_size(const RomBank& rom);
+    uint16_t get_nb_rom_banks(const RomBank& rom);
+    RAMSize get_ram_size(const RomBank& rom);
+    uint8_t get_nb_ram_banks(const RomBank& rom);
+    std::string get_new_licensee_code(RomBank rom);
+    uint8_t get_sgb_flag(const RomBank& rom);
+    std::string get_short_title(RomBank rom);
+    std::string get_manufacturer_code(RomBank rom);
+    uint8_t get_cbg_flag(const RomBank& rom);
+    std::string get_title(RomBank rom);
+    uint8_t get_destination_code(const RomBank& rom);
+    uint8_t get_old_license_code(const RomBank& rom);
+    uint8_t get_mask_rom_version_number(const RomBank& rom);
+    uint8_t get_header_checksum(const RomBank& rom);
+    uint16_t get_global_checksum(const RomBank& rom);
 
 
     union MemoryMap

@@ -29,12 +29,10 @@ namespace emulator
     class MemoryControllerNoExternal : public MemoryController
     {
     public:
-        MemoryControllerNoExternal(
-                unique_ptr<FirstRomBank> first_rom,
-                vector<RomBank> &rom_banks,
-                uint8_t nb_ram_banks,
-                CartridgeType cartridge_type
-        );
+        static std::unique_ptr<MemoryController>
+        create(vector<RomBank> &rom_banks, uint8_t nb_ram_banks, CartridgeType cartridge_type);
+
+        MemoryControllerNoExternal(vector<RomBank> &rom_banks, uint8_t nb_ram_banks, CartridgeType cartridge_type);
 
         void set(uint32_t address, uint8_t value) override;
 
@@ -42,8 +40,7 @@ namespace emulator
 
     protected:
         vector<RomBank> rom_banks_;
-        unique_ptr<FirstRomBank> first_rom_;
-        vector<ExternalRam> external_ram_banks_;
+        vector<RamBank> ram_banks_;
         CartridgeType cartridge_type_;
 
     private:

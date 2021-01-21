@@ -1,5 +1,3 @@
-#pragma once
-
 #include "emulator/generated/instructions.h"
 
 constexpr uint8_t FLAG_CARRY = 4;
