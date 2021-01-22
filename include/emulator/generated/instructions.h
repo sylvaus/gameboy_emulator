@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include "emulator/registers.h"
 #include "emulator/memory_controller.h"

@@ -15,20 +15,19 @@ SRC_FILE = os.path.join(PROJECT_FOLDER, "src", GENERATED_FOLDER_NAME, f"{FILE_NA
 INCLUDE_FILE = os.path.join(PROJECT_FOLDER, "include", "emulator", GENERATED_FOLDER_NAME, f"{FILE_NAME}.h")
 NAMESPACE = "emulator::generated"
 
-FLAG_CARRY_OFFSET = 4
-FLAG_HALF_CARRY_OFFSET = 5
-FLAG_ADD_SUB_OFFSET = 6
-FLAG_ZERO_OFFSET = 7
-FLAG_CARRY = "FLAG_CARRY"
-FLAG_HALF_CARRY = "FLAG_HALF_CARRY"
-FLAG_ADD_SUB = "FLAG_AD_SUB"
-FLAG_ZERO = "FLAG_ZERO"
+OFFSET_CARRY_FLAG_VALUE = 4
+OFFSET_HALF_CARRY_FLAG_VALUE = 5
+OFFSET_ADD_SUB_FLAG_VALUE = 6
+OFFSET_ZERO_FLAG_VALUE = 7
+OFFSET_CARRY_FLAG = "OFFSET_CARRY_FLAG"
+OFFSET_HALF_CARRY_FLAG = "OFFSET_HALF_CARRY_FLAG"
+OFFSET_ADD_SUB_FLAG = "OFFSET_ADD_SUB_FLAG"
+OFFSET_ZERO_FLAG = "OFFSET_ZERO_FLAG"
+CARRY_FLAG = "carry_flag"
+HALF_CARRY_FLAG = "half_carry_flag"
+_ADD_SUB_FLAG = "add_sub_flag"
+ZERO_FLAG = "zero_flag"
 
-CONSTANTS = f"""constexpr uint8_t {FLAG_CARRY} = {FLAG_CARRY_OFFSET};
-constexpr uint8_t {FLAG_HALF_CARRY} = {FLAG_HALF_CARRY_OFFSET};
-constexpr uint8_t {FLAG_ADD_SUB} = {FLAG_ADD_SUB_OFFSET};
-constexpr uint8_t {FLAG_ZERO} = {FLAG_ZERO_OFFSET};
-"""
 
 ARGUMENT_STRUCT_NAME = "Arguments"
 ARGUMENT_STRUCT = f"""union {ARGUMENT_STRUCT_NAME}
@@ -53,13 +52,13 @@ ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
 REGISTERS_FLAGS = f"{REGISTERS}.F"
 REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
 REGISTERS_PROGRAM_COUNTER = f"{REGISTERS}.PC"
-REGISTERS_HL = f"{REGISTERS}.HL"
 
-SRC_HEADER = f"""#pragma once\n
-#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n
-{CONSTANTS}\n\n"""
+REGISTERS_WITH_GETTER_SETTERS = {"AF", "BC", "DE", "HL"}
 
-INCLUDE_HEADER = f"""#include <cstdint>
+SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n"""
+
+INCLUDE_HEADER = f"""#pragma once\n
+#include <cstdint>
 #include "emulator/registers.h"
 #include "emulator/memory_controller.h"\n\n"""
 
@@ -121,7 +120,10 @@ def make_instruction_function(
 
 def make_get_code(argument: Argument, address_offset: Optional[str] = None):
     if argument.type_ == ArgumentType.REGISTER:
-        code = f"{REGISTERS}.{argument.name}"
+        if argument.name in REGISTERS_WITH_GETTER_SETTERS:
+            code = f"{REGISTERS}.get_{argument.name}()"
+        else:
+            code = f"{REGISTERS}.{argument.name}"
     elif argument.type_ == ArgumentType.IMMEDIATE_8_BITS:
         code = ARGUMENT_UINT8
     elif argument.type_ == ArgumentType.IMMEDIATE_16_BITS:
@@ -165,7 +167,10 @@ def make_set_code(
         return f"{MEMORY_CONTROLLER}.set({code_address}, {code_value})"
 
     if dst.type_ == ArgumentType.REGISTER:
-        return f"{REGISTERS}.{dst.name} = {code_value}"
+        if dst.name in REGISTERS_WITH_GETTER_SETTERS:
+            return f"{REGISTERS}.set_{dst.name}({code_value})"
+        else:
+            return f"{REGISTERS}.{dst.name} = {code_value}"
     elif dst.type_ in {
             ArgumentType.IMMEDIATE_8_BITS, ArgumentType.IMMEDIATE_16_BITS, ArgumentType.UNSIGNED_8_BIT,
             ArgumentType.ADDRESS_16_BIT, ArgumentType.PC_INCREMENT_8_BIT, ArgumentType.VALUE, ArgumentType.INDICATION}:
@@ -182,46 +187,61 @@ def make_add_sub_flag_code(instruction: GbInstruction, is_add: bool) -> Tuple[st
     half_carry_max_value = "0xFFF" if two_bytes_op else "0xF"
     sign = "+" if is_add else "-"
 
-    flags = []
+    flag_names = []
+    flag_values = []
     if instruction.zero_flag == FlagAction.CUSTOM:
-        flags.append(f"((result == 0) << {FLAG_ZERO})")
+        flag_names.append(ZERO_FLAG)
+        flag_values.append(f"uint8_t {ZERO_FLAG} = ((result == 0) << {OFFSET_ZERO_FLAG});")
     if instruction.half_carry_flag == FlagAction.CUSTOM:
-        half_carry_value = f"((lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value}))"
-        if is_add:
-            flags.append(f"(({half_carry_value} > {half_carry_max_value}) << {FLAG_HALF_CARRY})")
-        else:
-            flags.append(f"(({half_carry_value} < 0) << {FLAG_HALF_CARRY})")
+        flag_names.append(HALF_CARRY_FLAG)
+        flag_values.append(make_half_carry_flag(half_carry_max_value, is_add))
     if instruction.carry_flag == FlagAction.CUSTOM:
-        if is_add:
-            flags.append(f"((result > {carry_max_value}) << {FLAG_CARRY})")
-        else:
-            flags.append(f"((result < 0) << {FLAG_CARRY})")
+        flag_names.append(CARRY_FLAG)
+        flag_values.append(make_carry_flag(carry_max_value, is_add))
 
+    flag_value_code = "\n".join(flag_values)
     return (
         f"result & {carry_max_value}",
         f"int32_t lhs = {make_get_code(instruction.first_arg)};\n"
         f"int32_t rhs = {make_get_code(instruction.second_arg)};\n"
+        f"int32_t half_result = (lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value});\n"
         f"int32_t result = lhs {sign} rhs;\n"
-        f"{make_flag_code(instruction, flags)}"
+        f"{flag_value_code}\n"
+        f"{make_flag_code(instruction, flag_names)}"
     )
+
+
+def make_half_carry_flag(half_carry_max_value: str, is_add: bool) -> str:
+    flag = f"uint8_t {HALF_CARRY_FLAG}"
+    if is_add:
+        return f"{flag} = ((half_result > {half_carry_max_value}) << {OFFSET_HALF_CARRY_FLAG});"
+
+    return f"{flag} = ((half_result < 0) << {OFFSET_HALF_CARRY_FLAG});"
+
+
+def make_carry_flag(carry_max_value: str, is_add: bool) -> str:
+    flag = f"uint8_t {CARRY_FLAG}"
+    if is_add:
+        return f"{flag} = ((result > {carry_max_value}) << {OFFSET_CARRY_FLAG});"
+
+    return f"{flag} = ((result < 0) << {OFFSET_CARRY_FLAG});"
 
 
 def make_flag_code(instruction: GbInstruction, flags: List[str]) -> str:
-    initial_flag = ((instruction.zero_flag == FlagAction.SET) << FLAG_ZERO_OFFSET) + \
-                   ((instruction.add_sub_flag == FlagAction.SET) << FLAG_ADD_SUB_OFFSET) + \
-                   ((instruction.half_carry_flag == FlagAction.SET) << FLAG_HALF_CARRY_OFFSET) + \
-                   ((instruction.carry_flag == FlagAction.SET) << FLAG_CARRY_OFFSET)
+    initial_flag = ((instruction.zero_flag == FlagAction.SET) << OFFSET_ZERO_FLAG_VALUE) + \
+                   ((instruction.add_sub_flag == FlagAction.SET) << OFFSET_ADD_SUB_FLAG_VALUE) + \
+                   ((instruction.half_carry_flag == FlagAction.SET) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
+                   ((instruction.carry_flag == FlagAction.SET) << OFFSET_CARRY_FLAG_VALUE)
 
-    current_flag_mask = ((instruction.zero_flag == FlagAction.NONE) << FLAG_ZERO_OFFSET) + \
-                        ((instruction.add_sub_flag == FlagAction.NONE) << FLAG_ADD_SUB_OFFSET) + \
-                        ((instruction.half_carry_flag == FlagAction.NONE) << FLAG_HALF_CARRY_OFFSET) + \
-                        ((instruction.carry_flag == FlagAction.NONE) << FLAG_CARRY_OFFSET)
+    current_flag_mask = ((instruction.zero_flag == FlagAction.NONE) << OFFSET_ZERO_FLAG_VALUE) + \
+                        ((instruction.add_sub_flag == FlagAction.NONE) << OFFSET_ADD_SUB_FLAG_VALUE) + \
+                        ((instruction.half_carry_flag == FlagAction.NONE) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
+                        ((instruction.carry_flag == FlagAction.NONE) << OFFSET_CARRY_FLAG_VALUE)
 
-    additional_flags = ' +\n    '.join(flags)
-    return (
-        f"{REGISTERS_FLAGS} &= {current_flag_mask};\n"
-        f"{REGISTERS_FLAGS} |= {initial_flag:08b} +\n    {additional_flags};"
-    )
+    flag_setting = f"{REGISTERS_FLAGS} &= {current_flag_mask};\n{REGISTERS_FLAGS} |= {initial_flag:08b}"
+    if flags:
+        flag_setting += " + " + " + ".join(flags)
+    return flag_setting + ";"
 
 
 @register_generator(InstructionType.NOP)
@@ -247,16 +267,16 @@ def ld_generator(instruction: GbInstruction) -> InstructionFunction:
     code = f"{make_set_code(instruction.first_arg, instruction.second_arg, address_offset, address_offset)};"
 
     if instruction.type_ == InstructionType.LDI:
-        code += f"\n++{REGISTERS_HL};"
+        code += f"\n{REGISTERS}.set_HL({REGISTERS}.get_HL() + 1);"
     if instruction.type_ == InstructionType.LDD:
-        code += f"\n--{REGISTERS_HL};"
+        code += f"\n{REGISTERS}.set_HL({REGISTERS}.get_HL() - 1);"
     return make_instruction_function(instruction, code)
 
 
 @register_generator(InstructionType.LDHL)
 def ldhl_generator(instruction: GbInstruction) -> InstructionFunction:
     result_value, code = make_add_sub_flag_code(instruction, True)
-    code = f"{code}\n{REGISTERS_HL} = {result_value};"
+    code = f"{code}\n{REGISTERS}.set_HL({result_value});"
 
     return make_instruction_function(instruction, code)
 
