@@ -684,7 +684,7 @@ namespace emulator::generated
     uint16_t ldhl_0f8(const Arguments& arguments, emulator::Registers& registers, emulator::MemoryController& controller) // 0xF8 LDHL SP, r8
     {
         int32_t lhs = registers.SP;
-        int32_t rhs = arguments.uint8;
+        int32_t rhs = arguments.int8;
         int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
         int32_t result = lhs + rhs;
         uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);

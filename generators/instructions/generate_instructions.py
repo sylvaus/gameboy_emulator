@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from typing import Dict, Callable, Optional, Tuple, List
 from collections import OrderedDict
 
-from gbinstruction import read_instruction_csv, InstructionType, GbInstruction, Argument, ArgumentType, FlagAction
-from utils.formatters import indent_code, make_function
+from generators.instructions.gbinstruction import read_instruction_csv, InstructionType, \
+    GbInstruction, Argument, ArgumentType, FlagAction
+from generators.utils.formatters import indent_code, make_function
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PROJECT_FOLDER = os.path.abspath(os.path.join(THIS_FOLDER, "..", ".."))
@@ -32,14 +33,32 @@ ZERO_FLAG = "zero_flag"
 ARGUMENT_STRUCT_NAME = "Arguments"
 ARGUMENT_STRUCT = f"""union {ARGUMENT_STRUCT_NAME}
 {{
-    uint8_t data[2];
     uint16_t uint16;
-    struct 
-    {{
-        uint8_t uint8;
-        uint8_t unused;
-    }};
+    uint8_t uint8;
+    int8_t int8;
 }};"""
+ARGUMENT_ENUM_NAME = "ArgumentType"
+ARGUMENT_ENUM_NONE = "none"
+ARGUMENT_ENUM_INT8 = "int8"
+ARGUMENT_ENUM_UINT8 = "uint8"
+ARGUMENT_ENUM_UINT16 = "uint16"
+ARGUMENT_ENUM = f"""enum class {ARGUMENT_ENUM_NAME}
+{{
+    {ARGUMENT_ENUM_NONE},
+    {ARGUMENT_ENUM_INT8},
+    {ARGUMENT_ENUM_UINT8},
+    {ARGUMENT_ENUM_UINT16}
+}};"""
+ARGUMENT_TYPE_TO_ENUM = {
+    ArgumentType.REGISTER: ARGUMENT_ENUM_NONE,
+    ArgumentType.IMMEDIATE_8_BITS: ARGUMENT_ENUM_UINT8,
+    ArgumentType.IMMEDIATE_16_BITS: ARGUMENT_ENUM_UINT16,
+    ArgumentType.UNSIGNED_8_BIT: ARGUMENT_ENUM_UINT8,
+    ArgumentType.ADDRESS_16_BIT: ARGUMENT_ENUM_UINT16,
+    ArgumentType.PC_INCREMENT_8_BIT: ARGUMENT_ENUM_INT8,
+    ArgumentType.VALUE: ARGUMENT_ENUM_NONE,
+    ArgumentType.INDICATION: ARGUMENT_ENUM_NONE
+}
 
 ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
@@ -47,7 +66,11 @@ MEMORY_CONTROLLER = "controller"
 OPCODE_FUNC_ARGUMENTS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
                         f"emulator::Registers& {REGISTERS}, emulator::MemoryController& {MEMORY_CONTROLLER})"
 
+INSTRUCTION_FUNCTION_TYPE = "InstructionFunction"
+DEF_INSTRUCTION_FUNCTION = f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_ARGUMENTS}>;"
+
 ARGUMENT_UINT8 = f"{ARGUMENT_NAME}.uint8"
+ARGUMENT_INT8 = f"{ARGUMENT_NAME}.int8"
 ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
 REGISTERS_FLAGS = f"{REGISTERS}.F"
 REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
@@ -59,6 +82,7 @@ SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n""
 
 INCLUDE_HEADER = f"""#pragma once\n
 #include <cstdint>
+#include <functional>
 #include "emulator/registers.h"
 #include "emulator/memory_controller.h"\n\n"""
 
@@ -68,6 +92,7 @@ class InstructionFunction:
     name: str
     declaration: str
     definition: str
+    argument_type: str
     instruction: GbInstruction
 
     @property
@@ -101,6 +126,20 @@ def get_argument_name(argument: Argument):
     return name
 
 
+def get_argument_enum(instruction: GbInstruction):
+    if instruction.first_arg is None:
+        return ARGUMENT_ENUM_NONE
+
+    first_argument_enum = ARGUMENT_TYPE_TO_ENUM[instruction.first_arg.type_]
+    if first_argument_enum != ARGUMENT_ENUM_NONE:
+        return first_argument_enum
+
+    if instruction.second_arg is None:
+        return ARGUMENT_ENUM_NONE
+
+    return ARGUMENT_TYPE_TO_ENUM[instruction.second_arg.type_]
+
+
 def make_instruction_function(
         instruction: GbInstruction, code: str, remove_pc_update: bool = False, remove_duration_return: bool = False
 ) -> InstructionFunction:
@@ -115,7 +154,7 @@ def make_instruction_function(
     declaration = f"{signature}; // {instruction.short_repr}"
     definition = make_function(f"{signature} // {instruction.short_repr}", code_lines)
 
-    return InstructionFunction(func_name, declaration, definition, instruction)
+    return InstructionFunction(func_name, declaration, definition, get_argument_enum(instruction), instruction)
 
 
 def make_get_code(argument: Argument, address_offset: Optional[str] = None):
@@ -133,7 +172,7 @@ def make_get_code(argument: Argument, address_offset: Optional[str] = None):
     elif argument.type_ == ArgumentType.ADDRESS_16_BIT:
         code = ARGUMENT_UINT16
     elif argument.type_ == ArgumentType.PC_INCREMENT_8_BIT:
-        code = ARGUMENT_UINT8
+        code = ARGUMENT_INT8
     elif argument.type_ == ArgumentType.VALUE:
         code = f"{argument.value}"
     elif argument.type_ == ArgumentType.INDICATION:
@@ -294,7 +333,14 @@ def main():
 
     with open(INCLUDE_FILE, "w") as f:
         f.write(INCLUDE_HEADER)
-        code = f"{ARGUMENT_STRUCT}\n\n" + "\n\n".join(func.declaration for func in functions)
+        code = f"{ARGUMENT_STRUCT}\n{ARGUMENT_ENUM}\n{DEF_INSTRUCTION_FUNCTION}\n\n"
+        code += "\n\n".join(func.declaration for func in functions)
+        code += f"\n\nconst {INSTRUCTION_FUNCTION_TYPE} INSTRUCTION_FUNCTIONS[] = {{\n"
+        code += indent_code("&" + ",\n&".join(func.name for func in functions))
+        code += "\n};"
+        code += f"\n\nconst {ARGUMENT_ENUM_NAME} INSTRUCTION_ARGUMENT_TYPES[] = {{\n"
+        code += indent_code(",\n".join(f"{ARGUMENT_ENUM_NAME}::{func.argument_type}" for func in functions))
+        code += "\n};"
         f.write(put_code_in_namespace(code))
 
     with open(SRC_FILE, "w") as f:

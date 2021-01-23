@@ -1,7 +1,7 @@
 from functools import singledispatch
 from typing import List, Union
 
-from utils.constants import INDENT
+from generators.utils.constants import INDENT
 
 
 @singledispatch
