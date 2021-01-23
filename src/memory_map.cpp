@@ -99,6 +99,6 @@ namespace emulator
 
     uint16_t get_global_checksum(const RomBank& rom)
     {
-        return rom[ADDRESS_GLOBAL_CHECKSUM] << 8 + rom[ADDRESS_GLOBAL_CHECKSUM + 1];
+        return (rom[ADDRESS_GLOBAL_CHECKSUM] << 8) + rom[ADDRESS_GLOBAL_CHECKSUM + 1];
     }
 }

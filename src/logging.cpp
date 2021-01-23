@@ -12,7 +12,7 @@ namespace emulator
         flush();
     }
 
-    void LogManager::set_logging_level(uint8_t level, const std::string &name)
+    void LogManager::set_logging_level(uint8_t level, const std::string &)
     {
         logging_level_ = level;
     }
@@ -22,7 +22,7 @@ namespace emulator
         if (level < logging_level_)
             return;
 
-        auto level_name = LOGGING_LEVEL_NAME_MAP.get(level);
+        const auto& level_name = LOGGING_LEVEL_NAME_MAP.get(level);
         std::cout << level_name << ':' << name << ':' << text << '\n';
     }
 

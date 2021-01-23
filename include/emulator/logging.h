@@ -30,7 +30,7 @@ namespace emulator
         ~LogManager();
         void set_logging_level(uint8_t level, const std::string &name);
         void log(uint8_t level, const std::string& name, const std::string& text) const;
-        void flush();
+        static void flush();
     private:
         uint8_t logging_level_;
     };
