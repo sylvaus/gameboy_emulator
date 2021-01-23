@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(emulator)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic")
 
 include_directories("include")
 
