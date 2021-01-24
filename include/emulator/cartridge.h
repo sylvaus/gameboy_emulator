@@ -3,10 +3,10 @@
 #include <string>
 #include <memory>
 
-#include "emulator/memory_controller.h"
+#include "emulator/romram_controller.h"
 
 namespace emulator
 {
-    std::unique_ptr<MemoryController> load_cartridge(const std::string &filename);
+    std::unique_ptr<RomRamController> load_cartridge(const std::string &filename);
 }
 

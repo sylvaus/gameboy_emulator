@@ -1,11 +1,11 @@
 #pragma once
 
 #include "gmock/gmock.h"
-#include "emulator/memory_controller.h"
+#include "emulator/romram_controller.h"
 
 namespace emulator::mocks
 {
-    class MockMemoryController : public emulator::MemoryController
+    class MockMemoryController : public emulator::RomRamController
     {
     public:
         MOCK_METHOD(void, set, (uint32_t address, uint8_t value), (override));

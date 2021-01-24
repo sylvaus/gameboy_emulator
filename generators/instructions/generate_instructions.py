@@ -64,7 +64,7 @@ ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
 MEMORY_CONTROLLER = "controller"
 OPCODE_FUNC_ARGUMENTS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
-                        f"emulator::Registers& {REGISTERS}, emulator::MemoryController& {MEMORY_CONTROLLER})"
+                        f"emulator::Registers& {REGISTERS}, emulator::RomRamController& {MEMORY_CONTROLLER})"
 
 INSTRUCTION_FUNCTION_TYPE = "InstructionFunction"
 DEF_INSTRUCTION_FUNCTION = f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_ARGUMENTS}>;"

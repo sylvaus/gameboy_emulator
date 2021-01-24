@@ -12,7 +12,7 @@ namespace emulator
     using std::vector;
     using std::unique_ptr;
 
-    class MemoryController
+    class RomRamController
     {
     public:
         virtual void set(uint32_t address, uint8_t value) = 0;
@@ -23,16 +23,16 @@ namespace emulator
         }
         [[nodiscard]] virtual uint8_t get(uint32_t  address) const = 0;
 
-        virtual ~MemoryController() = default;
+        virtual ~RomRamController() = default;
     };
 
-    class MemoryControllerNoExternal : public MemoryController
+    class RomRamControllerNoExternal : public RomRamController
     {
     public:
-        static std::unique_ptr<MemoryController>
+        static std::unique_ptr<RomRamController>
         create(vector<RomBank> &rom_banks, uint8_t nb_ram_banks, CartridgeType cartridge_type);
 
-        MemoryControllerNoExternal(vector<RomBank> &rom_banks, uint8_t nb_ram_banks, CartridgeType cartridge_type);
+        RomRamControllerNoExternal(vector<RomBank> &rom_banks, uint8_t nb_ram_banks, CartridgeType cartridge_type);
 
         void set(uint32_t address, uint8_t value) override;
 

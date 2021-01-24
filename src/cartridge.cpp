@@ -7,14 +7,14 @@
 #include "emulator/exceptions.h"
 #include "emulator/logging.h"
 #include "emulator/memory_map.h"
-#include "emulator/memory_controller.h"
+#include "emulator/romram_controller.h"
 #include "emulator/cartridge.h"
 
 
 namespace emulator
 {
     using std::unique_ptr;
-    using MemoryBankControllerPtr = std::unique_ptr<MemoryController>;
+    using MemoryBankControllerPtr = std::unique_ptr<RomRamController>;
     using MemoryBankControllerProvider = std::function<MemoryBankControllerPtr(
         vector<RomBank>&, uint8_t nb_ram_banks, CartridgeType
     )>;
@@ -40,7 +40,7 @@ namespace emulator
 
     const UnMutableDefaultMap<MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
     {&provides_null, {
-        {MemoryBankType::ROM_ONLY, &MemoryControllerNoExternal::create}
+        {MemoryBankType::ROM_ONLY, &RomRamControllerNoExternal::create}
     }};
 
 
