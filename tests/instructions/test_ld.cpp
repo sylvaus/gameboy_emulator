@@ -19,6 +19,24 @@ namespace gen = emulator::generated;
 
 namespace
 {
+    TEST(LDTest, LD008)
+    {
+        // Test from Chapter 4: page 101
+        MockMemoryController controller;
+        Registers registers{};
+        registers.set_HL(0x3A5B);
+        registers.SP = 0xFFF8;
+        Arguments arguments{};
+        arguments.uint16 = 0xC100;
+
+        EXPECT_CALL (controller, set(0xC100, 0xF8)).Times(1);
+        EXPECT_CALL (controller, set(0xC101, 0xFF)).Times(1);
+
+        const auto cycle = gen::ld_008(arguments, registers, controller);
+
+        EXPECT_EQ (20, cycle);
+    }
+
     TEST(LDHLTest, LDHL0F8)
     {
         // Test from Chapter 4: page 101
@@ -29,15 +47,28 @@ namespace
         Arguments arguments{};
         arguments.int8 = 2;
 
-        const auto value = gen::ldhl_0f8(arguments, registers, controller);
+        const auto cycle = gen::ldhl_0f8(arguments, registers, controller);
 
-        EXPECT_EQ (12, value);
+        EXPECT_EQ (12, cycle);
         EXPECT_EQ (false, registers.get_carry_flag());
         EXPECT_EQ (false, registers.get_half_carry_flag());
         EXPECT_EQ (false, registers.get_add_sub_flag());
         EXPECT_EQ (false, registers.get_zero_flag());
         EXPECT_EQ (0xFFFA, registers.get_HL());
+    }
 
+    TEST(LDTest, LD0F9)
+    {
+        // Test from Chapter 4: page 100
+        MockMemoryController controller;
+        Registers registers{};
+        registers.set_HL(0x3A5B);
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_0f9(arguments, registers, controller);
+
+        EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x3A5B, registers.SP);
     }
 }
 

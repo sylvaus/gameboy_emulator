@@ -84,7 +84,7 @@ INCLUDE_HEADER = f"""#pragma once\n
 #include <cstdint>
 #include <functional>
 #include "emulator/registers.h"
-#include "emulator/memory_controller.h"\n\n"""
+#include "emulator/romram_controller.h"\n\n"""
 
 
 @dataclass
@@ -157,7 +157,7 @@ def make_instruction_function(
     return InstructionFunction(func_name, declaration, definition, get_argument_enum(instruction), instruction)
 
 
-def make_get_code(argument: Argument, address_offset: Optional[str] = None):
+def make_get_code(argument: Argument, address_offset: Optional[str] = None, is_not_address: bool = False):
     if argument.type_ == ArgumentType.REGISTER:
         if argument.name in REGISTERS_WITH_GETTER_SETTERS:
             code = f"{REGISTERS}.get_{argument.name}()"
@@ -180,7 +180,7 @@ def make_get_code(argument: Argument, address_offset: Optional[str] = None):
     else:
         raise RuntimeError(f"Unknown Argument Type for get  {argument.type_}")
 
-    if argument.is_address:
+    if argument.is_address and not is_not_address:
         if address_offset:
             code = f"({code}) + {address_offset}"
         return f"{MEMORY_CONTROLLER}.get({code})"
@@ -197,7 +197,7 @@ def make_set_code(
         code_value = f"({code_value}) + {value_offset}"
 
     if dst.is_address:
-        code_address = make_get_code(dst)
+        code_address = make_get_code(dst, is_not_address=True)
         if dst_address_offset:
             code_address = f"({code_address}) + {dst_address_offset}"
 

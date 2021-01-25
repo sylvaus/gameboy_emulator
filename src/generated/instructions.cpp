@@ -18,7 +18,7 @@ namespace emulator::generated
     
     uint16_t ld_002(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x2 LD (BC), A
     {
-        controller.set(controller.get(registers.get_BC()), registers.A);
+        controller.set(registers.get_BC(), registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -32,7 +32,7 @@ namespace emulator::generated
     
     uint16_t ld_008(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x8 LD (a16), SP
     {
-        controller.set16bits(controller.get(arguments.uint16), registers.SP);
+        controller.set16bits(arguments.uint16, registers.SP);
         registers.PC += 3;
         return 20;
     }
@@ -60,7 +60,7 @@ namespace emulator::generated
     
     uint16_t ld_012(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x12 LD (DE), A
     {
-        controller.set(controller.get(registers.get_DE()), registers.A);
+        controller.set(registers.get_DE(), registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -95,7 +95,7 @@ namespace emulator::generated
     
     uint16_t ldi_022(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x22 LDI (HL), A
     {
-        controller.set(controller.get(registers.get_HL()), registers.A);
+        controller.set(registers.get_HL(), registers.A);
         registers.set_HL(registers.get_HL() + 1);
         registers.PC += 1;
         return 8;
@@ -132,7 +132,7 @@ namespace emulator::generated
     
     uint16_t ldd_032(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x32 LDD (HL), A
     {
-        controller.set(controller.get(registers.get_HL()), registers.A);
+        controller.set(registers.get_HL(), registers.A);
         registers.set_HL(registers.get_HL() - 1);
         registers.PC += 1;
         return 8;
@@ -140,7 +140,7 @@ namespace emulator::generated
     
     uint16_t ld_036(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x36 LD (HL), d8
     {
-        controller.set(controller.get(registers.get_HL()), arguments.uint8);
+        controller.set(registers.get_HL(), arguments.uint8);
         registers.PC += 2;
         return 12;
     }
@@ -498,49 +498,49 @@ namespace emulator::generated
     
     uint16_t ld_070(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x70 LD (HL), B
     {
-        controller.set(controller.get(registers.get_HL()), registers.B);
+        controller.set(registers.get_HL(), registers.B);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_071(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x71 LD (HL), C
     {
-        controller.set(controller.get(registers.get_HL()), registers.C);
+        controller.set(registers.get_HL(), registers.C);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_072(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x72 LD (HL), D
     {
-        controller.set(controller.get(registers.get_HL()), registers.D);
+        controller.set(registers.get_HL(), registers.D);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_073(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x73 LD (HL), E
     {
-        controller.set(controller.get(registers.get_HL()), registers.E);
+        controller.set(registers.get_HL(), registers.E);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_074(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x74 LD (HL), H
     {
-        controller.set(controller.get(registers.get_HL()), registers.H);
+        controller.set(registers.get_HL(), registers.H);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_075(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x75 LD (HL), L
     {
-        controller.set(controller.get(registers.get_HL()), registers.L);
+        controller.set(registers.get_HL(), registers.L);
         registers.PC += 1;
         return 8;
     }
     
     uint16_t ld_077(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0x77 LD (HL), A
     {
-        controller.set(controller.get(registers.get_HL()), registers.A);
+        controller.set(registers.get_HL(), registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -618,14 +618,14 @@ namespace emulator::generated
     
     uint16_t ldh_0e0(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0xE0 LDH (a8), A
     {
-        controller.set((controller.get(arguments.uint8)) + 0xFF00, registers.A);
+        controller.set((arguments.uint8) + 0xFF00, registers.A);
         registers.PC += 2;
         return 12;
     }
     
     uint16_t ldspecialc_0e2(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0xE2 LDSpecialC (C), A
     {
-        controller.set((controller.get(registers.C)) + 0xFF00, registers.A);
+        controller.set((registers.C) + 0xFF00, registers.A);
         registers.PC += 1;
         return 8;
     }
@@ -642,7 +642,7 @@ namespace emulator::generated
     
     uint16_t ld_0ea(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller) // 0xEA LD (a16), A
     {
-        controller.set(controller.get(arguments.uint16), registers.A);
+        controller.set(arguments.uint16, registers.A);
         registers.PC += 3;
         return 16;
     }
