@@ -37,6 +37,46 @@ namespace
         EXPECT_EQ (20, cycle);
     }
 
+    TEST(LDTest, LD040)
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_040(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD041)
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_041(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x81, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (4, cycle);
+    }
+
     TEST(LDHLTest, LDHL0F8)
     {
         // Test from Chapter 4: page 101
