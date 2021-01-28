@@ -193,7 +193,7 @@ namespace
 
     TEST(LDTest, LD046)  // 0x46 LD B, (HL)
     {
-        // Test from Chapter 4: page 95
+        // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
         registers.A = 0x12;
@@ -419,7 +419,7 @@ namespace
 
     TEST(LDTest, LD04E) // 0x4E LD C, (HL)
     {
-        // Test from Chapter 4: page 95
+        // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
         registers.A = 0x12;
@@ -528,6 +528,854 @@ namespace
         EXPECT_EQ (0x97, registers.E);
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD052) // 0x52 LD D, D
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_052(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD053) // 0x53 LD D, E
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_053(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x97, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD054) // 0x54 LD D, H
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_054(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0xF7, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD055) // 0x55 LD D, L
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_055(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x1A, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD056) // 0x56 LD D, (HL)
+    {
+        // Test from Chapter 4: page 96
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0x89;
+        registers.L = 0x21;
+        Arguments arguments{};
+
+        EXPECT_CALL (controller, get(0x8921)).Times(1).WillOnce(Return(0x1E));
+
+        const auto cycle = gen::ld_056(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x1E, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x89, registers.H);
+        EXPECT_EQ (0x21, registers.L);
+        EXPECT_EQ (8, cycle);
+    }
+
+    TEST(LDTest, LD057) // 0x57 LD D, A
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_057(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x12, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD058) // 0x58 LD E, B
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_058(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x26, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD059) // 0x59 LD E, C
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_059(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x81, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD05A) // 0x5A LD E, D
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_05a(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x19, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD05B) // 0x5B LD E, E
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_05b(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD05C) // 0x5C LD E, H
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_05c(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0xF7, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD05D) // 0x5D LD E, L
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_05d(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x1A, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD05E) // 0x5E LD E, (HL)
+    {
+        // Test from Chapter 4: page 96
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xA9;
+        registers.L = 0x3C;
+        Arguments arguments{};
+
+        EXPECT_CALL (controller, get(0xA93C)).Times(1).WillOnce(Return(0xB3));
+
+        const auto cycle = gen::ld_05e(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0xB3, registers.E);
+        EXPECT_EQ (0xA9, registers.H);
+        EXPECT_EQ (0x3C, registers.L);
+        EXPECT_EQ (8, cycle);
+    }
+
+    TEST(LDTest, LD05F) // 0x5F LD E, A
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_05f(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x12, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD060) // 0x60 LD H, B
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_060(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x26, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD061) // 0x61 LD H, C
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_061(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x81, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD062) // 0x62 LD H, D
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_062(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x19, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD063) // 0x63 LD H, E
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_063(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x97, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD064) // 0x64 LD H, H
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_064(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD065) // 0x65 LD H, L
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_065(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x1A, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD066) // 0x66 LD H, (HL)
+    {
+        // Test from Chapter 4: page 96
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0x59;
+        registers.L = 0x73;
+        Arguments arguments{};
+
+        EXPECT_CALL (controller, get(0x5973)).Times(1).WillOnce(Return(0x46));
+
+        const auto cycle = gen::ld_066(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x46, registers.H);
+        EXPECT_EQ (0x73, registers.L);
+        EXPECT_EQ (8, cycle);
+    }
+
+    TEST(LDTest, LD067) // 0x67 LD H, A
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_067(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x12, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD068) // 0x68 LD L, B
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_068(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x26, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD069) // 0x69 LD L, C
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_069(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x81, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD06A) // 0x6A LD L, D
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_06a(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x19, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD06B) // 0x6B LD L, E
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_06b(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x97, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD06C) // 0x6C LD L, H
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_06c(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0xF7, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD06D) // 0x6D LD L, L
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_06d(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x1A, registers.L);
+        EXPECT_EQ (4, cycle);
+    }
+
+    TEST(LDTest, LD06E) // 0x6E LD L, (HL)
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0x58;
+        registers.L = 0x52;
+        Arguments arguments{};
+
+        EXPECT_CALL (controller, get(0x5852)).Times(1).WillOnce(Return(0x11));
+
+        const auto cycle = gen::ld_06e(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0x58, registers.H);
+        EXPECT_EQ (0x11, registers.L);
+        EXPECT_EQ (8, cycle);
+    }
+
+    TEST(LDTest, LD06F) // 0x6F LD L, A
+    {
+        // Test from Chapter 4: page 95
+        MockMemoryController controller;
+        Registers registers{};
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        registers.D = 0x19;
+        registers.E = 0x97;
+        registers.H = 0xF7;
+        registers.L = 0x1A;
+        Arguments arguments{};
+
+        const auto cycle = gen::ld_06f(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (0x19, registers.D);
+        EXPECT_EQ (0x97, registers.E);
+        EXPECT_EQ (0xF7, registers.H);
+        EXPECT_EQ (0x12, registers.L);
         EXPECT_EQ (4, cycle);
     }
 
