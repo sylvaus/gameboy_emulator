@@ -26,6 +26,7 @@ namespace
         // Test from Chapter 4: page 101
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.set_HL(0x3A5B);
         registers.SP = 0xFFF8;
         Arguments arguments{};
@@ -37,6 +38,7 @@ namespace
         const auto cycle = gen::ld_008(arguments, registers, controller);
 
         EXPECT_EQ (20, cycle);
+        EXPECT_EQ (0x15FD, registers.PC);
     }
 
     TEST(LDTest, LD040) // 0x40 LD B, B
@@ -44,6 +46,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -57,6 +60,7 @@ namespace
         EXPECT_EQ (0x26, registers.B);
         EXPECT_EQ (0x81, registers.C);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD041) // 0x41 LD B, C
@@ -64,6 +68,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -77,6 +82,7 @@ namespace
         EXPECT_EQ (0x81, registers.B);
         EXPECT_EQ (0x81, registers.C);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD042) // 0x42 LD B, D
@@ -84,6 +90,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -105,6 +112,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD043) // 0x43 LD B, E
@@ -112,6 +120,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -133,6 +142,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD044)  // 0x44 LD B, H
@@ -140,6 +150,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -161,6 +172,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD045)  // 0x45 LD B, L
@@ -168,6 +180,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -189,6 +202,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD046)  // 0x46 LD B, (HL)
@@ -196,6 +210,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -219,6 +234,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD047) // 0x47 LD B, A
@@ -226,6 +242,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -247,6 +264,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD048) // 0x48 LD C, B
@@ -254,6 +272,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -275,6 +294,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD049) // 0x49 LD C, C
@@ -282,6 +302,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -303,6 +324,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD04A) // 0x4A LD C, D
@@ -310,6 +332,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -331,6 +354,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD04B) // 0x4B LD C, E
@@ -338,6 +362,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -359,6 +384,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD04C) // 0x4C LD C, H
@@ -366,6 +392,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -387,6 +414,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD04D) // 0x4D LD C, L
@@ -394,6 +422,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -415,6 +444,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD04E) // 0x4E LD C, (HL)
@@ -422,6 +452,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -445,6 +476,7 @@ namespace
         EXPECT_EQ (0x27, registers.H);
         EXPECT_EQ (0x8A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD04F) // 0x4F LD C, A
@@ -452,6 +484,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -473,6 +506,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD050) // 0x50 LD D, B
@@ -480,6 +514,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -501,6 +536,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD051) // 0x51 LD D, C
@@ -508,6 +544,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -529,6 +566,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD052) // 0x52 LD D, D
@@ -536,6 +574,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -557,6 +596,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD053) // 0x53 LD D, E
@@ -564,6 +604,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -585,6 +626,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD054) // 0x54 LD D, H
@@ -592,6 +634,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -613,6 +656,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD055) // 0x55 LD D, L
@@ -620,6 +664,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -641,6 +686,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD056) // 0x56 LD D, (HL)
@@ -648,6 +694,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -671,6 +718,7 @@ namespace
         EXPECT_EQ (0x89, registers.H);
         EXPECT_EQ (0x21, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD057) // 0x57 LD D, A
@@ -678,6 +726,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -699,6 +748,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD058) // 0x58 LD E, B
@@ -706,6 +756,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -727,6 +778,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD059) // 0x59 LD E, C
@@ -734,6 +786,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -755,6 +808,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD05A) // 0x5A LD E, D
@@ -762,6 +816,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -783,6 +838,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD05B) // 0x5B LD E, E
@@ -790,6 +846,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -811,6 +868,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD05C) // 0x5C LD E, H
@@ -818,6 +876,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -839,6 +898,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD05D) // 0x5D LD E, L
@@ -846,6 +906,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -867,6 +928,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD05E) // 0x5E LD E, (HL)
@@ -874,6 +936,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -897,6 +960,7 @@ namespace
         EXPECT_EQ (0xA9, registers.H);
         EXPECT_EQ (0x3C, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD05F) // 0x5F LD E, A
@@ -904,6 +968,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -925,6 +990,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD060) // 0x60 LD H, B
@@ -932,6 +998,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -953,6 +1020,7 @@ namespace
         EXPECT_EQ (0x26, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD061) // 0x61 LD H, C
@@ -960,6 +1028,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -981,6 +1050,7 @@ namespace
         EXPECT_EQ (0x81, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD062) // 0x62 LD H, D
@@ -988,6 +1058,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1009,6 +1080,7 @@ namespace
         EXPECT_EQ (0x19, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD063) // 0x63 LD H, E
@@ -1016,6 +1088,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1037,6 +1110,7 @@ namespace
         EXPECT_EQ (0x97, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD064) // 0x64 LD H, H
@@ -1044,6 +1118,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1065,6 +1140,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD065) // 0x65 LD H, L
@@ -1072,6 +1148,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1093,6 +1170,7 @@ namespace
         EXPECT_EQ (0x1A, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD066) // 0x66 LD H, (HL)
@@ -1100,6 +1178,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1123,6 +1202,7 @@ namespace
         EXPECT_EQ (0x46, registers.H);
         EXPECT_EQ (0x73, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD067) // 0x67 LD H, A
@@ -1130,6 +1210,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1151,6 +1232,7 @@ namespace
         EXPECT_EQ (0x12, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD068) // 0x68 LD L, B
@@ -1158,6 +1240,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1179,6 +1262,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x26, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD069) // 0x69 LD L, C
@@ -1186,6 +1270,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1207,6 +1292,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x81, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD06A) // 0x6A LD L, D
@@ -1214,6 +1300,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1235,6 +1322,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x19, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD06B) // 0x6B LD L, E
@@ -1242,6 +1330,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1263,6 +1352,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x97, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD06C) // 0x6C LD L, H
@@ -1270,6 +1360,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1291,6 +1382,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0xF7, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD06D) // 0x6D LD L, L
@@ -1298,6 +1390,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1319,6 +1412,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD06E) // 0x6E LD L, (HL)
@@ -1326,6 +1420,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1349,6 +1444,7 @@ namespace
         EXPECT_EQ (0x58, registers.H);
         EXPECT_EQ (0x11, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD06F) // 0x6F LD L, A
@@ -1356,6 +1452,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1377,6 +1474,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x12, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD070) // 0x70 LD (HL), B
@@ -1384,6 +1482,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1407,6 +1506,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD071) // 0x71 LD (HL), C
@@ -1414,6 +1514,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1437,6 +1538,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD072) // 0x72 LD (HL), D
@@ -1444,6 +1546,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1467,6 +1570,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD073) // 0x73 LD (HL), E
@@ -1474,6 +1578,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1497,6 +1602,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD074) // 0x74 LD (HL), H
@@ -1504,6 +1610,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1527,6 +1634,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD075) // 0x75 LD (HL), L
@@ -1534,6 +1642,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1557,6 +1666,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD077) // 0x77 LD (HL), A
@@ -1564,6 +1674,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1587,6 +1698,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD078) // 0x78 LD A, B
@@ -1594,6 +1706,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1615,6 +1728,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD079) // 0x79 LD A, C
@@ -1622,6 +1736,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1643,6 +1758,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD07A) // 0x7A LD A, D
@@ -1650,6 +1766,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1671,6 +1788,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD07B) // 0x7B LD A, E
@@ -1678,6 +1796,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1699,6 +1818,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD07C) // 0x7C LD A, H
@@ -1706,6 +1826,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1727,6 +1848,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD07D) // 0x7D LD A, L
@@ -1734,6 +1856,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1755,6 +1878,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD07E) // 0x7E LD A, (HL)
@@ -1762,6 +1886,7 @@ namespace
         // Test from Chapter 4: page 96
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1785,6 +1910,7 @@ namespace
         EXPECT_EQ (0x51, registers.H);
         EXPECT_EQ (0x73, registers.L);
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDTest, LD07F) // 0x7F LD A, A
@@ -1792,6 +1918,7 @@ namespace
         // Test from Chapter 4: page 95
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.A = 0x12;
         registers.F = 0b1100'0000;
         registers.B = 0x26;
@@ -1813,6 +1940,7 @@ namespace
         EXPECT_EQ (0xF7, registers.H);
         EXPECT_EQ (0x1A, registers.L);
         EXPECT_EQ (4, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
     }
 
     TEST(LDHLTest, LDHL0F8)
@@ -1820,6 +1948,7 @@ namespace
         // Test from Chapter 4: page 101
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.F = emulator::make_flag(true, true, true, true);
         registers.SP = 0xFFF8;
         Arguments arguments{};
@@ -1828,6 +1957,7 @@ namespace
         const auto cycle = gen::ldhl_0f8(arguments, registers, controller);
 
         EXPECT_EQ (12, cycle);
+        EXPECT_EQ (0x15FC, registers.PC);
         EXPECT_EQ (false, registers.get_carry_flag());
         EXPECT_EQ (false, registers.get_half_carry_flag());
         EXPECT_EQ (false, registers.get_add_sub_flag());
@@ -1840,12 +1970,14 @@ namespace
         // Test from Chapter 4: page 100
         MockMemoryController controller;
         Registers registers{};
+        registers.PC = 0x15FA;
         registers.set_HL(0x3A5B);
         Arguments arguments{};
 
         const auto cycle = gen::ld_0f9(arguments, registers, controller);
 
         EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
         EXPECT_EQ (0x3A5B, registers.SP);
     }
 }
