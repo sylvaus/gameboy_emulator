@@ -9,6 +9,23 @@ Status
 ------
 see [Project](https://github.com/sylvaus/gameboy_emulator/projects/1)
 
+
+Dependencies
+------------
+* GCC >= 5
+* CMake >= 3.10
+* conan [installation](https://docs.conan.io/en/latest/installation.html)
+
+
+Installation
+------------
+In the folder, run the following commands:
+* `mdkir build && cd build`
+* `conan install ..`
+* `cmake ..` or `cmake .. -DTEST=ON` for tests
+* `make`
+
+
 Important Findings
 ------------------
 ### Cycle vs M-Cycles
