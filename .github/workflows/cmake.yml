@@ -48,4 +48,4 @@ jobs:
 
     - uses: codecov/codecov-action@v1
       with:
-        directory: ${{github.workspace}}/build/coverage 
+        directory: ${{github.workspace}}/build
