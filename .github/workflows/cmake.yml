@@ -45,3 +45,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: ctest -C $BUILD_TYPE
+
+    - uses: codecov/codecov-action@v1
+      with:
+        directory: ${{github.workspace}}/build/coverage 
