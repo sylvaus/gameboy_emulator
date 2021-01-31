@@ -7,6 +7,7 @@ Being able to run a GameBoy game (sound optional)
 
 Status
 ------
+![Build](https://github.com/sylvaus/gameboy_emulator/workflows/CMake/badge.svg) [![codecov](https://codecov.io/gh/sylvaus/gameboy_emulator/branch/main/graph/badge.svg?token=HKHSPI4P2V)](https://codecov.io/gh/sylvaus/gameboy_emulator)    
 see [Project](https://github.com/sylvaus/gameboy_emulator/projects/1)
 
 
