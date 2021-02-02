@@ -63,11 +63,13 @@ ARGUMENT_TYPE_TO_ENUM = {
 ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
 MEMORY_CONTROLLER = "controller"
-OPCODE_FUNC_ARGUMENTS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
+OPCODE_FUNC_PARAMETERS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
                         f"emulator::Registers& {REGISTERS}, emulator::RomRamController& {MEMORY_CONTROLLER})"
 
+FUNC_PARAMETERS = [ARGUMENT_NAME, REGISTERS, MEMORY_CONTROLLER]
+
 INSTRUCTION_FUNCTION_TYPE = "InstructionFunction"
-DEF_INSTRUCTION_FUNCTION = f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_ARGUMENTS}>;"
+DEF_INSTRUCTION_FUNCTION = f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_PARAMETERS}>;"
 
 ARGUMENT_UINT8 = f"{ARGUMENT_NAME}.uint8"
 ARGUMENT_INT8 = f"{ARGUMENT_NAME}.int8"
@@ -150,9 +152,9 @@ def make_instruction_function(
         code_lines.append(f"return {instruction.duration};")
 
     func_name = f"{instruction.type_.value.lower()}_{instruction.value:03x}"
-    signature = f"uint16_t {func_name}{OPCODE_FUNC_ARGUMENTS}"
+    signature = f"uint16_t {func_name}{OPCODE_FUNC_PARAMETERS}"
     declaration = f"{signature}; // {instruction.short_repr}"
-    definition = make_function(f"{signature} // {instruction.short_repr}", code_lines)
+    definition = make_function(f"{signature} // {instruction.short_repr}", code_lines, FUNC_PARAMETERS)
 
     return InstructionFunction(func_name, declaration, definition, get_argument_enum(instruction), instruction)
 
