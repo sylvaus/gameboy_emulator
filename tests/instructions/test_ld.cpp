@@ -21,6 +21,77 @@ using ::testing::Return;
 
 namespace
 {
+
+    TEST(LDTest, LD001) // 0x1 LD BC, d16
+    {
+        // Test from Chapter 4: page 100
+        MockMemoryController controller;
+        Registers registers{};
+        registers.PC = 0x15FA;
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        Arguments arguments{};
+        arguments.uint16 = 0xABCD;
+
+        const auto cycle = gen::ld_001(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0xAB, registers.B);
+        EXPECT_EQ (0xCD, registers.C);
+        EXPECT_EQ (12, cycle);
+        EXPECT_EQ (0x15FD, registers.PC);
+    }
+
+    TEST(LDTest, LD002) // 0x2 LD (BC), A
+    {
+        // Test from Chapter 4: page 99
+        MockMemoryController controller;
+        Registers registers{};
+        registers.PC = 0x15FA;
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0xF1;
+        registers.C = 0xC5;
+        Arguments arguments{};
+
+        EXPECT_CALL (controller, set(0xF1C5, 0x12)).Times(1);
+
+        const auto cycle = gen::ld_002(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0xF1, registers.B);
+        EXPECT_EQ (0xC5, registers.C);
+        EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
+    }
+
+    TEST(LDTest, LD006) // 0x6 LD B, d8
+    {
+        // Test from Chapter 4: page 96
+        MockMemoryController controller;
+        Registers registers{};
+        registers.PC = 0x15FA;
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        Arguments arguments{};
+        arguments.int8 = 0x1F;
+
+        const auto cycle = gen::ld_006(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x1F, registers.B);
+        EXPECT_EQ (0x81, registers.C);
+        EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FC, registers.PC);
+    }
+
     TEST(LDTest, LD008) // 0x8 LD (a16), SP
     {
         // Test from Chapter 4: page 101
