@@ -112,6 +112,53 @@ namespace
         EXPECT_EQ (0x15FD, registers.PC);
     }
 
+    TEST(LDTest, LD00A) // 0xA LD A, (BC)
+    {
+        // Test from Chapter 4: page 96
+        MockMemoryController controller;
+        Registers registers{};
+        registers.PC = 0x15FA;
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x25;
+        registers.C = 0x87;
+        Arguments arguments{};
+
+        EXPECT_CALL (controller, get(0x2587)).Times(1).WillOnce(Return(0xEC));
+
+        const auto cycle = gen::ld_00a(arguments, registers, controller);
+
+        EXPECT_EQ (0xEC, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x25, registers.B);
+        EXPECT_EQ (0x87, registers.C);
+        EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FB, registers.PC);
+    }
+
+    TEST(LDTest, LD00E) // 0xE LD C, d8
+    {
+        // Test from Chapter 4: page 96
+        MockMemoryController controller;
+        Registers registers{};
+        registers.PC = 0x15FA;
+        registers.A = 0x12;
+        registers.F = 0b1100'0000;
+        registers.B = 0x26;
+        registers.C = 0x81;
+        Arguments arguments{};
+        arguments.uint8 = 0xC4;
+
+        const auto cycle = gen::ld_00e(arguments, registers, controller);
+
+        EXPECT_EQ (0x12, registers.A);
+        EXPECT_EQ (0b1100'0000, registers.F);
+        EXPECT_EQ (0x26, registers.B);
+        EXPECT_EQ (0xC4, registers.C);
+        EXPECT_EQ (8, cycle);
+        EXPECT_EQ (0x15FC, registers.PC);
+    }
+
     TEST(LDTest, LD040) // 0x40 LD B, B
     {
         // Test from Chapter 4: page 95
