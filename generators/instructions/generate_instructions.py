@@ -1,11 +1,11 @@
 import os
 from dataclasses import dataclass
-from typing import Dict, Callable, Optional, Tuple, List
-from collections import OrderedDict
+from typing import Dict, Callable, Optional, Tuple, List, Union
+from collections import OrderedDict, namedtuple
 
 from generators.instructions.gbinstruction import read_instruction_csv, InstructionType, \
     GbInstruction, Argument, ArgumentType, FlagAction
-from generators.utils.formatters import indent_code, make_function
+from generators.utils.formatters import indent_code, make_function, put_code_in_namespace
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PROJECT_FOLDER = os.path.abspath(os.path.join(THIS_FOLDER, "..", ".."))
@@ -26,7 +26,7 @@ OFFSET_ADD_SUB_FLAG = "OFFSET_ADD_SUB_FLAG"
 OFFSET_ZERO_FLAG = "OFFSET_ZERO_FLAG"
 CARRY_FLAG = "carry_flag"
 HALF_CARRY_FLAG = "half_carry_flag"
-_ADD_SUB_FLAG = "add_sub_flag"
+ADD_SUB_FLAG = "add_sub_flag"
 ZERO_FLAG = "zero_flag"
 
 
@@ -197,13 +197,18 @@ def make_set_code(
     code_value = make_get_code(value, value_address_offset)
     if value_offset:
         code_value = f"({code_value}) + {value_offset}"
+    return make_set_code_from_value(dst, code_value, value.value_nb_bytes, dst_address_offset)
 
+
+def make_set_code_from_value(
+        dst: Argument, code_value: str, nb_bytes: int, dst_address_offset: Optional[str] = None
+) -> str:
     if dst.is_address:
         code_address = make_get_code(dst, is_not_address=True)
         if dst_address_offset:
             code_address = f"({code_address}) + {dst_address_offset}"
 
-        if (not value.is_address) and (value.nb_bytes == 2):
+        if nb_bytes > 1:
             return f"{MEMORY_CONTROLLER}.set16bits({code_address}, {code_value})"
         return f"{MEMORY_CONTROLLER}.set({code_address}, {code_value})"
 
@@ -220,35 +225,41 @@ def make_set_code(
     raise RuntimeError(f"Unknown Destination Argument Type {dst.type_}")
 
 
-def make_add_sub_flag_code(instruction: GbInstruction, is_add: bool) -> Tuple[str, str]:
-    two_bytes_op = ((instruction.first_arg.nb_bytes > 1) and (not instruction.first_arg.is_address)) or \
-                   ((instruction.second_arg.nb_bytes > 1) and (not instruction.second_arg.is_address))
+AddSubFlagCode = namedtuple("AddSubFlagCode", ["result", "code"])
+
+
+def make_add_sub_flag_code(
+        instruction: GbInstruction, is_add: bool, second_value: Optional[Union[str, int]] = None
+) -> AddSubFlagCode:
+    two_bytes_op = (instruction.first_arg.value_nb_bytes > 1) or \
+                   (instruction.second_arg and (not instruction.second_arg.value_nb_bytes > 1))
 
     carry_max_value = "0xFFFF" if two_bytes_op else "0xFF"
     half_carry_max_value = "0xFFF" if two_bytes_op else "0xF"
     sign = "+" if is_add else "-"
 
-    flag_names = []
+    half_result_code = ""
     flag_values = []
     if instruction.zero_flag == FlagAction.CUSTOM:
-        flag_names.append(ZERO_FLAG)
         flag_values.append(f"uint8_t {ZERO_FLAG} = ((result == 0) << {OFFSET_ZERO_FLAG});")
     if instruction.half_carry_flag == FlagAction.CUSTOM:
-        flag_names.append(HALF_CARRY_FLAG)
         flag_values.append(make_half_carry_flag(half_carry_max_value, is_add))
+        half_result_code = \
+            f"int32_t half_result = (lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value});\n"
     if instruction.carry_flag == FlagAction.CUSTOM:
-        flag_names.append(CARRY_FLAG)
         flag_values.append(make_carry_flag(carry_max_value, is_add))
 
     flag_value_code = "\n".join(flag_values)
-    return (
+    if not second_value:
+        second_value = make_get_code(instruction.second_arg)
+    return AddSubFlagCode(
         f"result & {carry_max_value}",
         f"int32_t lhs = {make_get_code(instruction.first_arg)};\n"
-        f"int32_t rhs = {make_get_code(instruction.second_arg)};\n"
-        f"int32_t half_result = (lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value});\n"
+        f"int32_t rhs = {second_value};\n"
+        f"{half_result_code}"
         f"int32_t result = lhs {sign} rhs;\n"
         f"{flag_value_code}\n"
-        f"{make_flag_code(instruction, flag_names)}"
+        f"{make_flag_code(instruction)}"
     )
 
 
@@ -268,7 +279,10 @@ def make_carry_flag(carry_max_value: str, is_add: bool) -> str:
     return f"{flag} = ((result < 0) << {OFFSET_CARRY_FLAG});"
 
 
-def make_flag_code(instruction: GbInstruction, flags: List[str]) -> str:
+def make_flag_code(instruction: GbInstruction) -> str:
+    if all(flag == FlagAction.NONE for flag in instruction.flags):
+        return "// No flag operation"
+
     initial_flag = ((instruction.zero_flag == FlagAction.SET) << OFFSET_ZERO_FLAG_VALUE) + \
                    ((instruction.add_sub_flag == FlagAction.SET) << OFFSET_ADD_SUB_FLAG_VALUE) + \
                    ((instruction.half_carry_flag == FlagAction.SET) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
@@ -279,10 +293,23 @@ def make_flag_code(instruction: GbInstruction, flags: List[str]) -> str:
                         ((instruction.half_carry_flag == FlagAction.NONE) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
                         ((instruction.carry_flag == FlagAction.NONE) << OFFSET_CARRY_FLAG_VALUE)
 
-    flag_setting = f"{REGISTERS_FLAGS} &= {current_flag_mask};\n{REGISTERS_FLAGS} |= {initial_flag:08b}"
+    flag_setting = f"{REGISTERS_FLAGS} &= {current_flag_mask:08b};\n{REGISTERS_FLAGS} |= {initial_flag:08b}"
+    flags = get_custom_flag_names(instruction)
     if flags:
         flag_setting += " + " + " + ".join(flags)
     return flag_setting + ";"
+
+
+def get_custom_flag_names(instruction: GbInstruction) -> List[str]:
+    flag_names = []
+    if instruction.zero_flag == FlagAction.CUSTOM:
+        flag_names.append(ZERO_FLAG)
+    if instruction.half_carry_flag == FlagAction.CUSTOM:
+        flag_names.append(HALF_CARRY_FLAG)
+    if instruction.carry_flag == FlagAction.CUSTOM:
+        flag_names.append(CARRY_FLAG)
+
+    return flag_names
 
 
 @register_generator(InstructionType.NOP)
@@ -322,8 +349,31 @@ def ldhl_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code)
 
 
-def put_code_in_namespace(code: str) -> str:
-    return f"namespace {NAMESPACE}\n{{\n{indent_code(code)}\n}}"
+@register_generator(InstructionType.INC)
+def inc_generator(instruction: GbInstruction) -> InstructionFunction:
+    result_value, flag_code = make_add_sub_flag_code(instruction, True, 1)
+    set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
+    code = f"{flag_code}\n{set_code};"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.DEC)
+def inc_generator(instruction: GbInstruction) -> InstructionFunction:
+    result_value, flag_code = make_add_sub_flag_code(instruction, False, 1)
+    set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
+    code = f"{flag_code}\n{set_code};"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.ADD)
+def inc_generator(instruction: GbInstruction) -> InstructionFunction:
+    result_value, flag_code = make_add_sub_flag_code(instruction, True)
+    set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
+    code = f"{flag_code}\n{set_code};"
+
+    return make_instruction_function(instruction, code)
 
 
 def main():
@@ -343,11 +393,11 @@ def main():
         code += f"\n\nconst {ARGUMENT_ENUM_NAME} INSTRUCTION_ARGUMENT_TYPES[] = {{\n"
         code += indent_code(",\n".join(f"{ARGUMENT_ENUM_NAME}::{func.argument_type}" for func in functions))
         code += "\n};"
-        f.write(put_code_in_namespace(code))
+        f.write(put_code_in_namespace(code, NAMESPACE))
 
     with open(SRC_FILE, "w") as f:
         f.write(SRC_HEADER)
-        f.write(put_code_in_namespace("\n\n".join(func.definition for func in functions)))
+        f.write(put_code_in_namespace("\n\n".join(func.definition for func in functions), NAMESPACE))
 
 
 if __name__ == '__main__':

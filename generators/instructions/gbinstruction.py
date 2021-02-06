@@ -1,4 +1,5 @@
 import csv
+from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, List
@@ -52,6 +53,10 @@ class Argument:
     nb_bytes: int
     name: str
     value: Optional[int]
+
+    @property
+    def value_nb_bytes(self):
+        return 2 if (not self.is_address) and (self.nb_bytes == 2) else 1
 
     @property
     def short_repr(self):
@@ -140,6 +145,7 @@ class FlagAction(Enum):
     NONE = "NONE"
 
 
+InstructionFlags = namedtuple("InstructionFlags", ["zero", "add_sub", "half_carry", "carry"])
 FLAG_ACTION_MAP = {type_.value: type_ for type_ in FlagAction}
 
 
@@ -156,6 +162,12 @@ class GbInstruction:
     add_sub_flag: FlagAction
     half_carry_flag: FlagAction
     carry_flag: FlagAction
+
+    @property
+    def flags(self) -> InstructionFlags:
+        return InstructionFlags(
+            self.zero_flag, self.add_sub_flag, self.half_carry_flag, self.carry_flag
+        )
 
     @property
     def short_repr(self):
