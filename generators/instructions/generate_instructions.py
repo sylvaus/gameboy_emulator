@@ -4,7 +4,7 @@ from typing import Dict, Callable, Optional, Tuple, List, Union
 from collections import OrderedDict, namedtuple
 
 from generators.instructions.gbinstruction import read_instruction_csv, InstructionType, \
-    GbInstruction, Argument, ArgumentType, FlagAction
+    GbInstruction, Argument, ArgumentType, FlagAction, InstructionFlags
 from generators.utils.formatters import indent_code, make_function, put_code_in_namespace
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +74,9 @@ DEF_INSTRUCTION_FUNCTION = f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<u
 ARGUMENT_UINT8 = f"{ARGUMENT_NAME}.uint8"
 ARGUMENT_INT8 = f"{ARGUMENT_NAME}.int8"
 ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
+REGISTERS_A = f"{REGISTERS}.A"
 REGISTERS_FLAGS = f"{REGISTERS}.F"
+REGISTERS_FLAGS_GET_CARRY = f"{REGISTERS}.get_carry_flag()"
 REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
 REGISTERS_PROGRAM_COUNTER = f"{REGISTERS}.PC"
 
@@ -259,7 +261,7 @@ def make_add_sub_flag_code(
         f"{half_result_code}"
         f"int32_t result = lhs {sign} rhs;\n"
         f"{flag_value_code}\n"
-        f"{make_flag_code(instruction)}"
+        f"{make_flag_code(instruction.flags)}"
     )
 
 
@@ -279,34 +281,37 @@ def make_carry_flag(carry_max_value: str, is_add: bool) -> str:
     return f"{flag} = ((result < 0) << {OFFSET_CARRY_FLAG});"
 
 
-def make_flag_code(instruction: GbInstruction) -> str:
-    if all(flag == FlagAction.NONE for flag in instruction.flags):
+def make_flag_code(flags: InstructionFlags) -> str:
+    if all(flag == FlagAction.NONE for flag in flags):
         return "// No flag operation"
 
-    initial_flag = ((instruction.zero_flag == FlagAction.SET) << OFFSET_ZERO_FLAG_VALUE) + \
-                   ((instruction.add_sub_flag == FlagAction.SET) << OFFSET_ADD_SUB_FLAG_VALUE) + \
-                   ((instruction.half_carry_flag == FlagAction.SET) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
-                   ((instruction.carry_flag == FlagAction.SET) << OFFSET_CARRY_FLAG_VALUE)
+    initial_flag = ((flags.zero == FlagAction.SET) << OFFSET_ZERO_FLAG_VALUE) + \
+                   ((flags.add_sub == FlagAction.SET) << OFFSET_ADD_SUB_FLAG_VALUE) + \
+                   ((flags.half_carry == FlagAction.SET) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
+                   ((flags.carry == FlagAction.SET) << OFFSET_CARRY_FLAG_VALUE)
 
-    current_flag_mask = ((instruction.zero_flag == FlagAction.NONE) << OFFSET_ZERO_FLAG_VALUE) + \
-                        ((instruction.add_sub_flag == FlagAction.NONE) << OFFSET_ADD_SUB_FLAG_VALUE) + \
-                        ((instruction.half_carry_flag == FlagAction.NONE) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
-                        ((instruction.carry_flag == FlagAction.NONE) << OFFSET_CARRY_FLAG_VALUE)
+    current_flag_mask = ((flags.zero == FlagAction.NONE) << OFFSET_ZERO_FLAG_VALUE) + \
+                        ((flags.add_sub == FlagAction.NONE) << OFFSET_ADD_SUB_FLAG_VALUE) + \
+                        ((flags.half_carry == FlagAction.NONE) << OFFSET_HALF_CARRY_FLAG_VALUE) + \
+                        ((flags.carry == FlagAction.NONE) << OFFSET_CARRY_FLAG_VALUE)
 
-    flag_setting = f"{REGISTERS_FLAGS} &= {current_flag_mask:08b};\n{REGISTERS_FLAGS} |= {initial_flag:08b}"
-    flags = get_custom_flag_names(instruction)
-    if flags:
-        flag_setting += " + " + " + ".join(flags)
-    return flag_setting + ";"
+    flag_setting = f"{REGISTERS_FLAGS} &= 0b{current_flag_mask:08b};"
+    flag_variables = get_custom_flag_names(flags)
+    if initial_flag:
+        flag_variables.insert(0, f"0b{initial_flag:08b}")
+
+    if flag_variables:
+        flag_setting += f"\n{REGISTERS_FLAGS} |= {' + '.join(flag_variables)};"
+    return flag_setting
 
 
-def get_custom_flag_names(instruction: GbInstruction) -> List[str]:
+def get_custom_flag_names(flags: InstructionFlags) -> List[str]:
     flag_names = []
-    if instruction.zero_flag == FlagAction.CUSTOM:
+    if flags.zero == FlagAction.CUSTOM:
         flag_names.append(ZERO_FLAG)
-    if instruction.half_carry_flag == FlagAction.CUSTOM:
+    if flags.half_carry == FlagAction.CUSTOM:
         flag_names.append(HALF_CARRY_FLAG)
-    if instruction.carry_flag == FlagAction.CUSTOM:
+    if flags.carry == FlagAction.CUSTOM:
         flag_names.append(CARRY_FLAG)
 
     return flag_names
@@ -359,7 +364,7 @@ def inc_generator(instruction: GbInstruction) -> InstructionFunction:
 
 
 @register_generator(InstructionType.DEC)
-def inc_generator(instruction: GbInstruction) -> InstructionFunction:
+def dec_generator(instruction: GbInstruction) -> InstructionFunction:
     result_value, flag_code = make_add_sub_flag_code(instruction, False, 1)
     set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
     code = f"{flag_code}\n{set_code};"
@@ -368,11 +373,43 @@ def inc_generator(instruction: GbInstruction) -> InstructionFunction:
 
 
 @register_generator(InstructionType.ADD)
-def inc_generator(instruction: GbInstruction) -> InstructionFunction:
+def add_generator(instruction: GbInstruction) -> InstructionFunction:
     result_value, flag_code = make_add_sub_flag_code(instruction, True)
     set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
     code = f"{flag_code}\n{set_code};"
 
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.RLCA)
+def rlca_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"uint8_t {CARRY_FLAG} = ({REGISTERS_A} >> 7) & 0b1;\n" \
+           f"{REGISTERS_A} = ({REGISTERS_A} << 1) + {CARRY_FLAG};\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.RRCA)
+def rrca_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"uint8_t {CARRY_FLAG} = {REGISTERS_A} & 0b1;\n" \
+           f"{REGISTERS_A} = ({REGISTERS_A} >> 1) + ({CARRY_FLAG} << 7);\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.RLA)
+def rla_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"uint8_t {CARRY_FLAG} = ({REGISTERS_A} >> 7) & 0b1;\n" \
+           f"{REGISTERS_A} = ({REGISTERS_A} << 1) + {REGISTERS_FLAGS_GET_CARRY};\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.RRA)
+def rra_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"uint8_t {CARRY_FLAG} = {REGISTERS_A} & 0b1;\n" \
+           f"{REGISTERS_A} = ({REGISTERS_A} >> 1) + ({REGISTERS_FLAGS_GET_CARRY} << 7);\n" \
+           f"{make_flag_code(instruction.flags)}"
     return make_instruction_function(instruction, code)
 
 
