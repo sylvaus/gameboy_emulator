@@ -49,7 +49,7 @@ ARGUMENT_ENUM = f"""enum class {ARGUMENT_ENUM_NAME}
     {ARGUMENT_ENUM_UINT8},
     {ARGUMENT_ENUM_UINT16}
 }};"""
-ARGUMENT_TYPE_TO_ENUM = {
+ARGUMENT_TYPE_TO_IMMEDIATE_VALUE_TYPE = {
     ArgumentType.REGISTER: ARGUMENT_ENUM_NONE,
     ArgumentType.IMMEDIATE_8_BITS: ARGUMENT_ENUM_UINT8,
     ArgumentType.IMMEDIATE_16_BITS: ARGUMENT_ENUM_UINT16,
@@ -77,8 +77,22 @@ ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
 REGISTERS_A = f"{REGISTERS}.A"
 REGISTERS_FLAGS = f"{REGISTERS}.F"
 REGISTERS_FLAGS_GET_CARRY = f"{REGISTERS}.get_carry_flag()"
+REGISTERS_FLAGS_GET_HALF_CARRY = f"{REGISTERS}.get_half_carry_flag()"
+REGISTERS_FLAGS_GET_ADD_SUB = f"{REGISTERS}.get_add_sub_flag()"
+REGISTERS_FLAGS_GET_ZERO = f"{REGISTERS}.get_zero_flag()"
+REGISTERS_FLAGS_GET_NON_CARRY = f"{REGISTERS}.get_non_carry_flag()"
+REGISTERS_FLAGS_GET_NON_HALF_CARRY = f"{REGISTERS}.get_non_half_carry_flag()"
+REGISTERS_FLAGS_GET_NON_ADD_SUB = f"{REGISTERS}.get_non_add_sub_flag()"
+REGISTERS_FLAGS_GET_NON_ZERO = f"{REGISTERS}.get_non_zero_flag()"
 REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
 REGISTERS_PROGRAM_COUNTER = f"{REGISTERS}.PC"
+
+REGISTERS_FLAG_TO_GETTER = {
+    "C": REGISTERS_FLAGS_GET_CARRY,
+    "Z": REGISTERS_FLAGS_GET_ZERO,
+    "NC": REGISTERS_FLAGS_GET_NON_CARRY,
+    "NZ": REGISTERS_FLAGS_GET_NON_ZERO
+}
 
 REGISTERS_WITH_GETTER_SETTERS = {"AF", "BC", "DE", "HL"}
 
@@ -130,18 +144,25 @@ def get_argument_name(argument: Argument):
     return name
 
 
-def get_argument_enum(instruction: GbInstruction):
+def get_immediate_value_type(instruction: GbInstruction):
+    """
+    Return the enum corresponding to the immediate value used by the given instruction
+    For example
+    JR NZ, s8 would return the enum for s8
+    JP a16 would return the enum for a16
+    INC BC or NOP would return the enum for none immediate value
+    """
     if instruction.first_arg is None:
         return ARGUMENT_ENUM_NONE
 
-    first_argument_enum = ARGUMENT_TYPE_TO_ENUM[instruction.first_arg.type_]
+    first_argument_enum = ARGUMENT_TYPE_TO_IMMEDIATE_VALUE_TYPE[instruction.first_arg.type_]
     if first_argument_enum != ARGUMENT_ENUM_NONE:
         return first_argument_enum
 
     if instruction.second_arg is None:
         return ARGUMENT_ENUM_NONE
 
-    return ARGUMENT_TYPE_TO_ENUM[instruction.second_arg.type_]
+    return ARGUMENT_TYPE_TO_IMMEDIATE_VALUE_TYPE[instruction.second_arg.type_]
 
 
 def make_instruction_function(
@@ -158,7 +179,9 @@ def make_instruction_function(
     declaration = f"{signature}; // {instruction.short_repr}"
     definition = make_function(f"{signature} // {instruction.short_repr}", code_lines, FUNC_PARAMETERS)
 
-    return InstructionFunction(func_name, declaration, definition, get_argument_enum(instruction), instruction)
+    return InstructionFunction(
+        func_name, declaration, definition, get_immediate_value_type(instruction), instruction
+    )
 
 
 def make_get_code(argument: Argument, address_offset: Optional[str] = None, is_not_address: bool = False):
@@ -411,6 +434,21 @@ def rra_generator(instruction: GbInstruction) -> InstructionFunction:
            f"{REGISTERS_A} = ({REGISTERS_A} >> 1) + ({REGISTERS_FLAGS_GET_CARRY} << 7);\n" \
            f"{make_flag_code(instruction.flags)}"
     return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.JR)
+def jr_generator(instruction: GbInstruction) -> InstructionFunction:
+    if not instruction.second_arg:
+        code = f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length} + {ARGUMENT_INT8};"
+        return make_instruction_function(instruction, code, remove_pc_update=True)
+
+    code = f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
+           f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
+           f"    return {instruction.duration_no_action};\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} += {ARGUMENT_INT8};\n" \
+           f"return {instruction.duration};"
+
+    return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
 
 
 def main():
