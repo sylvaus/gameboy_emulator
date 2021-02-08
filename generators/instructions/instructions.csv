@@ -232,7 +232,7 @@ Value,Instruction,First Argument Type,First Argument Is Address,First Argument N
 230,AND,IMMEDIATE_8_BITS,False,1,d8,None,None,None,None,None,None,2,8,8,CUSTOM,RESET,SET,RESET
 231,RST,VALUE,False,1,20H,32,None,None,None,None,None,1,16,16,NONE,NONE,NONE,NONE
 232,ADD,REGISTER,False,2,SP,None,PC_INCREMENT_8_BIT,False,1,r8,None,2,16,16,RESET,RESET,CUSTOM,CUSTOM
-233,JP,REGISTER,True,2,HL,None,None,None,None,None,None,1,4,4,NONE,NONE,NONE,NONE
+233,JP,REGISTER,False,2,HL,None,None,None,None,None,None,1,4,4,NONE,NONE,NONE,NONE
 234,LD,ADDRESS_16_BIT,True,2,a16,None,REGISTER,False,1,A,None,3,16,16,NONE,NONE,NONE,NONE
 235,UNKNOWN,None,None,None,None,None,None,None,None,None,None,1,1,1,NONE,NONE,NONE,NONE
 236,UNKNOWN,None,None,None,None,None,None,None,None,None,None,1,1,1,NONE,NONE,NONE,NONE

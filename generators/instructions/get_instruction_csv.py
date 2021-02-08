@@ -133,8 +133,10 @@ class OpcodeHTMLParser(HTMLParser):
 
 def main():
     with urllib.request.urlopen("https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html") as f:
+        text = f.read().decode()
+        text = text.replace("JP (HL)", "JP HL")  # wrong value
         parser = OpcodeHTMLParser()
-        parser.feed(f.read().decode())
+        parser.feed(text)
 
     write_gb_instruction_to_csv(os.path.join(THIS_FOLDER, "instructions.csv"), parser.opcodes)
 
