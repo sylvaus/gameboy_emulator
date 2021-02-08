@@ -240,6 +240,12 @@ namespace emulator::generated
         return 4;
     }
 
+    uint16_t jr_018(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x18 JR r8
+    {
+        registers.PC += 2 + arguments.int8;
+        return 12;
+    }
+
     uint16_t add_019(const Arguments& , emulator::Registers& registers, emulator::RomRamController& ) // 0x19 ADD HL, DE
     {
         int32_t lhs = registers.get_HL();
@@ -320,6 +326,15 @@ namespace emulator::generated
         return 4;
     }
 
+    uint16_t jr_020(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x20 JR NZ, r8
+    {
+        registers.PC += 2;
+        if (registers.get_non_zero_flag())
+            return 8;
+        registers.PC += arguments.int8;
+        return 12;
+    }
+
     uint16_t ld_021(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x21 LD HL, d16
     {
         registers.set_HL(arguments.uint16);
@@ -381,6 +396,15 @@ namespace emulator::generated
         registers.H = arguments.uint8;
         registers.PC += 2;
         return 8;
+    }
+
+    uint16_t jr_028(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x28 JR Z, r8
+    {
+        registers.PC += 2;
+        if (registers.get_zero_flag())
+            return 8;
+        registers.PC += arguments.int8;
+        return 12;
     }
 
     uint16_t add_029(const Arguments& , emulator::Registers& registers, emulator::RomRamController& ) // 0x29 ADD HL, HL
@@ -454,6 +478,15 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t jr_030(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x30 JR NC, r8
+    {
+        registers.PC += 2;
+        if (registers.get_non_carry_flag())
+            return 8;
+        registers.PC += arguments.int8;
+        return 12;
+    }
+
     uint16_t ld_031(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x31 LD SP, d16
     {
         registers.SP = arguments.uint16;
@@ -514,6 +547,15 @@ namespace emulator::generated
     {
         controller.set(registers.get_HL(), arguments.uint8);
         registers.PC += 2;
+        return 12;
+    }
+
+    uint16_t jr_038(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x38 JR C, r8
+    {
+        registers.PC += 2;
+        if (registers.get_carry_flag())
+            return 8;
+        registers.PC += arguments.int8;
         return 12;
     }
 

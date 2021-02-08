@@ -37,5 +37,9 @@ namespace emulator
         [[nodiscard]] bool get_half_carry_flag() const;
         [[nodiscard]] bool get_add_sub_flag() const;
         [[nodiscard]] bool get_zero_flag() const;
+        [[nodiscard]] bool get_non_carry_flag() const;
+        [[nodiscard]] bool get_non_half_carry_flag() const;
+        [[nodiscard]] bool get_non_add_sub_flag() const;
+        [[nodiscard]] bool get_non_zero_flag() const;
     };
 }

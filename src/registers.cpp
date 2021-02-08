@@ -73,5 +73,25 @@ namespace emulator
     {
         return (F >> OFFSET_ZERO_FLAG) & 0x1;
     }
+
+    bool Registers::get_non_carry_flag() const
+    {
+        return !get_carry_flag();
+    }
+
+    bool Registers::get_non_half_carry_flag() const
+    {
+        return !get_half_carry_flag();
+    }
+
+    bool Registers::get_non_add_sub_flag() const
+    {
+        return !get_add_sub_flag();
+    }
+
+    bool Registers::get_non_zero_flag() const
+    {
+        return !get_zero_flag();
+    }
 }
 
