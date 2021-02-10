@@ -451,6 +451,30 @@ def jr_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
 
 
+@register_generator(InstructionType.DAA)
+def daa_generator(instruction: GbInstruction) -> InstructionFunction:
+    code_add = f"{CARRY_FLAG} = (0x99 < {REGISTERS_A}) || {REGISTERS_FLAGS_GET_CARRY};\n" \
+               f"{REGISTERS_A} += (0x6 * ((0xA < ({REGISTERS_A} & 0xF)) || {REGISTERS_FLAGS_GET_HALF_CARRY})) +" \
+               f"(0x60 * {CARRY_FLAG});"
+
+    code_sub = f"{CARRY_FLAG} = {REGISTERS_FLAGS_GET_CARRY};\n" \
+               f"{REGISTERS_A} -= (0x6 * {REGISTERS_FLAGS_GET_HALF_CARRY}) + (0x60 * {CARRY_FLAG});"
+
+    code = f"uint8_t {CARRY_FLAG};\n" \
+           f"if ({REGISTERS_FLAGS_GET_ADD_SUB})\n" \
+           f"{{\n" \
+           f"{indent_code(code_sub)}\n" \
+           f"}}\n" \
+           f"else\n" \
+           f"{{\n" \
+           f"{indent_code(code_add)}\n" \
+           f"}}\n" \
+           f"uint8_t {ZERO_FLAG} = ({REGISTERS_A} == 0x00);\n" \
+           f"{make_flag_code(instruction.flags)}"
+
+    return make_instruction_function(instruction, code)
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
     functions = [

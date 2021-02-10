@@ -398,6 +398,26 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t daa_027(const Arguments& , emulator::Registers& registers, emulator::RomRamController& ) // 0x27 DAA
+    {
+        uint8_t carry_flag;
+        if (registers.get_add_sub_flag())
+        {
+            carry_flag = registers.get_carry_flag();
+            registers.A -= (0x6 * registers.get_half_carry_flag()) | (0x60 * carry_flag);
+        }
+        else
+        {
+            carry_flag = (0x99 < registers.A) || registers.get_carry_flag();
+            registers.A += (0x6 * ((0xA < (registers.A & 0xF)) || registers.get_half_carry_flag())) +(0x60 * carry_flag);
+        }
+        uint8_t zero_flag = (registers.A == 0x00);
+        registers.F &= 0b01000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
     uint16_t jr_028(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& ) // 0x28 JR Z, r8
     {
         registers.PC += 2;

@@ -98,6 +98,8 @@ namespace emulator::generated
 
     uint16_t ld_026(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller); // 0x26 LD H, d8
 
+    uint16_t daa_027(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller); // 0x27 DAA
+
     uint16_t jr_028(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller); // 0x28 JR Z, r8
 
     uint16_t add_029(const Arguments& arguments, emulator::Registers& registers, emulator::RomRamController& controller); // 0x29 ADD HL, HL
@@ -363,6 +365,7 @@ namespace emulator::generated
         &inc_024,
         &dec_025,
         &ld_026,
+        &daa_027,
         &jr_028,
         &add_029,
         &ldi_02a,
@@ -517,6 +520,7 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
         ArgumentType::int8,
         ArgumentType::none,
         ArgumentType::none,
