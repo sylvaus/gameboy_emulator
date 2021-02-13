@@ -26,7 +26,7 @@ namespace emulator
         std::vector<RomBank> rom_banks(nb_roms);
         for (int i = 0; i < nb_roms; ++i)
         {
-            stream.read(reinterpret_cast<char *>(rom_banks[i]), ROM_BANK_SIZE);
+            stream.read(reinterpret_cast<char *>(rom_banks[i].data()), ROM_BANK_SIZE);
         }
         return rom_banks;
     }
@@ -35,7 +35,6 @@ namespace emulator
     {
         return nullptr;
     }
-
 
 
     const UnMutableDefaultMap<MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
@@ -51,7 +50,7 @@ namespace emulator
             throw LoadCartridgeError("Could not open the file with the given path" + filename);
 
         auto rom_banks =  vector<RomBank>(1);
-        stream.read(reinterpret_cast<char *>(rom_banks[0]), ROM_BANK_SIZE);
+        stream.read(reinterpret_cast<char *>(rom_banks[0].data()), ROM_BANK_SIZE);
 
         LOGGER.debug("Name of the game: " + get_title(rom_banks[0]));
         LOGGER.debug("Rom size: " + ROM_SIZE_NAME_MAP.get(get_rom_size(rom_banks[0])));

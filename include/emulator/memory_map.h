@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 #include <unordered_map>
 
 #include "emulator/utils/map.h"
@@ -208,13 +209,13 @@ namespace emulator
     constexpr std::size_t START_EXT_RAM = 0xA000;
     constexpr std::size_t END_EXT_RAM = 0xBFFF;
 
-    using RomBank = uint8_t[ROM_BANK_SIZE];
-    using VideoRam = uint8_t[0x2000];
-    using RamBank = uint8_t[0x2000];
-    using WorkRamBank = uint8_t[0x2000];
-    using EchoRamBank = uint8_t[0x1E00];
-    using SpriteAttributeTable = uint8_t[0xA0];
-    using HighRam = uint8_t[0x7F];
+    using RomBank = std::array<uint8_t, ROM_BANK_SIZE>;
+    using VideoRam = std::array<uint8_t, 0x2000>;
+    using RamBank = std::array<uint8_t, 0x2000>;
+    using WorkRamBank = std::array<uint8_t, 0x2000>;
+    using EchoRamBank = std::array<uint8_t, 0x1E00>;
+    using SpriteAttributeTable = std::array<uint8_t, 0xA0>;
+    using HighRam = std::array<uint8_t, 0x7F>;
 
     constexpr uint16_t ADDRESS_ENTRY_POINT = 0x100;
     constexpr uint16_t ADDRESS_LOGO = 0x104;
