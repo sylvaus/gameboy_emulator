@@ -64,7 +64,7 @@ ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
 MEMORY_CONTROLLER = "controller"
 OPCODE_FUNC_PARAMETERS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
-                        f"emulator::Registers& {REGISTERS}, emulator::RomRamController& {MEMORY_CONTROLLER})"
+                        f"emulator::Registers& {REGISTERS}, emulator::MemoryController& {MEMORY_CONTROLLER})"
 
 FUNC_PARAMETERS = [ARGUMENT_NAME, REGISTERS, MEMORY_CONTROLLER]
 
@@ -102,7 +102,7 @@ INCLUDE_HEADER = f"""#pragma once\n
 #include <cstdint>
 #include <functional>
 #include "emulator/registers.h"
-#include "emulator/romram_controller.h"\n\n"""
+#include "emulator/memory_controller.h"\n\n"""
 
 
 @dataclass
@@ -470,6 +470,27 @@ def daa_generator(instruction: GbInstruction) -> InstructionFunction:
            f"{indent_code(code_add)}\n" \
            f"}}\n" \
            f"uint8_t {ZERO_FLAG} = ({REGISTERS_A} == 0x00);\n" \
+           f"{make_flag_code(instruction.flags)}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.CPL)
+def cpl_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"{REGISTERS_A} = ~{REGISTERS_A};\n" \
+           f"{make_flag_code(instruction.flags)}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.SCF)
+def scf_generator(instruction: GbInstruction) -> InstructionFunction:
+    return make_instruction_function(instruction, make_flag_code(instruction.flags))
+
+
+@register_generator(InstructionType.CCF)
+def ccf_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"uint8_t {CARRY_FLAG} = !{REGISTERS_FLAGS_GET_CARRY};\n" \
            f"{make_flag_code(instruction.flags)}"
 
     return make_instruction_function(instruction, code)

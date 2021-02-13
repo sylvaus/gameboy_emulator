@@ -50,7 +50,7 @@ add_executable(
         src/cartridge.cpp
         src/logging.cpp
         src/memory_map.cpp
-        src/romram_controller.cpp
+        src/memory_controller.cpp
         src/generated/instructions.cpp
         src/registers.cpp
 )
