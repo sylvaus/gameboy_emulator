@@ -64,12 +64,20 @@ ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
 MEMORY_CONTROLLER = "controller"
 OPCODE_FUNC_PARAMETERS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
-                        f"emulator::Registers& {REGISTERS}, emulator::MemoryController& {MEMORY_CONTROLLER})"
+                        f"Registers& {REGISTERS}, MemoryController& {MEMORY_CONTROLLER})"
 
 FUNC_PARAMETERS = [ARGUMENT_NAME, REGISTERS, MEMORY_CONTROLLER]
 
 INSTRUCTION_FUNCTION_TYPE = "InstructionFunction"
-DEF_INSTRUCTION_FUNCTION = f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_PARAMETERS}>;"
+INCLUDE_USING_DEFS = f"using emulator::memory::Registers;\n" \
+                     f"using emulator::memory::MemoryController;\n" \
+                     f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_PARAMETERS}>;"
+
+
+SRC_INCLUDE_DEFS = f"using emulator::memory::{OFFSET_CARRY_FLAG};\n" \
+                   f"using emulator::memory::{OFFSET_HALF_CARRY_FLAG};\n" \
+                   f"using emulator::memory::{OFFSET_ADD_SUB_FLAG};\n" \
+                   f"using emulator::memory::{OFFSET_ZERO_FLAG};\n"
 
 ARGUMENT_UINT8 = f"{ARGUMENT_NAME}.uint8"
 ARGUMENT_INT8 = f"{ARGUMENT_NAME}.int8"
@@ -86,6 +94,8 @@ REGISTERS_FLAGS_GET_NON_ADD_SUB = f"{REGISTERS}.get_non_add_sub_flag()"
 REGISTERS_FLAGS_GET_NON_ZERO = f"{REGISTERS}.get_non_zero_flag()"
 REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
 REGISTERS_PROGRAM_COUNTER = f"{REGISTERS}.PC"
+REGISTERS_HALTED = f"{REGISTERS}.halted"
+REGISTERS_IME_FLAG = f"{REGISTERS}.ime_flag"
 
 REGISTERS_FLAG_TO_GETTER = {
     "C": REGISTERS_FLAGS_GET_CARRY,
@@ -101,8 +111,8 @@ SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n""
 INCLUDE_HEADER = f"""#pragma once\n
 #include <cstdint>
 #include <functional>
-#include "emulator/registers.h"
-#include "emulator/memory_controller.h"\n\n"""
+#include "emulator/memory/registers.h"
+#include "emulator/memory/memory_controller.h"\n\n"""
 
 
 @dataclass
@@ -496,6 +506,11 @@ def ccf_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code)
 
 
+@register_generator(InstructionType.HALT)
+def halt_generator(instruction: GbInstruction) -> InstructionFunction:
+    return make_instruction_function(instruction, f"{REGISTERS_HALTED} = true;")
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
     functions = [
@@ -505,7 +520,7 @@ def main():
 
     with open(INCLUDE_FILE, "w") as f:
         f.write(INCLUDE_HEADER)
-        code = f"{ARGUMENT_STRUCT}\n{ARGUMENT_ENUM}\n{DEF_INSTRUCTION_FUNCTION}\n\n"
+        code = f"{ARGUMENT_STRUCT}\n{ARGUMENT_ENUM}\n{INCLUDE_USING_DEFS}\n\n"
         code += "\n\n".join(func.declaration for func in functions)
         code += f"\n\nconst {INSTRUCTION_FUNCTION_TYPE} INSTRUCTION_FUNCTIONS[] = {{\n"
         code += indent_code("&" + ",\n&".join(func.name for func in functions))
@@ -517,7 +532,8 @@ def main():
 
     with open(SRC_FILE, "w") as f:
         f.write(SRC_HEADER)
-        f.write(put_code_in_namespace("\n\n".join(func.definition for func in functions), NAMESPACE))
+        code = f"{SRC_INCLUDE_DEFS}\n" + "\n\n".join(func.definition for func in functions)
+        f.write(put_code_in_namespace(code, NAMESPACE))
 
 
 if __name__ == '__main__':

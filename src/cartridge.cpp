@@ -6,17 +6,22 @@
 
 #include "emulator/exceptions.h"
 #include "emulator/logging.h"
-#include "emulator/memory_map.h"
-#include "emulator/romram_controller.h"
+#include "emulator/memory/memory_map.h"
+#include "emulator/memory/romram_controller.h"
 #include "emulator/cartridge.h"
 
 
 namespace emulator
 {
+    using std::vector;
     using std::unique_ptr;
-    using MemoryBankControllerPtr = std::unique_ptr<RomRamController>;
+    using memory::RomRamController;
+    using memory::RomBank;
+    using memory::ROM_BANK_SIZE;
+    using utils::UnMutableDefaultMap;
+    using MemoryBankControllerPtr = std::unique_ptr<memory::RomRamController>;
     using MemoryBankControllerProvider = std::function<MemoryBankControllerPtr(
-        vector<RomBank>&, uint8_t nb_ram_banks, CartridgeType
+        vector<memory::RomBank>&, uint8_t nb_ram_banks, memory::CartridgeType
     )>;
 
     auto LOGGER = Logging::get_logger("Cartridge");
@@ -26,20 +31,20 @@ namespace emulator
         std::vector<RomBank> rom_banks(nb_roms);
         for (int i = 0; i < nb_roms; ++i)
         {
-            stream.read(reinterpret_cast<char *>(rom_banks[i].data()), ROM_BANK_SIZE);
+            stream.read(reinterpret_cast<char *>(rom_banks[i].data()), memory::ROM_BANK_SIZE);
         }
         return rom_banks;
     }
 
-    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t, CartridgeType)
+    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t, memory::CartridgeType)
     {
         return nullptr;
     }
 
 
-    const UnMutableDefaultMap<MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
+    const UnMutableDefaultMap<memory::MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
     {&provides_null, {
-        {MemoryBankType::ROM_ONLY, &RomRamControllerNoExternal::create}
+        {memory::MemoryBankType::ROM_ONLY, &memory::RomRamControllerNoExternal::create}
     }};
 
 
@@ -52,13 +57,13 @@ namespace emulator
         auto rom_banks =  vector<RomBank>(1);
         stream.read(reinterpret_cast<char *>(rom_banks[0].data()), ROM_BANK_SIZE);
 
-        LOGGER.debug("Name of the game: " + get_title(rom_banks[0]));
-        LOGGER.debug("Rom size: " + ROM_SIZE_NAME_MAP.get(get_rom_size(rom_banks[0])));
-        LOGGER.debug("Ram size: " + RAM_SIZE_NAME_MAP.get(get_ram_size(rom_banks[0])));
+        LOGGER.debug("Name of the game: " + memory::get_title(rom_banks[0]));
+        LOGGER.debug("Rom size: " + memory::ROM_SIZE_NAME_MAP.get(memory::get_rom_size(rom_banks[0])));
+        LOGGER.debug("Ram size: " + memory::RAM_SIZE_NAME_MAP.get(memory::get_ram_size(rom_banks[0])));
 
-        const auto cartridge_type = get_cartridge_type(rom_banks[0]);
-        const auto nb_rom_banks = get_nb_rom_banks(rom_banks[0]);
-        const auto nb_ram_banks = get_nb_ram_banks(rom_banks[0]);
+        const auto cartridge_type = memory::get_cartridge_type(rom_banks[0]);
+        const auto nb_rom_banks = memory::get_nb_rom_banks(rom_banks[0]);
+        const auto nb_ram_banks = memory::get_nb_ram_banks(rom_banks[0]);
 
         auto roms = load_roms(stream, nb_rom_banks);
 

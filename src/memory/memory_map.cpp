@@ -1,8 +1,8 @@
-#include "emulator/memory_map.h"
+#include "emulator/memory/memory_map.h"
 
 #include "emulator/exceptions.h"
 
-namespace emulator
+namespace emulator::memory
 {
     CartridgeType get_cartridge_type(const RomBank& rom)
     {

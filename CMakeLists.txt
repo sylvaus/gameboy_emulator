@@ -49,10 +49,10 @@ add_executable(
         main.cpp
         src/cartridge.cpp
         src/logging.cpp
-        src/memory_map.cpp
-        src/memory_controller.cpp
+        src/memory/memory_map.cpp
+        src/memory/memory_controller.cpp
         src/generated/instructions.cpp
-        src/registers.cpp
+        src/memory/registers.cpp
 )
 
 if (TESTS)
@@ -62,7 +62,7 @@ if (TESTS)
     endif()
 
     file(GLOB_RECURSE TESTS_SRC ${PROJECT_SOURCE_DIR}/tests/test_*.cpp)
-    add_executable(tests ${TESTS_SRC} src/registers.cpp src/generated/instructions.cpp)
+    add_executable(tests ${TESTS_SRC} src/memory/registers.cpp src/generated/instructions.cpp)
     target_link_libraries(tests gtest_main gmock ${CMAKE_THREAD_LIBS_INIT})
     add_test(all_tests tests)
 endif()

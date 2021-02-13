@@ -1,6 +1,6 @@
-#include "emulator/registers.h"
+#include "emulator/memory/registers.h"
 
-namespace emulator
+namespace emulator::memory
 {
     uint8_t make_flag(bool zero, bool add_sub, bool half_carry, bool carry)
     {

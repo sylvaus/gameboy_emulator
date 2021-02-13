@@ -1,10 +1,9 @@
 #include "gtest/gtest.h"
-#include "emulator/registers.h"
-
-using emulator::Registers;
+#include "emulator/memory/registers.h"
 
 namespace
 {
+    using emulator::memory::Registers;
     TEST(CPUTest, CPUAF)
     {
         Registers registers{};

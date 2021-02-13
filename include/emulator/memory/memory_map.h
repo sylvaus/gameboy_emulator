@@ -6,7 +6,7 @@
 
 #include "emulator/utils/map.h"
 
-namespace emulator
+namespace emulator::memory
 {
     using utils::UnMutableDefaultMap;
 

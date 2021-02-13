@@ -4,10 +4,10 @@
 #include <memory>
 #include <vector>
 
-#include "emulator/memory_map.h"
-#include "logging.h"
+#include "memory_map.h"
+#include "emulator/logging.h"
 
-namespace emulator
+namespace emulator::memory
 {
     using std::vector;
     using std::unique_ptr;

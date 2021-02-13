@@ -6,18 +6,18 @@ The pages referenced in this file are pointing to [GameBoyProgManVer1.1.pdf](htt
 
 #include "gtest/gtest.h"
 
-#include "emulator/registers.h"
+#include "emulator/memory/registers.h"
 #include "emulator/generated/instructions.h"
 
 #include "../mocks/memory_controller.h"
 
 using emulator::generated::Arguments;
-using emulator::Registers;
+using emulator::memory::Registers;
 using emulator::mocks::MockMemoryController;
+using emulator::memory::make_flag;
+using ::testing::Return;
 
 namespace gen = emulator::generated;
-
-using ::testing::Return;
 
 namespace
 {
@@ -2067,7 +2067,7 @@ namespace
         MockMemoryController controller;
         Registers registers{};
         registers.PC = 0x15FA;
-        registers.F = emulator::make_flag(true, true, true, true);
+        registers.F = make_flag(true, true, true, true);
         registers.SP = 0xFFF8;
         Arguments arguments{};
         arguments.int8 = 2;

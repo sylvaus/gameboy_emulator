@@ -1,6 +1,6 @@
-#include "emulator/romram_controller.h"
+#include "emulator/memory/romram_controller.h"
 
-namespace emulator
+namespace emulator::memory
 {
     std::unique_ptr<RomRamController>
     RomRamControllerNoExternal::create(vector<RomBank> &rom_banks, uint8_t nb_ram_banks, CartridgeType cartridge_type)

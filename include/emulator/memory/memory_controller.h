@@ -4,10 +4,10 @@
 #include <memory>
 #include <vector>
 
-#include "emulator/romram_controller.h"
-#include "logging.h"
+#include "romram_controller.h"
+#include "emulator/logging.h"
 
-namespace emulator
+namespace emulator::memory
 {
     using std::vector;
     using std::unique_ptr;

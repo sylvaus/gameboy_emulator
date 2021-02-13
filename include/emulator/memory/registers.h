@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace emulator
+namespace emulator::memory
 {
     constexpr uint8_t OFFSET_CARRY_FLAG = 0x4;
     constexpr uint8_t OFFSET_HALF_CARRY_FLAG = 0x5;
@@ -23,6 +23,9 @@ namespace emulator
         uint8_t H;
         uint16_t SP;
         uint16_t PC;
+
+        bool halted;
+        bool ime_flag;  // Interrupt Master Enable Flag
 
         [[nodiscard]] uint16_t get_AF() const;
         void set_AF(uint16_t value);
