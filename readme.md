@@ -36,6 +36,17 @@ and M-Cycle refers to 4 cycles. [source](https://gbdev.io/pandocs/#instruction-s
 M-Cycles are used pretty often since all the instruction cycles are divisible by 4.
 The current implementation uses cycle as the [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html) uses it.
 
+### Halt implementation
+Halt instruction will be implemented as follow:
+* When HALT is called, the system clock will be stopped and only an interruption will allow the 
+  clock to restart
+* If the [IME](https://gbdev.io/pandocs/#ime-interrupt-master-enable-flag-write-only) is not set, the interrupt code will 
+  not be executed and the process will restart after the HALT
+  
+Sources:
+* [Gameboy Programming Manual](https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf) Page 124
+* [Github Documentation](https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf)
+
 
 Errors in resources
 ---------------------
@@ -51,7 +62,7 @@ Errors in resources
 Resources
 ---------
 * [Gameboy Programming Manual](https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf)
-* [Game Boy technical reference](https://gbdev.io/pandocs/#video-display)
+* [Game Boy technical reference](https://gbdev.io/pandocs)
 * [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 * [Rust implementation](https://mattbruv.github.io/gameboy-crust/)
 * [Pyboy implementation](https://github.com/Baekalfen/PyBoy)
