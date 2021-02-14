@@ -64,5 +64,6 @@ Resources
 * [Gameboy Programming Manual](https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf)
 * [Game Boy technical reference](https://gbdev.io/pandocs)
 * [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
+* [Gameboy Instruction set with explanation](https://meganesulli.com/generate-gb-opcodes/)
 * [Rust implementation](https://mattbruv.github.io/gameboy-crust/)
 * [Pyboy implementation](https://github.com/Baekalfen/PyBoy)

@@ -84,6 +84,12 @@ ARGUMENT_INT8 = f"{ARGUMENT_NAME}.int8"
 ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
 REGISTERS_A = f"{REGISTERS}.A"
 REGISTERS_FLAGS = f"{REGISTERS}.F"
+REGISTERS_B = f"{REGISTERS}.B"
+REGISTERS_C = f"{REGISTERS}.C"
+REGISTERS_D = f"{REGISTERS}.D"
+REGISTERS_E = f"{REGISTERS}.E"
+REGISTERS_H = f"{REGISTERS}.H"
+REGISTERS_L = f"{REGISTERS}.L"
 REGISTERS_FLAGS_GET_CARRY = f"{REGISTERS}.get_carry_flag()"
 REGISTERS_FLAGS_GET_HALF_CARRY = f"{REGISTERS}.get_half_carry_flag()"
 REGISTERS_FLAGS_GET_ADD_SUB = f"{REGISTERS}.get_add_sub_flag()"
@@ -102,6 +108,13 @@ REGISTERS_FLAG_TO_GETTER = {
     "Z": REGISTERS_FLAGS_GET_ZERO,
     "NC": REGISTERS_FLAGS_GET_NON_CARRY,
     "NZ": REGISTERS_FLAGS_GET_NON_ZERO
+}
+
+REGISTERS_16_TO_LOWER_UPPER_8_MAP = {
+    "AF": (REGISTERS_FLAGS, REGISTERS_A),
+    "BC": (REGISTERS_C, REGISTERS_B),
+    "DE": (REGISTERS_E, REGISTERS_D),
+    "HL": (REGISTERS_L, REGISTERS_H),
 }
 
 REGISTERS_WITH_GETTER_SETTERS = {"AF", "BC", "DE", "HL"}
@@ -220,8 +233,12 @@ def make_get_code(argument: Argument, address_offset: Optional[str] = None, is_n
     if argument.is_address and not is_not_address:
         if address_offset:
             code = f"({code}) + {address_offset}"
-        return f"{MEMORY_CONTROLLER}.get({code})"
+        return make_get_from_address(code)
     return code
+
+
+def make_get_from_address(address: str) -> str:
+    return f"{MEMORY_CONTROLLER}.get({address})"
 
 
 def make_set_code(
@@ -242,16 +259,13 @@ def make_set_code_from_value(
         code_address = make_get_code(dst, is_not_address=True)
         if dst_address_offset:
             code_address = f"({code_address}) + {dst_address_offset}"
-
-        if nb_bytes > 1:
-            return f"{MEMORY_CONTROLLER}.set16bits({code_address}, {code_value})"
-        return f"{MEMORY_CONTROLLER}.set({code_address}, {code_value})"
+        return make_set_memory_address(code_address, code_value)
 
     if dst.type_ == ArgumentType.REGISTER:
         if dst.name in REGISTERS_WITH_GETTER_SETTERS:
-            return f"{REGISTERS}.set_{dst.name}({code_value})"
+            return f"{REGISTERS}.set_{dst.name}({code_value});"
         else:
-            return f"{REGISTERS}.{dst.name} = {code_value}"
+            return f"{REGISTERS}.{dst.name} = {code_value};"
     elif dst.type_ in {
             ArgumentType.IMMEDIATE_8_BITS, ArgumentType.IMMEDIATE_16_BITS, ArgumentType.UNSIGNED_8_BIT,
             ArgumentType.ADDRESS_16_BIT, ArgumentType.PC_INCREMENT_8_BIT, ArgumentType.VALUE, ArgumentType.INDICATION}:
@@ -260,18 +274,31 @@ def make_set_code_from_value(
     raise RuntimeError(f"Unknown Destination Argument Type {dst.type_}")
 
 
+def make_set_memory_address(address: str, value: str, nb_bytes: int = 1) -> str:
+    if nb_bytes > 1:
+        return f"{MEMORY_CONTROLLER}.set16bits({address}, {value});"
+    return f"{MEMORY_CONTROLLER}.set({address}, {value});"
+
+
 AddSubFlagCode = namedtuple("AddSubFlagCode", ["result", "code"])
 
 
 def make_add_sub_flag_code(
-        instruction: GbInstruction, is_add: bool, second_value: Optional[Union[str, int]] = None
+        instruction: GbInstruction, is_add: bool,
+        first_value: Optional[Union[str, int]] = None,
+        second_value: Optional[Union[str, int]] = None,
+        third_value: Optional[Union[str, int]] = None
 ) -> AddSubFlagCode:
     two_bytes_op = (instruction.first_arg.value_nb_bytes > 1) or \
-                   (instruction.second_arg and (not instruction.second_arg.value_nb_bytes > 1))
+                   (instruction.second_arg and (instruction.second_arg.value_nb_bytes > 1))
 
     carry_max_value = "0xFFFF" if two_bytes_op else "0xFF"
     half_carry_max_value = "0xFFF" if two_bytes_op else "0xF"
     sign = "+" if is_add else "-"
+
+    third_op = ""
+    if third_value:
+        third_op = f" {sign} {third_value}"
 
     half_result_code = ""
     flag_values = []
@@ -280,19 +307,22 @@ def make_add_sub_flag_code(
     if instruction.half_carry_flag == FlagAction.CUSTOM:
         flag_values.append(make_half_carry_flag(half_carry_max_value, is_add))
         half_result_code = \
-            f"int32_t half_result = (lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value});\n"
+            f"int32_t half_result = " \
+            f"(lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value}){third_op};\n"
     if instruction.carry_flag == FlagAction.CUSTOM:
         flag_values.append(make_carry_flag(carry_max_value, is_add))
 
     flag_value_code = "\n".join(flag_values)
+    if not first_value:
+        first_value = make_get_code(instruction.first_arg)
     if not second_value:
         second_value = make_get_code(instruction.second_arg)
     return AddSubFlagCode(
         f"result & {carry_max_value}",
-        f"int32_t lhs = {make_get_code(instruction.first_arg)};\n"
+        f"int32_t lhs = {first_value};\n"
         f"int32_t rhs = {second_value};\n"
         f"{half_result_code}"
-        f"int32_t result = lhs {sign} rhs;\n"
+        f"int32_t result = lhs {sign} rhs{third_op};\n"
         f"{flag_value_code}\n"
         f"{make_flag_code(instruction.flags)}"
     )
@@ -370,7 +400,7 @@ def unknown_generator(instruction: GbInstruction) -> InstructionFunction:
 def ld_generator(instruction: GbInstruction) -> InstructionFunction:
     address_offset = "0xFF00" if instruction.type_ in {InstructionType.LDH, InstructionType.LDSpecialC} else None
 
-    code = f"{make_set_code(instruction.first_arg, instruction.second_arg, address_offset, address_offset)};"
+    code = f"{make_set_code(instruction.first_arg, instruction.second_arg, address_offset, address_offset)}"
 
     if instruction.type_ == InstructionType.LDI:
         code += f"\n{REGISTERS}.set_HL({REGISTERS}.get_HL() + 1);"
@@ -389,18 +419,18 @@ def ldhl_generator(instruction: GbInstruction) -> InstructionFunction:
 
 @register_generator(InstructionType.INC)
 def inc_generator(instruction: GbInstruction) -> InstructionFunction:
-    result_value, flag_code = make_add_sub_flag_code(instruction, True, 1)
+    result_value, flag_code = make_add_sub_flag_code(instruction, True, second_value=1)
     set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
-    code = f"{flag_code}\n{set_code};"
+    code = f"{flag_code}\n{set_code}"
 
     return make_instruction_function(instruction, code)
 
 
 @register_generator(InstructionType.DEC)
 def dec_generator(instruction: GbInstruction) -> InstructionFunction:
-    result_value, flag_code = make_add_sub_flag_code(instruction, False, 1)
+    result_value, flag_code = make_add_sub_flag_code(instruction, False, second_value=1)
     set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
-    code = f"{flag_code}\n{set_code};"
+    code = f"{flag_code}\n{set_code}"
 
     return make_instruction_function(instruction, code)
 
@@ -409,7 +439,7 @@ def dec_generator(instruction: GbInstruction) -> InstructionFunction:
 def add_generator(instruction: GbInstruction) -> InstructionFunction:
     result_value, flag_code = make_add_sub_flag_code(instruction, True)
     set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
-    code = f"{flag_code}\n{set_code};"
+    code = f"{flag_code}\n{set_code}"
 
     return make_instruction_function(instruction, code)
 
@@ -453,7 +483,7 @@ def jr_generator(instruction: GbInstruction) -> InstructionFunction:
         return make_instruction_function(instruction, code, remove_pc_update=True)
 
     code = f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
-           f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
+           f"if (!{REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
            f"    return {instruction.duration_no_action};\n" \
            f"{REGISTERS_PROGRAM_COUNTER} += {ARGUMENT_INT8};\n" \
            f"return {instruction.duration};"
@@ -509,6 +539,132 @@ def ccf_generator(instruction: GbInstruction) -> InstructionFunction:
 @register_generator(InstructionType.HALT)
 def halt_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, f"{REGISTERS_HALTED} = true;")
+
+
+@register_generator(InstructionType.ADC)
+def adc_generator(instruction: GbInstruction) -> InstructionFunction:
+    result_value, flag_code = make_add_sub_flag_code(
+        instruction, True, third_value=f"{REGISTERS_FLAGS_GET_CARRY}"
+    )
+    set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
+    code = f"{flag_code}\n{set_code}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.SUB)
+def sub_generator(instruction: GbInstruction) -> InstructionFunction:
+    instruction.second_arg = instruction.first_arg
+    instruction.first_arg = Argument(ArgumentType.REGISTER, is_address=False, nb_bytes=1, name="A")
+    result_value, flag_code = make_add_sub_flag_code(instruction, False)
+    set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
+    code = f"{flag_code}\n{set_code}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.SBC)
+def sbc_generator(instruction: GbInstruction) -> InstructionFunction:
+    result_value, flag_code = make_add_sub_flag_code(
+        instruction, False, third_value=f"{REGISTERS_FLAGS_GET_CARRY}"
+    )
+    set_code = make_set_code_from_value(instruction.first_arg, result_value, instruction.first_arg.value_nb_bytes)
+    code = f"{flag_code}\n{set_code}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.XOR)
+def xor_generator(instruction: GbInstruction) -> InstructionFunction:
+
+    code = f"{REGISTERS_A} ^= {make_get_code(instruction.first_arg)};\n" \
+           f"uint8_t {ZERO_FLAG} = {REGISTERS_A} == 0;\n" \
+           f"{make_flag_code(instruction.flags)}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.OR)
+def or_generator(instruction: GbInstruction) -> InstructionFunction:
+
+    code = f"{REGISTERS_A} |= {make_get_code(instruction.first_arg)};\n" \
+           f"uint8_t {ZERO_FLAG} = {REGISTERS_A} == 0;\n" \
+           f"{make_flag_code(instruction.flags)}"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.CP)
+def cp_generator(instruction: GbInstruction) -> InstructionFunction:
+    instruction.second_arg = instruction.first_arg
+    instruction.first_arg = Argument(ArgumentType.REGISTER, is_address=False, nb_bytes=1, name="A")
+    _, flag_code = make_add_sub_flag_code(instruction, False)
+    return make_instruction_function(instruction, flag_code)
+
+
+@register_generator(InstructionType.RET)
+def ret_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"{REGISTERS_PROGRAM_COUNTER} = {make_get_from_address(REGISTERS_STACK_POINTER + '++')};\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} += ({make_get_from_address(REGISTERS_STACK_POINTER + '++')}) << 8;"
+
+    if instruction.first_arg is None:
+        return make_instruction_function(instruction, code, remove_pc_update=True)
+
+    code = f"{code}\nreturn {instruction.duration};"
+    code = f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
+           f"{{\n{indent_code(code)}\n}}\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
+           f"return {instruction.duration_no_action};"
+
+    return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
+
+
+@register_generator(InstructionType.POP)
+def pop_generator(instruction: GbInstruction) -> InstructionFunction:
+    lower, upper = REGISTERS_16_TO_LOWER_UPPER_8_MAP[instruction.first_arg.name]
+    code = f"{lower} = {make_get_from_address(REGISTERS_STACK_POINTER + '++')};\n" \
+           f"{upper} += {make_get_from_address(REGISTERS_STACK_POINTER + '++')};"
+
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.JP)
+def jp_generator(instruction: GbInstruction) -> InstructionFunction:
+    if not instruction.second_arg:
+        code = f"{REGISTERS_PROGRAM_COUNTER} = {ARGUMENT_UINT16};"
+        return make_instruction_function(instruction, code, remove_pc_update=True)
+
+    code = f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
+           f"{{\n" \
+           f"    {REGISTERS_PROGRAM_COUNTER} = {ARGUMENT_UINT16};\n" \
+           f"    return {instruction.duration};\n" \
+           f"}}\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
+           f"return {instruction.duration_no_action};"
+
+    return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
+
+
+@register_generator(InstructionType.CALL)
+def call_generator(instruction: GbInstruction) -> InstructionFunction:
+    lower_pc_value = f"{REGISTERS_PROGRAM_COUNTER} & 0xFF"
+    upper_pc_value = f"({REGISTERS_PROGRAM_COUNTER} >> 8) & 0xFF"
+    code = f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, upper_pc_value)}\n" \
+           f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, lower_pc_value)}\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} = {ARGUMENT_UINT16};"
+
+    if not instruction.second_arg:
+        return make_instruction_function(instruction, code, remove_pc_update=True)
+
+    code += f"\nreturn {instruction.duration};"
+    code = f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
+           f"{{\n" \
+           f"{indent_code(code)}\n" \
+           f"}}\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
+           f"return {instruction.duration_no_action};"
+
+    return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
 
 
 def main():

@@ -88,7 +88,7 @@ namespace emulator::generated
 
     uint16_t ld_008(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0x8 LD (a16), SP
     {
-        controller.set16bits(arguments.uint16, registers.SP);
+        controller.set(arguments.uint16, registers.SP);
         registers.PC += 3;
         return 20;
     }
@@ -334,7 +334,7 @@ namespace emulator::generated
     uint16_t jr_020(const Arguments& arguments, Registers& registers, MemoryController& ) // 0x20 JR NZ, r8
     {
         registers.PC += 2;
-        if (registers.get_non_zero_flag())
+        if (!registers.get_non_zero_flag())
             return 8;
         registers.PC += arguments.int8;
         return 12;
@@ -426,7 +426,7 @@ namespace emulator::generated
     uint16_t jr_028(const Arguments& arguments, Registers& registers, MemoryController& ) // 0x28 JR Z, r8
     {
         registers.PC += 2;
-        if (registers.get_zero_flag())
+        if (!registers.get_zero_flag())
             return 8;
         registers.PC += arguments.int8;
         return 12;
@@ -515,7 +515,7 @@ namespace emulator::generated
     uint16_t jr_030(const Arguments& arguments, Registers& registers, MemoryController& ) // 0x30 JR NC, r8
     {
         registers.PC += 2;
-        if (registers.get_non_carry_flag())
+        if (!registers.get_non_carry_flag())
             return 8;
         registers.PC += arguments.int8;
         return 12;
@@ -595,7 +595,7 @@ namespace emulator::generated
     uint16_t jr_038(const Arguments& arguments, Registers& registers, MemoryController& ) // 0x38 JR C, r8
     {
         registers.PC += 2;
-        if (registers.get_carry_flag())
+        if (!registers.get_carry_flag())
             return 8;
         registers.PC += arguments.int8;
         return 12;
@@ -1133,14 +1133,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.B;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
     }
@@ -1149,14 +1149,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.C;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
     }
@@ -1165,14 +1165,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.D;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
     }
@@ -1181,14 +1181,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.E;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
     }
@@ -1197,14 +1197,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.H;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
     }
@@ -1213,14 +1213,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.L;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
     }
@@ -1229,14 +1229,14 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = controller.get(registers.get_HL());
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 8;
     }
@@ -1245,32 +1245,844 @@ namespace emulator::generated
     {
         int32_t lhs = registers.A;
         int32_t rhs = registers.A;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 1;
         return 4;
+    }
+
+    uint16_t adc_088(const Arguments& , Registers& registers, MemoryController& ) // 0x88 ADC A, B
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.B;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t adc_089(const Arguments& , Registers& registers, MemoryController& ) // 0x89 ADC A, C
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.C;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t adc_08a(const Arguments& , Registers& registers, MemoryController& ) // 0x8A ADC A, D
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.D;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t adc_08b(const Arguments& , Registers& registers, MemoryController& ) // 0x8B ADC A, E
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.E;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t adc_08c(const Arguments& , Registers& registers, MemoryController& ) // 0x8C ADC A, H
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.H;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t adc_08d(const Arguments& , Registers& registers, MemoryController& ) // 0x8D ADC A, L
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.L;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t adc_08e(const Arguments& , Registers& registers, MemoryController& controller) // 0x8E ADC A, (HL)
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = controller.get(registers.get_HL());
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t adc_08f(const Arguments& , Registers& registers, MemoryController& ) // 0x8F ADC A, A
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.A;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_090(const Arguments& , Registers& registers, MemoryController& ) // 0x90 SUB A, B
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.B;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_091(const Arguments& , Registers& registers, MemoryController& ) // 0x91 SUB A, C
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.C;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_092(const Arguments& , Registers& registers, MemoryController& ) // 0x92 SUB A, D
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.D;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_093(const Arguments& , Registers& registers, MemoryController& ) // 0x93 SUB A, E
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.E;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_094(const Arguments& , Registers& registers, MemoryController& ) // 0x94 SUB A, H
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.H;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_095(const Arguments& , Registers& registers, MemoryController& ) // 0x95 SUB A, L
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.L;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sub_096(const Arguments& , Registers& registers, MemoryController& controller) // 0x96 SUB A, (HL)
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = controller.get(registers.get_HL());
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t sub_097(const Arguments& , Registers& registers, MemoryController& ) // 0x97 SUB A, A
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.A;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_098(const Arguments& , Registers& registers, MemoryController& ) // 0x98 SBC A, B
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.B;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_099(const Arguments& , Registers& registers, MemoryController& ) // 0x99 SBC A, C
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.C;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_09a(const Arguments& , Registers& registers, MemoryController& ) // 0x9A SBC A, D
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.D;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_09b(const Arguments& , Registers& registers, MemoryController& ) // 0x9B SBC A, E
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.E;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_09c(const Arguments& , Registers& registers, MemoryController& ) // 0x9C SBC A, H
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.H;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_09d(const Arguments& , Registers& registers, MemoryController& ) // 0x9D SBC A, L
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.L;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t sbc_09e(const Arguments& , Registers& registers, MemoryController& controller) // 0x9E SBC A, (HL)
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = controller.get(registers.get_HL());
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t sbc_09f(const Arguments& , Registers& registers, MemoryController& ) // 0x9F SBC A, A
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.A;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0a8(const Arguments& , Registers& registers, MemoryController& ) // 0xA8 XOR B
+    {
+        registers.A ^= registers.B;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0a9(const Arguments& , Registers& registers, MemoryController& ) // 0xA9 XOR C
+    {
+        registers.A ^= registers.C;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0aa(const Arguments& , Registers& registers, MemoryController& ) // 0xAA XOR D
+    {
+        registers.A ^= registers.D;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0ab(const Arguments& , Registers& registers, MemoryController& ) // 0xAB XOR E
+    {
+        registers.A ^= registers.E;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0ac(const Arguments& , Registers& registers, MemoryController& ) // 0xAC XOR H
+    {
+        registers.A ^= registers.H;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0ad(const Arguments& , Registers& registers, MemoryController& ) // 0xAD XOR L
+    {
+        registers.A ^= registers.L;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t xor_0ae(const Arguments& , Registers& registers, MemoryController& controller) // 0xAE XOR (HL)
+    {
+        registers.A ^= controller.get(registers.get_HL());
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t xor_0af(const Arguments& , Registers& registers, MemoryController& ) // 0xAF XOR A
+    {
+        registers.A ^= registers.A;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b0(const Arguments& , Registers& registers, MemoryController& ) // 0xB0 OR B
+    {
+        registers.A |= registers.B;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b1(const Arguments& , Registers& registers, MemoryController& ) // 0xB1 OR C
+    {
+        registers.A |= registers.C;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b2(const Arguments& , Registers& registers, MemoryController& ) // 0xB2 OR D
+    {
+        registers.A |= registers.D;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b3(const Arguments& , Registers& registers, MemoryController& ) // 0xB3 OR E
+    {
+        registers.A |= registers.E;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b4(const Arguments& , Registers& registers, MemoryController& ) // 0xB4 OR H
+    {
+        registers.A |= registers.H;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b5(const Arguments& , Registers& registers, MemoryController& ) // 0xB5 OR L
+    {
+        registers.A |= registers.L;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t or_0b6(const Arguments& , Registers& registers, MemoryController& controller) // 0xB6 OR (HL)
+    {
+        registers.A |= controller.get(registers.get_HL());
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t or_0b7(const Arguments& , Registers& registers, MemoryController& ) // 0xB7 OR A
+    {
+        registers.A |= registers.A;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0b8(const Arguments& , Registers& registers, MemoryController& ) // 0xB8 CP A, B
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.B;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0b9(const Arguments& , Registers& registers, MemoryController& ) // 0xB9 CP A, C
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.C;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0ba(const Arguments& , Registers& registers, MemoryController& ) // 0xBA CP A, D
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.D;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0bb(const Arguments& , Registers& registers, MemoryController& ) // 0xBB CP A, E
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.E;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0bc(const Arguments& , Registers& registers, MemoryController& ) // 0xBC CP A, H
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.H;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0bd(const Arguments& , Registers& registers, MemoryController& ) // 0xBD CP A, L
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.L;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t cp_0be(const Arguments& , Registers& registers, MemoryController& controller) // 0xBE CP A, (HL)
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = controller.get(registers.get_HL());
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t cp_0bf(const Arguments& , Registers& registers, MemoryController& ) // 0xBF CP A, A
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = registers.A;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t ret_0c0(const Arguments& , Registers& registers, MemoryController& controller) // 0xC0 RET NZ
+    {
+        if (registers.get_non_zero_flag())
+        {
+            registers.PC = controller.get(registers.SP++);
+            registers.PC += (controller.get(registers.SP++)) << 8;
+            return 20;
+        }
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t pop_0c1(const Arguments& , Registers& registers, MemoryController& controller) // 0xC1 POP BC
+    {
+        registers.C = controller.get(registers.SP++);
+        registers.B += controller.get(registers.SP++);
+        registers.PC += 1;
+        return 12;
+    }
+
+    uint16_t jp_0c2(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xC2 JP NZ, a16
+    {
+        if (registers.get_non_zero_flag())
+        {
+            registers.PC = arguments.uint16;
+            return 16;
+        }
+        registers.PC += 3;
+        return 12;
+    }
+
+    uint16_t jp_0c3(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xC3 JP a16
+    {
+        registers.PC = arguments.uint16;
+        return 16;
+    }
+
+    uint16_t call_0c4(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xC4 CALL NZ, a16
+    {
+        if (registers.get_non_zero_flag())
+        {
+            controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+            controller.set(--registers.SP, registers.PC & 0xFF);
+            registers.PC = arguments.uint16;
+            return 24;
+        }
+        registers.PC += 3;
+        return 12;
     }
 
     uint16_t add_0c6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xC6 ADD A, d8
     {
         int32_t lhs = registers.A;
         int32_t rhs = arguments.uint8;
-        int32_t half_result = (lhs & 0xFFF) + (rhs & 0xFFF);
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF);
         int32_t result = lhs + rhs;
         uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
-        uint8_t half_carry_flag = ((half_result > 0xFFF) << OFFSET_HALF_CARRY_FLAG);
-        uint8_t carry_flag = ((result > 0xFFFF) << OFFSET_CARRY_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
         registers.F &= 0b00000000;
         registers.F |= zero_flag + half_carry_flag + carry_flag;
-        registers.A = result & 0xFFFF;
+        registers.A = result & 0xFF;
         registers.PC += 2;
         return 8;
+    }
+
+    uint16_t ret_0c8(const Arguments& , Registers& registers, MemoryController& controller) // 0xC8 RET Z
+    {
+        if (registers.get_zero_flag())
+        {
+            registers.PC = controller.get(registers.SP++);
+            registers.PC += (controller.get(registers.SP++)) << 8;
+            return 20;
+        }
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t ret_0c9(const Arguments& , Registers& registers, MemoryController& controller) // 0xC9 RET
+    {
+        registers.PC = controller.get(registers.SP++);
+        registers.PC += (controller.get(registers.SP++)) << 8;
+        return 16;
+    }
+
+    uint16_t jp_0ca(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xCA JP Z, a16
+    {
+        if (registers.get_zero_flag())
+        {
+            registers.PC = arguments.uint16;
+            return 16;
+        }
+        registers.PC += 3;
+        return 12;
+    }
+
+    uint16_t call_0cc(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xCC CALL Z, a16
+    {
+        if (registers.get_zero_flag())
+        {
+            controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+            controller.set(--registers.SP, registers.PC & 0xFF);
+            registers.PC = arguments.uint16;
+            return 24;
+        }
+        registers.PC += 3;
+        return 12;
+    }
+
+    uint16_t call_0cd(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xCD CALL a16
+    {
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = arguments.uint16;
+        return 24;
+    }
+
+    uint16_t adc_0ce(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xCE ADC A, d8
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = arguments.uint8;
+        int32_t half_result = (lhs & 0xF) + (rhs & 0xF) + registers.get_carry_flag();
+        int32_t result = lhs + rhs + registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result > 0xF) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result > 0xFF) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t ret_0d0(const Arguments& , Registers& registers, MemoryController& controller) // 0xD0 RET NC
+    {
+        if (registers.get_non_carry_flag())
+        {
+            registers.PC = controller.get(registers.SP++);
+            registers.PC += (controller.get(registers.SP++)) << 8;
+            return 20;
+        }
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t pop_0d1(const Arguments& , Registers& registers, MemoryController& controller) // 0xD1 POP DE
+    {
+        registers.E = controller.get(registers.SP++);
+        registers.D += controller.get(registers.SP++);
+        registers.PC += 1;
+        return 12;
+    }
+
+    uint16_t jp_0d2(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xD2 JP NC, a16
+    {
+        if (registers.get_non_carry_flag())
+        {
+            registers.PC = arguments.uint16;
+            return 16;
+        }
+        registers.PC += 3;
+        return 12;
     }
 
     uint16_t unknown_0d3(const Arguments& , Registers& , MemoryController& ) // 0xD3 UNKNOWN
@@ -1278,9 +2090,74 @@ namespace emulator::generated
         throw std::runtime_error("Unknown opcode 0xD3");
     }
 
+    uint16_t call_0d4(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xD4 CALL NC, a16
+    {
+        if (registers.get_non_carry_flag())
+        {
+            controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+            controller.set(--registers.SP, registers.PC & 0xFF);
+            registers.PC = arguments.uint16;
+            return 24;
+        }
+        registers.PC += 3;
+        return 12;
+    }
+
+    uint16_t sub_0d6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xD6 SUB A, d8
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = arguments.uint8;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t ret_0d8(const Arguments& , Registers& registers, MemoryController& controller) // 0xD8 RET C
+    {
+        if (registers.get_carry_flag())
+        {
+            registers.PC = controller.get(registers.SP++);
+            registers.PC += (controller.get(registers.SP++)) << 8;
+            return 20;
+        }
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t jp_0da(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xDA JP C, a16
+    {
+        if (registers.get_carry_flag())
+        {
+            registers.PC = arguments.uint16;
+            return 16;
+        }
+        registers.PC += 3;
+        return 12;
+    }
+
     uint16_t unknown_0db(const Arguments& , Registers& , MemoryController& ) // 0xDB UNKNOWN
     {
         throw std::runtime_error("Unknown opcode 0xDB");
+    }
+
+    uint16_t call_0dc(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xDC CALL C, a16
+    {
+        if (registers.get_carry_flag())
+        {
+            controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+            controller.set(--registers.SP, registers.PC & 0xFF);
+            registers.PC = arguments.uint16;
+            return 24;
+        }
+        registers.PC += 3;
+        return 12;
     }
 
     uint16_t unknown_0dd(const Arguments& , Registers& , MemoryController& ) // 0xDD UNKNOWN
@@ -1288,10 +2165,34 @@ namespace emulator::generated
         throw std::runtime_error("Unknown opcode 0xDD");
     }
 
+    uint16_t sbc_0de(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xDE SBC A, d8
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = arguments.uint8;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF) - registers.get_carry_flag();
+        int32_t result = lhs - rhs - registers.get_carry_flag();
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.A = result & 0xFF;
+        registers.PC += 2;
+        return 8;
+    }
+
     uint16_t ldh_0e0(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xE0 LDH (a8), A
     {
         controller.set((arguments.uint8) + 0xFF00, registers.A);
         registers.PC += 2;
+        return 12;
+    }
+
+    uint16_t pop_0e1(const Arguments& , Registers& registers, MemoryController& controller) // 0xE1 POP HL
+    {
+        registers.L = controller.get(registers.SP++);
+        registers.H += controller.get(registers.SP++);
+        registers.PC += 1;
         return 12;
     }
 
@@ -1327,6 +2228,12 @@ namespace emulator::generated
         return 16;
     }
 
+    uint16_t jp_0e9(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xE9 JP HL
+    {
+        registers.PC = arguments.uint16;
+        return 4;
+    }
+
     uint16_t ld_0ea(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xEA LD (a16), A
     {
         controller.set(arguments.uint16, registers.A);
@@ -1349,10 +2256,28 @@ namespace emulator::generated
         throw std::runtime_error("Unknown opcode 0xED");
     }
 
+    uint16_t xor_0ee(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xEE XOR d8
+    {
+        registers.A ^= arguments.uint8;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
     uint16_t ldh_0f0(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xF0 LDH A, (a8)
     {
         registers.A = controller.get((arguments.uint8) + 0xFF00);
         registers.PC += 2;
+        return 12;
+    }
+
+    uint16_t pop_0f1(const Arguments& , Registers& registers, MemoryController& controller) // 0xF1 POP AF
+    {
+        registers.F = controller.get(registers.SP++);
+        registers.A += controller.get(registers.SP++);
+        registers.PC += 1;
         return 12;
     }
 
@@ -1366,6 +2291,16 @@ namespace emulator::generated
     uint16_t unknown_0f4(const Arguments& , Registers& , MemoryController& ) // 0xF4 UNKNOWN
     {
         throw std::runtime_error("Unknown opcode 0xF4");
+    }
+
+    uint16_t or_0f6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xF6 OR d8
+    {
+        registers.A |= arguments.uint8;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
     }
 
     uint16_t ldhl_0f8(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xF8 LDHL SP, r8
@@ -1405,5 +2340,20 @@ namespace emulator::generated
     uint16_t unknown_0fd(const Arguments& , Registers& , MemoryController& ) // 0xFD UNKNOWN
     {
         throw std::runtime_error("Unknown opcode 0xFD");
+    }
+
+    uint16_t cp_0fe(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xFE CP A, d8
+    {
+        int32_t lhs = registers.A;
+        int32_t rhs = arguments.uint8;
+        int32_t half_result = (lhs & 0xF) - (rhs & 0xF);
+        int32_t result = lhs - rhs;
+        uint8_t zero_flag = ((result == 0) << OFFSET_ZERO_FLAG);
+        uint8_t half_carry_flag = ((half_result < 0) << OFFSET_HALF_CARRY_FLAG);
+        uint8_t carry_flag = ((result < 0) << OFFSET_CARRY_FLAG);
+        registers.F &= 0b00000000;
+        registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
     }
 }

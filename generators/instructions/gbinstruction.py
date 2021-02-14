@@ -52,7 +52,7 @@ class Argument:
     is_address: bool
     nb_bytes: int
     name: str
-    value: Optional[int]
+    value: Optional[int] = None
 
     @property
     def value_nb_bytes(self):
