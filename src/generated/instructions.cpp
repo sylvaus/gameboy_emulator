@@ -88,7 +88,7 @@ namespace emulator::generated
 
     uint16_t ld_008(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0x8 LD (a16), SP
     {
-        controller.set(arguments.uint16, registers.SP);
+        controller.set16bits(arguments.uint16, registers.SP);
         registers.PC += 3;
         return 20;
     }

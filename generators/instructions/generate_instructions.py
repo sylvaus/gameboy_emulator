@@ -259,7 +259,7 @@ def make_set_code_from_value(
         code_address = make_get_code(dst, is_not_address=True)
         if dst_address_offset:
             code_address = f"({code_address}) + {dst_address_offset}"
-        return make_set_memory_address(code_address, code_value)
+        return make_set_memory_address(code_address, code_value, nb_bytes)
 
     if dst.type_ == ArgumentType.REGISTER:
         if dst.name in REGISTERS_WITH_GETTER_SETTERS:
