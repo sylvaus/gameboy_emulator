@@ -400,6 +400,8 @@ namespace emulator::generated
 
     uint16_t call_0c4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xC4 CALL NZ, a16
 
+    uint16_t push_0c5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xC5 PUSH BC
+
     uint16_t add_0c6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xC6 ADD A, d8
 
     uint16_t ret_0c8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xC8 RET Z
@@ -423,6 +425,8 @@ namespace emulator::generated
     uint16_t unknown_0d3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xD3 UNKNOWN
 
     uint16_t call_0d4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xD4 CALL NC, a16
+
+    uint16_t push_0d5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xD5 PUSH DE
 
     uint16_t sub_0d6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xD6 SUB A, d8
 
@@ -448,6 +452,8 @@ namespace emulator::generated
 
     uint16_t unknown_0e4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE4 UNKNOWN
 
+    uint16_t push_0e5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE5 PUSH HL
+
     uint16_t add_0e8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE8 ADD SP, r8
 
     uint16_t jp_0e9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE9 JP HL
@@ -469,6 +475,8 @@ namespace emulator::generated
     uint16_t ldspecialc_0f2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF2 LDSpecialC A, (C)
 
     uint16_t unknown_0f4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF4 UNKNOWN
+
+    uint16_t push_0f5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF5 PUSH AF
 
     uint16_t or_0f6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF6 OR d8
 
@@ -673,6 +681,7 @@ namespace emulator::generated
         &jp_0c2,
         &jp_0c3,
         &call_0c4,
+        &push_0c5,
         &add_0c6,
         &ret_0c8,
         &ret_0c9,
@@ -685,6 +694,7 @@ namespace emulator::generated
         &jp_0d2,
         &unknown_0d3,
         &call_0d4,
+        &push_0d5,
         &sub_0d6,
         &ret_0d8,
         &jp_0da,
@@ -697,6 +707,7 @@ namespace emulator::generated
         &ldspecialc_0e2,
         &unknown_0e3,
         &unknown_0e4,
+        &push_0e5,
         &add_0e8,
         &jp_0e9,
         &ld_0ea,
@@ -708,6 +719,7 @@ namespace emulator::generated
         &pop_0f1,
         &ldspecialc_0f2,
         &unknown_0f4,
+        &push_0f5,
         &or_0f6,
         &ldhl_0f8,
         &ld_0f9,
@@ -906,6 +918,7 @@ namespace emulator::generated
         ArgumentType::uint16,
         ArgumentType::uint16,
         ArgumentType::uint16,
+        ArgumentType::none,
         ArgumentType::uint8,
         ArgumentType::none,
         ArgumentType::none,
@@ -914,18 +927,20 @@ namespace emulator::generated
         ArgumentType::uint16,
         ArgumentType::uint8,
         ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::uint16,
-        ArgumentType::none,
-        ArgumentType::uint16,
-        ArgumentType::uint8,
         ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::uint16,
+        ArgumentType::none,
+        ArgumentType::uint16,
+        ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::uint8,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
@@ -938,6 +953,7 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::uint8,
         ArgumentType::uint8,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,

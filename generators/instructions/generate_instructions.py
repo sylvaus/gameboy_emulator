@@ -667,6 +667,15 @@ def call_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
 
 
+@register_generator(InstructionType.PUSH)
+def push_generator(instruction: GbInstruction) -> InstructionFunction:
+    lower, upper = REGISTERS_16_TO_LOWER_UPPER_8_MAP[instruction.first_arg.name]
+    code = f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, upper)}\n" \
+           f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, lower)}"
+
+    return make_instruction_function(instruction, code)
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
     functions = [

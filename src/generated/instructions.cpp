@@ -1971,6 +1971,14 @@ namespace emulator::generated
         return 12;
     }
 
+    uint16_t push_0c5(const Arguments& , Registers& registers, MemoryController& controller) // 0xC5 PUSH BC
+    {
+        controller.set(--registers.SP, registers.B);
+        controller.set(--registers.SP, registers.C);
+        registers.PC += 1;
+        return 16;
+    }
+
     uint16_t add_0c6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xC6 ADD A, d8
     {
         int32_t lhs = registers.A;
@@ -2103,6 +2111,14 @@ namespace emulator::generated
         return 12;
     }
 
+    uint16_t push_0d5(const Arguments& , Registers& registers, MemoryController& controller) // 0xD5 PUSH DE
+    {
+        controller.set(--registers.SP, registers.D);
+        controller.set(--registers.SP, registers.E);
+        registers.PC += 1;
+        return 16;
+    }
+
     uint16_t sub_0d6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xD6 SUB A, d8
     {
         int32_t lhs = registers.A;
@@ -2213,6 +2229,14 @@ namespace emulator::generated
         throw std::runtime_error("Unknown opcode 0xE4");
     }
 
+    uint16_t push_0e5(const Arguments& , Registers& registers, MemoryController& controller) // 0xE5 PUSH HL
+    {
+        controller.set(--registers.SP, registers.H);
+        controller.set(--registers.SP, registers.L);
+        registers.PC += 1;
+        return 16;
+    }
+
     uint16_t add_0e8(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xE8 ADD SP, r8
     {
         int32_t lhs = registers.SP;
@@ -2291,6 +2315,14 @@ namespace emulator::generated
     uint16_t unknown_0f4(const Arguments& , Registers& , MemoryController& ) // 0xF4 UNKNOWN
     {
         throw std::runtime_error("Unknown opcode 0xF4");
+    }
+
+    uint16_t push_0f5(const Arguments& , Registers& registers, MemoryController& controller) // 0xF5 PUSH AF
+    {
+        controller.set(--registers.SP, registers.A);
+        controller.set(--registers.SP, registers.F);
+        registers.PC += 1;
+        return 16;
     }
 
     uint16_t or_0f6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xF6 OR d8
