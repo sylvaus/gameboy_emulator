@@ -1995,6 +1995,15 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t rst_0c7(const Arguments& , Registers& registers, MemoryController& controller) // 0xC7 RST 00H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x00;
+        return 16;
+    }
+
     uint16_t ret_0c8(const Arguments& , Registers& registers, MemoryController& controller) // 0xC8 RET Z
     {
         if (registers.get_zero_flag())
@@ -2023,6 +2032,11 @@ namespace emulator::generated
         }
         registers.PC += 3;
         return 12;
+    }
+
+    uint16_t prefix_0cb(const Arguments& , Registers& , MemoryController& ) // 0xCB PREFIX CB
+    {
+        throw std::runtime_error("Opcode 0xCB should be handled separately, something bad must have happened");
     }
 
     uint16_t call_0cc(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xCC CALL Z, a16
@@ -2060,6 +2074,15 @@ namespace emulator::generated
         registers.A = result & 0xFF;
         registers.PC += 2;
         return 8;
+    }
+
+    uint16_t rst_0cf(const Arguments& , Registers& registers, MemoryController& controller) // 0xCF RST 08H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x08;
+        return 16;
     }
 
     uint16_t ret_0d0(const Arguments& , Registers& registers, MemoryController& controller) // 0xD0 RET NC
@@ -2135,6 +2158,15 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t rst_0d7(const Arguments& , Registers& registers, MemoryController& controller) // 0xD7 RST 10H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x10;
+        return 16;
+    }
+
     uint16_t ret_0d8(const Arguments& , Registers& registers, MemoryController& controller) // 0xD8 RET C
     {
         if (registers.get_carry_flag())
@@ -2197,6 +2229,15 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t rst_0df(const Arguments& , Registers& registers, MemoryController& controller) // 0xDF RST 18H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x18;
+        return 16;
+    }
+
     uint16_t ldh_0e0(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xE0 LDH (a8), A
     {
         controller.set((arguments.uint8) + 0xFF00, registers.A);
@@ -2234,6 +2275,15 @@ namespace emulator::generated
         controller.set(--registers.SP, registers.H);
         controller.set(--registers.SP, registers.L);
         registers.PC += 1;
+        return 16;
+    }
+
+    uint16_t rst_0e7(const Arguments& , Registers& registers, MemoryController& controller) // 0xE7 RST 20H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x20;
         return 16;
     }
 
@@ -2290,6 +2340,15 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t rst_0ef(const Arguments& , Registers& registers, MemoryController& controller) // 0xEF RST 28H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x28;
+        return 16;
+    }
+
     uint16_t ldh_0f0(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xF0 LDH A, (a8)
     {
         registers.A = controller.get((arguments.uint8) + 0xFF00);
@@ -2310,6 +2369,13 @@ namespace emulator::generated
         registers.A = controller.get((registers.C) + 0xFF00);
         registers.PC += 1;
         return 8;
+    }
+
+    uint16_t di_0f3(const Arguments& , Registers& registers, MemoryController& ) // 0xF3 DI
+    {
+        registers.ime_flag = false;
+        registers.PC += 1;
+        return 4;
     }
 
     uint16_t unknown_0f4(const Arguments& , Registers& , MemoryController& ) // 0xF4 UNKNOWN
@@ -2333,6 +2399,15 @@ namespace emulator::generated
         registers.F |= zero_flag;
         registers.PC += 2;
         return 8;
+    }
+
+    uint16_t rst_0f7(const Arguments& , Registers& registers, MemoryController& controller) // 0xF7 RST 30H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x30;
+        return 16;
     }
 
     uint16_t ldhl_0f8(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xF8 LDHL SP, r8
@@ -2364,6 +2439,13 @@ namespace emulator::generated
         return 16;
     }
 
+    uint16_t ei_0fb(const Arguments& , Registers& registers, MemoryController& ) // 0xFB EI
+    {
+        registers.ime_flag = true;
+        registers.PC += 1;
+        return 4;
+    }
+
     uint16_t unknown_0fc(const Arguments& , Registers& , MemoryController& ) // 0xFC UNKNOWN
     {
         throw std::runtime_error("Unknown opcode 0xFC");
@@ -2387,5 +2469,14 @@ namespace emulator::generated
         registers.F |= 0b01000000 + zero_flag + half_carry_flag + carry_flag;
         registers.PC += 2;
         return 8;
+    }
+
+    uint16_t rst_0ff(const Arguments& , Registers& registers, MemoryController& controller) // 0xFF RST 38H
+    {
+        registers.PC += 1;
+        controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
+        controller.set(--registers.SP, registers.PC & 0xFF);
+        registers.PC = 0x38;
+        return 16;
     }
 }

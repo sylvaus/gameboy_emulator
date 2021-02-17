@@ -87,6 +87,7 @@ namespace emulator::memory
         {0x1E, {MemoryBankType::MBC5, true, true, false}},  // MBC5+RUMBLE+RAM+BATT
     }};
 
+    /// Source: https://gbdev.io/pandocs/#_0148-rom-size
     enum class ROMSize
     {
         UNKNOWN,
@@ -147,6 +148,7 @@ namespace emulator::memory
          {ROMSize::S1MB500KB, 96},
     }};
 
+    // Source: https://gbdev.io/pandocs/#_0149-ram-size
     enum class RAMSize
     {
         UNKNOWN,
@@ -173,7 +175,7 @@ namespace emulator::memory
         {RAMSize::S8KB, "8KB External ram"},
         {RAMSize::S32KB, "32KB External ram"},
         {RAMSize::S8KB, "128KB External ram"},
-        {RAMSize::S32KB, "64KB External ram"},
+        {RAMSize::S64KB, "64KB External ram"},
     }};
 
     const uint8_t INVALID_RAM_BANK_NB = 0xFF;

@@ -676,6 +676,38 @@ def push_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code)
 
 
+@register_generator(InstructionType.RST)
+def rst_generator(instruction: GbInstruction) -> InstructionFunction:
+    upper = f"({REGISTERS_PROGRAM_COUNTER} >> 8) & 0xFF"
+    lower = f"{REGISTERS_PROGRAM_COUNTER} & 0xFF"
+
+    code = f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
+           f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, upper)}\n" \
+           f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, lower)}\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} = 0x{int(instruction.first_arg.value):02x};"
+
+    return make_instruction_function(instruction, code, remove_pc_update=True)
+
+
+@register_generator(InstructionType.PREFIX)
+def prefix_generator(instruction: GbInstruction) -> InstructionFunction:
+    return make_instruction_function(
+        instruction,
+        f"""throw std::runtime_error("Opcode 0xCB should be handled separately, something bad must have happened");""",
+        remove_pc_update=True, remove_duration_return=True
+    )
+
+
+@register_generator(InstructionType.DI)
+def di_generator(instruction: GbInstruction) -> InstructionFunction:
+    return make_instruction_function(instruction, f"{REGISTERS_IME_FLAG} = false;")
+
+
+@register_generator(InstructionType.EI)
+def ei_generator(instruction: GbInstruction) -> InstructionFunction:
+    return make_instruction_function(instruction, f"{REGISTERS_IME_FLAG} = true;")
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
     functions = [
