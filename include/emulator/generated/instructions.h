@@ -514,6 +514,38 @@ namespace emulator::generated
 
     uint16_t rst_0ff(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xFF RST 38H
 
+    uint16_t rlc_100(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x100 RLC B
+
+    uint16_t rlc_101(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x101 RLC C
+
+    uint16_t rlc_102(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x102 RLC D
+
+    uint16_t rlc_103(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x103 RLC E
+
+    uint16_t rlc_104(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x104 RLC H
+
+    uint16_t rlc_105(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x105 RLC L
+
+    uint16_t rlc_106(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x106 RLC (HL)
+
+    uint16_t rlc_107(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x107 RLC A
+
+    uint16_t rrc_108(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x108 RRC B
+
+    uint16_t rrc_109(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x109 RRC C
+
+    uint16_t rrc_10a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10A RRC D
+
+    uint16_t rrc_10b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10B RRC E
+
+    uint16_t rrc_10c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10C RRC H
+
+    uint16_t rrc_10d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10D RRC L
+
+    uint16_t rrc_10e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10E RRC (HL)
+
+    uint16_t rrc_10f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10F RRC A
+
     const InstructionFunction INSTRUCTION_FUNCTIONS[] = {
         &nop_000,
         &ld_001,
@@ -759,7 +791,23 @@ namespace emulator::generated
         &unknown_0fc,
         &unknown_0fd,
         &cp_0fe,
-        &rst_0ff
+        &rst_0ff,
+        &rlc_100,
+        &rlc_101,
+        &rlc_102,
+        &rlc_103,
+        &rlc_104,
+        &rlc_105,
+        &rlc_106,
+        &rlc_107,
+        &rrc_108,
+        &rrc_109,
+        &rrc_10a,
+        &rrc_10b,
+        &rrc_10c,
+        &rrc_10d,
+        &rrc_10e,
+        &rrc_10f
     };
 
     const ArgumentType INSTRUCTION_ARGUMENT_TYPES[] = {
@@ -1007,6 +1055,22 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::none
     };
 }

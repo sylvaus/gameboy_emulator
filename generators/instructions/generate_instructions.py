@@ -708,6 +708,29 @@ def ei_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, f"{REGISTERS_IME_FLAG} = true;")
 
 
+@register_generator(InstructionType.RLC)
+def rlc_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"uint8_t value = {make_get_code(instruction.first_arg)};\n" \
+           f"uint8_t {CARRY_FLAG} = (value >> 7) & 0b1;\n" \
+           f"uint8_t result = (value << 1) + {CARRY_FLAG};\n" \
+           f"uint8_t {ZERO_FLAG} = result == 0;\n" \
+           f"{make_set_code_from_value(instruction.first_arg, 'result', nb_bytes=1)}\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
+
+
+@register_generator(InstructionType.RRC)
+def rrc_generator(instruction: GbInstruction) -> InstructionFunction:
+
+    code = f"uint8_t value = {make_get_code(instruction.first_arg)};\n" \
+           f"uint8_t {CARRY_FLAG} = value & 0b1;\n" \
+           f"uint8_t result = (value >> 1) + ({CARRY_FLAG} << 7);\n" \
+           f"uint8_t {ZERO_FLAG} = result == 0;\n" \
+           f"{make_set_code_from_value(instruction.first_arg, 'result', nb_bytes=1)}\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
     functions = [
