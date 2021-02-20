@@ -38,7 +38,7 @@ namespace emulator::generated
 
     uint16_t ld_006(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x6 LD B, d8
 
-    uint16_t rlca_007(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x7 RLCA A
+    uint16_t rlca_007(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x7 RLCA
 
     uint16_t ld_008(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x8 LD (a16), SP
 
@@ -54,7 +54,7 @@ namespace emulator::generated
 
     uint16_t ld_00e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE LD C, d8
 
-    uint16_t rrca_00f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF RRCA A
+    uint16_t rrca_00f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF RRCA
 
     uint16_t ld_011(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x11 LD DE, d16
 
@@ -68,7 +68,7 @@ namespace emulator::generated
 
     uint16_t ld_016(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16 LD D, d8
 
-    uint16_t rla_017(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17 RLA A
+    uint16_t rla_017(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17 RLA
 
     uint16_t jr_018(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18 JR r8
 
@@ -84,7 +84,7 @@ namespace emulator::generated
 
     uint16_t ld_01e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E LD E, d8
 
-    uint16_t rra_01f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F RRA A
+    uint16_t rra_01f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F RRA
 
     uint16_t jr_020(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x20 JR NZ, r8
 
@@ -578,6 +578,54 @@ namespace emulator::generated
 
     uint16_t rr_11f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x11F RR A
 
+    uint16_t sla_120(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x120 SLA B
+
+    uint16_t sla_121(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x121 SLA C
+
+    uint16_t sla_122(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x122 SLA D
+
+    uint16_t sla_123(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x123 SLA E
+
+    uint16_t sla_124(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x124 SLA H
+
+    uint16_t sla_125(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x125 SLA L
+
+    uint16_t sla_126(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x126 SLA (HL)
+
+    uint16_t sla_127(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x127 SLA A
+
+    uint16_t sra_128(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x128 SRA B
+
+    uint16_t sra_129(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x129 SRA C
+
+    uint16_t sra_12a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12A SRA D
+
+    uint16_t sra_12b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12B SRA E
+
+    uint16_t sra_12c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12C SRA H
+
+    uint16_t sra_12d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12D SRA L
+
+    uint16_t sra_12e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12E SRA (HL)
+
+    uint16_t sra_12f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12F SRA A
+
+    uint16_t srl_138(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x138 SRL B
+
+    uint16_t srl_139(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x139 SRL C
+
+    uint16_t srl_13a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13A SRL D
+
+    uint16_t srl_13b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13B SRL E
+
+    uint16_t srl_13c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13C SRL H
+
+    uint16_t srl_13d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13D SRL L
+
+    uint16_t srl_13e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13E SRL (HL)
+
+    uint16_t srl_13f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13F SRL A
+
     const InstructionFunction INSTRUCTION_FUNCTIONS[] = {
         &nop_000,
         &ld_001,
@@ -855,7 +903,31 @@ namespace emulator::generated
         &rr_11c,
         &rr_11d,
         &rr_11e,
-        &rr_11f
+        &rr_11f,
+        &sla_120,
+        &sla_121,
+        &sla_122,
+        &sla_123,
+        &sla_124,
+        &sla_125,
+        &sla_126,
+        &sla_127,
+        &sra_128,
+        &sra_129,
+        &sra_12a,
+        &sra_12b,
+        &sra_12c,
+        &sra_12d,
+        &sra_12e,
+        &sra_12f,
+        &srl_138,
+        &srl_139,
+        &srl_13a,
+        &srl_13b,
+        &srl_13c,
+        &srl_13d,
+        &srl_13e,
+        &srl_13f
     };
 
     const ArgumentType INSTRUCTION_ARGUMENT_TYPES[] = {
@@ -1103,6 +1175,30 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,

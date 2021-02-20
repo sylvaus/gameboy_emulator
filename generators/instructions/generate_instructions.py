@@ -444,18 +444,6 @@ def add_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code)
 
 
-def make_rotate_code(instruction: GbInstruction, left: bool, carry: bool = False):
-    carry_value = "(value >> 7) & 0b1" if left else "value & 0b1"
-    bit_carried = CARRY_FLAG if carry else REGISTERS_FLAGS_GET_CARRY
-    result_value = f"(value << 1) + {bit_carried}" if left else f"(value >> 1) + ({bit_carried} << 7)"
-    return f"uint8_t value = {make_get_code(instruction.first_arg)};\n" \
-           f"uint8_t {CARRY_FLAG} = {carry_value};\n" \
-           f"uint8_t result = {result_value};\n" \
-           f"uint8_t {ZERO_FLAG} = result == 0;\n" \
-           f"{make_set_code_from_value(instruction.first_arg, 'result', nb_bytes=1)}\n" \
-           f"{make_flag_code(instruction.flags)}"
-
-
 ALL_ROTATIONS = (
     InstructionType.RLCA, InstructionType.RRCA, InstructionType.RLA, InstructionType.RRA,
     InstructionType.RLC, InstructionType.RL, InstructionType.RRC, InstructionType.RR
@@ -466,11 +454,18 @@ CARRY_ROTATIONS = (InstructionType.RLCA, InstructionType.RRCA, InstructionType.R
 
 @register_generator(*ALL_ROTATIONS)
 def rotate_generator(instruction: GbInstruction) -> InstructionFunction:
-    if instruction.first_arg is None:
-        instruction.first_arg = ARGUMENT_REGISTERS_A
-    return make_instruction_function(instruction, make_rotate_code(
-        instruction, left=instruction.type_ in LEFT_ROTATIONS, carry=instruction.type_ in CARRY_ROTATIONS
-    ))
+    argument = instruction.first_arg if instruction.first_arg else ARGUMENT_REGISTERS_A
+    left = instruction.type_ in LEFT_ROTATIONS
+    carry_value = "(value >> 7) & 0b1" if left else "value & 0b1"
+    bit_carried = CARRY_FLAG if instruction.type_ in CARRY_ROTATIONS else REGISTERS_FLAGS_GET_CARRY
+    result_value = f"(value << 1) + {bit_carried}" if left else f"(value >> 1) + ({bit_carried} << 7)"
+    code = f"uint8_t value = {make_get_code(argument)};\n" \
+           f"uint8_t {CARRY_FLAG} = {carry_value};\n" \
+           f"uint8_t result = {result_value};\n" \
+           f"uint8_t {ZERO_FLAG} = result == 0;\n" \
+           f"{make_set_code_from_value(argument, 'result', nb_bytes=1)}\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
 
 
 @register_generator(InstructionType.JR)
@@ -690,6 +685,27 @@ def prefix_generator(instruction: GbInstruction) -> InstructionFunction:
 def di_generator(instruction: GbInstruction) -> InstructionFunction:
     value = "true" if instruction.type_ == InstructionType.EI else "false"
     return make_instruction_function(instruction, f"{REGISTERS_IME_FLAG} = {value};")
+
+
+SHIFT_RESULT_MAP = {
+    InstructionType.SLA: "value << 1",
+    InstructionType.SRA: "(value >> 1) + (value & 0x80)",
+    InstructionType.SRL: "value >> 1"
+}
+
+
+@register_generator(InstructionType.SLA, InstructionType.SRA, InstructionType.SRL)
+def shift_generator(instruction: GbInstruction) -> InstructionFunction:
+    argument = instruction.first_arg if instruction.first_arg else ARGUMENT_REGISTERS_A
+    left = instruction.type_ == InstructionType.SLA
+    carry_value = "(value >> 7) & 0b1" if left else "value & 0b1"
+    code = f"uint8_t value = {make_get_code(argument)};\n" \
+           f"uint8_t {CARRY_FLAG} = {carry_value};\n" \
+           f"uint8_t result = {SHIFT_RESULT_MAP[instruction.type_]};\n" \
+           f"uint8_t {ZERO_FLAG} = result == 0;\n" \
+           f"{make_set_code_from_value(argument, 'result', nb_bytes=1)}\n" \
+           f"{make_flag_code(instruction.flags)}"
+    return make_instruction_function(instruction, code)
 
 
 def main():
