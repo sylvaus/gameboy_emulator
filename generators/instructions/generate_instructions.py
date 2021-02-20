@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Dict, Callable, Optional, Tuple, List, Union
+from typing import Dict, Callable, Optional, List, Union
 from collections import OrderedDict, namedtuple
 
 from generators.instructions.gbinstruction import read_instruction_csv, InstructionType, \
@@ -125,6 +125,7 @@ SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n""
 INCLUDE_HEADER = f"""#pragma once\n
 #include <cstdint>
 #include <functional>
+#include <array>
 #include "emulator/memory/registers.h"
 #include "emulator/memory/memory_controller.h"\n\n"""
 
@@ -719,10 +720,10 @@ def main():
         f.write(INCLUDE_HEADER)
         code = f"{ARGUMENT_STRUCT}\n{ARGUMENT_ENUM}\n{INCLUDE_USING_DEFS}\n\n"
         code += "\n\n".join(func.declaration for func in functions)
-        code += f"\n\nconst {INSTRUCTION_FUNCTION_TYPE} INSTRUCTION_FUNCTIONS[] = {{\n"
+        code += f"\n\nconst std::array<{INSTRUCTION_FUNCTION_TYPE}, {len(functions)}> INSTRUCTION_FUNCTIONS = {{\n"
         code += indent_code("&" + ",\n&".join(func.name for func in functions))
         code += "\n};"
-        code += f"\n\nconst {ARGUMENT_ENUM_NAME} INSTRUCTION_ARGUMENT_TYPES[] = {{\n"
+        code += f"\n\nconst std::array<{ARGUMENT_ENUM_NAME}, {len(functions)}> INSTRUCTION_ARGUMENT_TYPES = {{\n"
         code += indent_code(",\n".join(f"{ARGUMENT_ENUM_NAME}::{func.argument_type}" for func in functions))
         code += "\n};"
         f.write(put_code_in_namespace(code, NAMESPACE))

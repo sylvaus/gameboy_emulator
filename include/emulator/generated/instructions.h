@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <array>
 #include "emulator/memory/registers.h"
 #include "emulator/memory/memory_controller.h"
 
@@ -626,7 +627,7 @@ namespace emulator::generated
 
     uint16_t srl_13f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13F SRL A
 
-    const InstructionFunction INSTRUCTION_FUNCTIONS[] = {
+    const std::array<InstructionFunction, 301> INSTRUCTION_FUNCTIONS = {
         &nop_000,
         &ld_001,
         &ld_002,
@@ -930,7 +931,7 @@ namespace emulator::generated
         &srl_13f
     };
 
-    const ArgumentType INSTRUCTION_ARGUMENT_TYPES[] = {
+    const std::array<ArgumentType, 301> INSTRUCTION_ARGUMENT_TYPES = {
         ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
