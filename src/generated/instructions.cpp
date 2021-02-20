@@ -3116,6 +3116,102 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t swap_130(const Arguments& , Registers& registers, MemoryController& ) // 0x130 SWAP B
+    {
+        uint8_t value = registers.B;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.B = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t swap_131(const Arguments& , Registers& registers, MemoryController& ) // 0x131 SWAP C
+    {
+        uint8_t value = registers.C;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.C = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t swap_132(const Arguments& , Registers& registers, MemoryController& ) // 0x132 SWAP D
+    {
+        uint8_t value = registers.D;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.D = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t swap_133(const Arguments& , Registers& registers, MemoryController& ) // 0x133 SWAP E
+    {
+        uint8_t value = registers.E;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.E = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t swap_134(const Arguments& , Registers& registers, MemoryController& ) // 0x134 SWAP H
+    {
+        uint8_t value = registers.H;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.H = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t swap_135(const Arguments& , Registers& registers, MemoryController& ) // 0x135 SWAP L
+    {
+        uint8_t value = registers.L;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.L = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t swap_136(const Arguments& , Registers& registers, MemoryController& controller) // 0x136 SWAP (HL)
+    {
+        uint8_t value = controller.get(registers.get_HL());
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        controller.set(registers.get_HL(), result);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t swap_137(const Arguments& , Registers& registers, MemoryController& ) // 0x137 SWAP A
+    {
+        uint8_t value = registers.A;
+        uint8_t result = (value >> 4) | (value  << 4);
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
     uint16_t srl_138(const Arguments& , Registers& registers, MemoryController& ) // 0x138 SRL B
     {
         uint8_t value = registers.B;

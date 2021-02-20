@@ -611,6 +611,22 @@ namespace emulator::generated
 
     uint16_t sra_12f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12F SRA A
 
+    uint16_t swap_130(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x130 SWAP B
+
+    uint16_t swap_131(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x131 SWAP C
+
+    uint16_t swap_132(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x132 SWAP D
+
+    uint16_t swap_133(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x133 SWAP E
+
+    uint16_t swap_134(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x134 SWAP H
+
+    uint16_t swap_135(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x135 SWAP L
+
+    uint16_t swap_136(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x136 SWAP (HL)
+
+    uint16_t swap_137(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x137 SWAP A
+
     uint16_t srl_138(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x138 SRL B
 
     uint16_t srl_139(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x139 SRL C
@@ -627,7 +643,7 @@ namespace emulator::generated
 
     uint16_t srl_13f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13F SRL A
 
-    const std::array<InstructionFunction, 301> INSTRUCTION_FUNCTIONS = {
+    const std::array<InstructionFunction, 309> INSTRUCTION_FUNCTIONS = {
         &nop_000,
         &ld_001,
         &ld_002,
@@ -921,6 +937,14 @@ namespace emulator::generated
         &sra_12d,
         &sra_12e,
         &sra_12f,
+        &swap_130,
+        &swap_131,
+        &swap_132,
+        &swap_133,
+        &swap_134,
+        &swap_135,
+        &swap_136,
+        &swap_137,
         &srl_138,
         &srl_139,
         &srl_13a,
@@ -931,7 +955,7 @@ namespace emulator::generated
         &srl_13f
     };
 
-    const std::array<ArgumentType, 301> INSTRUCTION_ARGUMENT_TYPES = {
+    const std::array<ArgumentType, 309> INSTRUCTION_ARGUMENT_TYPES = {
         ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
@@ -1176,6 +1200,14 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
