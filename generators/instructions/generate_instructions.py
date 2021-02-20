@@ -719,6 +719,14 @@ def swap_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code)
 
 
+@register_generator(InstructionType.BIT)
+def bit_generator(instruction: GbInstruction) -> InstructionFunction:
+    zero_flag_value = f"(({make_get_code(instruction.second_arg)} >> {instruction.first_arg.value}) & 0b1) == 0"
+    return make_instruction_function(
+        instruction, f"uint8_t {ZERO_FLAG} = {zero_flag_value};\n{make_flag_code(instruction.flags)}"
+    )
+
+
 def main():
     instructions = read_instruction_csv(os.path.join(THIS_FOLDER, "instructions.csv"))
     functions = [

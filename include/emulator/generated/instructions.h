@@ -643,7 +643,135 @@ namespace emulator::generated
 
     uint16_t srl_13f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x13F SRL A
 
-    const std::array<InstructionFunction, 309> INSTRUCTION_FUNCTIONS = {
+    uint16_t bit_140(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x140 BIT 0, B
+
+    uint16_t bit_141(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x141 BIT 0, C
+
+    uint16_t bit_142(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x142 BIT 0, D
+
+    uint16_t bit_143(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x143 BIT 0, E
+
+    uint16_t bit_144(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x144 BIT 0, H
+
+    uint16_t bit_145(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x145 BIT 0, L
+
+    uint16_t bit_146(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x146 BIT 0, (HL)
+
+    uint16_t bit_147(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x147 BIT 0, A
+
+    uint16_t bit_148(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x148 BIT 1, B
+
+    uint16_t bit_149(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x149 BIT 1, C
+
+    uint16_t bit_14a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x14A BIT 1, D
+
+    uint16_t bit_14b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x14B BIT 1, E
+
+    uint16_t bit_14c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x14C BIT 1, H
+
+    uint16_t bit_14d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x14D BIT 1, L
+
+    uint16_t bit_14e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x14E BIT 1, (HL)
+
+    uint16_t bit_14f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x14F BIT 1, A
+
+    uint16_t bit_150(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x150 BIT 2, B
+
+    uint16_t bit_151(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x151 BIT 2, C
+
+    uint16_t bit_152(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x152 BIT 2, D
+
+    uint16_t bit_153(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x153 BIT 2, E
+
+    uint16_t bit_154(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x154 BIT 2, H
+
+    uint16_t bit_155(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x155 BIT 2, L
+
+    uint16_t bit_156(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x156 BIT 2, (HL)
+
+    uint16_t bit_157(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x157 BIT 2, A
+
+    uint16_t bit_158(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x158 BIT 3, B
+
+    uint16_t bit_159(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x159 BIT 3, C
+
+    uint16_t bit_15a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x15A BIT 3, D
+
+    uint16_t bit_15b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x15B BIT 3, E
+
+    uint16_t bit_15c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x15C BIT 3, H
+
+    uint16_t bit_15d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x15D BIT 3, L
+
+    uint16_t bit_15e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x15E BIT 3, (HL)
+
+    uint16_t bit_15f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x15F BIT 3, A
+
+    uint16_t bit_160(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x160 BIT 4, B
+
+    uint16_t bit_161(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x161 BIT 4, C
+
+    uint16_t bit_162(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x162 BIT 4, D
+
+    uint16_t bit_163(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x163 BIT 4, E
+
+    uint16_t bit_164(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x164 BIT 4, H
+
+    uint16_t bit_165(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x165 BIT 4, L
+
+    uint16_t bit_166(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x166 BIT 4, (HL)
+
+    uint16_t bit_167(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x167 BIT 4, A
+
+    uint16_t bit_168(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x168 BIT 5, B
+
+    uint16_t bit_169(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x169 BIT 5, C
+
+    uint16_t bit_16a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16A BIT 5, D
+
+    uint16_t bit_16b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16B BIT 5, E
+
+    uint16_t bit_16c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16C BIT 5, H
+
+    uint16_t bit_16d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16D BIT 5, L
+
+    uint16_t bit_16e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16E BIT 5, (HL)
+
+    uint16_t bit_16f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x16F BIT 5, A
+
+    uint16_t bit_170(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x170 BIT 6, B
+
+    uint16_t bit_171(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x171 BIT 6, C
+
+    uint16_t bit_172(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x172 BIT 6, D
+
+    uint16_t bit_173(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x173 BIT 6, E
+
+    uint16_t bit_174(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x174 BIT 6, H
+
+    uint16_t bit_175(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x175 BIT 6, L
+
+    uint16_t bit_176(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x176 BIT 6, (HL)
+
+    uint16_t bit_177(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x177 BIT 6, A
+
+    uint16_t bit_178(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x178 BIT 7, B
+
+    uint16_t bit_179(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x179 BIT 7, C
+
+    uint16_t bit_17a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17A BIT 7, D
+
+    uint16_t bit_17b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17B BIT 7, E
+
+    uint16_t bit_17c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17C BIT 7, H
+
+    uint16_t bit_17d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17D BIT 7, L
+
+    uint16_t bit_17e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17E BIT 7, (HL)
+
+    uint16_t bit_17f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17F BIT 7, A
+
+    const std::array<InstructionFunction, 373> INSTRUCTION_FUNCTIONS = {
         &nop_000,
         &ld_001,
         &ld_002,
@@ -952,10 +1080,74 @@ namespace emulator::generated
         &srl_13c,
         &srl_13d,
         &srl_13e,
-        &srl_13f
+        &srl_13f,
+        &bit_140,
+        &bit_141,
+        &bit_142,
+        &bit_143,
+        &bit_144,
+        &bit_145,
+        &bit_146,
+        &bit_147,
+        &bit_148,
+        &bit_149,
+        &bit_14a,
+        &bit_14b,
+        &bit_14c,
+        &bit_14d,
+        &bit_14e,
+        &bit_14f,
+        &bit_150,
+        &bit_151,
+        &bit_152,
+        &bit_153,
+        &bit_154,
+        &bit_155,
+        &bit_156,
+        &bit_157,
+        &bit_158,
+        &bit_159,
+        &bit_15a,
+        &bit_15b,
+        &bit_15c,
+        &bit_15d,
+        &bit_15e,
+        &bit_15f,
+        &bit_160,
+        &bit_161,
+        &bit_162,
+        &bit_163,
+        &bit_164,
+        &bit_165,
+        &bit_166,
+        &bit_167,
+        &bit_168,
+        &bit_169,
+        &bit_16a,
+        &bit_16b,
+        &bit_16c,
+        &bit_16d,
+        &bit_16e,
+        &bit_16f,
+        &bit_170,
+        &bit_171,
+        &bit_172,
+        &bit_173,
+        &bit_174,
+        &bit_175,
+        &bit_176,
+        &bit_177,
+        &bit_178,
+        &bit_179,
+        &bit_17a,
+        &bit_17b,
+        &bit_17c,
+        &bit_17d,
+        &bit_17e,
+        &bit_17f
     };
 
-    const std::array<ArgumentType, 309> INSTRUCTION_ARGUMENT_TYPES = {
+    const std::array<ArgumentType, 373> INSTRUCTION_ARGUMENT_TYPES = {
         ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
@@ -1200,6 +1392,70 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,

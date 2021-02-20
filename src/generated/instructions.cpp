@@ -3315,4 +3315,580 @@ namespace emulator::generated
         registers.PC += 2;
         return 8;
     }
+
+    uint16_t bit_140(const Arguments& , Registers& registers, MemoryController& ) // 0x140 BIT 0, B
+    {
+        uint8_t zero_flag = ((registers.B >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_141(const Arguments& , Registers& registers, MemoryController& ) // 0x141 BIT 0, C
+    {
+        uint8_t zero_flag = ((registers.C >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_142(const Arguments& , Registers& registers, MemoryController& ) // 0x142 BIT 0, D
+    {
+        uint8_t zero_flag = ((registers.D >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_143(const Arguments& , Registers& registers, MemoryController& ) // 0x143 BIT 0, E
+    {
+        uint8_t zero_flag = ((registers.E >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_144(const Arguments& , Registers& registers, MemoryController& ) // 0x144 BIT 0, H
+    {
+        uint8_t zero_flag = ((registers.H >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_145(const Arguments& , Registers& registers, MemoryController& ) // 0x145 BIT 0, L
+    {
+        uint8_t zero_flag = ((registers.L >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_146(const Arguments& , Registers& registers, MemoryController& controller) // 0x146 BIT 0, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_147(const Arguments& , Registers& registers, MemoryController& ) // 0x147 BIT 0, A
+    {
+        uint8_t zero_flag = ((registers.A >> 0) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_148(const Arguments& , Registers& registers, MemoryController& ) // 0x148 BIT 1, B
+    {
+        uint8_t zero_flag = ((registers.B >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_149(const Arguments& , Registers& registers, MemoryController& ) // 0x149 BIT 1, C
+    {
+        uint8_t zero_flag = ((registers.C >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_14a(const Arguments& , Registers& registers, MemoryController& ) // 0x14A BIT 1, D
+    {
+        uint8_t zero_flag = ((registers.D >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_14b(const Arguments& , Registers& registers, MemoryController& ) // 0x14B BIT 1, E
+    {
+        uint8_t zero_flag = ((registers.E >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_14c(const Arguments& , Registers& registers, MemoryController& ) // 0x14C BIT 1, H
+    {
+        uint8_t zero_flag = ((registers.H >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_14d(const Arguments& , Registers& registers, MemoryController& ) // 0x14D BIT 1, L
+    {
+        uint8_t zero_flag = ((registers.L >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_14e(const Arguments& , Registers& registers, MemoryController& controller) // 0x14E BIT 1, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_14f(const Arguments& , Registers& registers, MemoryController& ) // 0x14F BIT 1, A
+    {
+        uint8_t zero_flag = ((registers.A >> 1) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_150(const Arguments& , Registers& registers, MemoryController& ) // 0x150 BIT 2, B
+    {
+        uint8_t zero_flag = ((registers.B >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_151(const Arguments& , Registers& registers, MemoryController& ) // 0x151 BIT 2, C
+    {
+        uint8_t zero_flag = ((registers.C >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_152(const Arguments& , Registers& registers, MemoryController& ) // 0x152 BIT 2, D
+    {
+        uint8_t zero_flag = ((registers.D >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_153(const Arguments& , Registers& registers, MemoryController& ) // 0x153 BIT 2, E
+    {
+        uint8_t zero_flag = ((registers.E >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_154(const Arguments& , Registers& registers, MemoryController& ) // 0x154 BIT 2, H
+    {
+        uint8_t zero_flag = ((registers.H >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_155(const Arguments& , Registers& registers, MemoryController& ) // 0x155 BIT 2, L
+    {
+        uint8_t zero_flag = ((registers.L >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_156(const Arguments& , Registers& registers, MemoryController& controller) // 0x156 BIT 2, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_157(const Arguments& , Registers& registers, MemoryController& ) // 0x157 BIT 2, A
+    {
+        uint8_t zero_flag = ((registers.A >> 2) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_158(const Arguments& , Registers& registers, MemoryController& ) // 0x158 BIT 3, B
+    {
+        uint8_t zero_flag = ((registers.B >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_159(const Arguments& , Registers& registers, MemoryController& ) // 0x159 BIT 3, C
+    {
+        uint8_t zero_flag = ((registers.C >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_15a(const Arguments& , Registers& registers, MemoryController& ) // 0x15A BIT 3, D
+    {
+        uint8_t zero_flag = ((registers.D >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_15b(const Arguments& , Registers& registers, MemoryController& ) // 0x15B BIT 3, E
+    {
+        uint8_t zero_flag = ((registers.E >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_15c(const Arguments& , Registers& registers, MemoryController& ) // 0x15C BIT 3, H
+    {
+        uint8_t zero_flag = ((registers.H >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_15d(const Arguments& , Registers& registers, MemoryController& ) // 0x15D BIT 3, L
+    {
+        uint8_t zero_flag = ((registers.L >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_15e(const Arguments& , Registers& registers, MemoryController& controller) // 0x15E BIT 3, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_15f(const Arguments& , Registers& registers, MemoryController& ) // 0x15F BIT 3, A
+    {
+        uint8_t zero_flag = ((registers.A >> 3) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_160(const Arguments& , Registers& registers, MemoryController& ) // 0x160 BIT 4, B
+    {
+        uint8_t zero_flag = ((registers.B >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_161(const Arguments& , Registers& registers, MemoryController& ) // 0x161 BIT 4, C
+    {
+        uint8_t zero_flag = ((registers.C >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_162(const Arguments& , Registers& registers, MemoryController& ) // 0x162 BIT 4, D
+    {
+        uint8_t zero_flag = ((registers.D >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_163(const Arguments& , Registers& registers, MemoryController& ) // 0x163 BIT 4, E
+    {
+        uint8_t zero_flag = ((registers.E >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_164(const Arguments& , Registers& registers, MemoryController& ) // 0x164 BIT 4, H
+    {
+        uint8_t zero_flag = ((registers.H >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_165(const Arguments& , Registers& registers, MemoryController& ) // 0x165 BIT 4, L
+    {
+        uint8_t zero_flag = ((registers.L >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_166(const Arguments& , Registers& registers, MemoryController& controller) // 0x166 BIT 4, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_167(const Arguments& , Registers& registers, MemoryController& ) // 0x167 BIT 4, A
+    {
+        uint8_t zero_flag = ((registers.A >> 4) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_168(const Arguments& , Registers& registers, MemoryController& ) // 0x168 BIT 5, B
+    {
+        uint8_t zero_flag = ((registers.B >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_169(const Arguments& , Registers& registers, MemoryController& ) // 0x169 BIT 5, C
+    {
+        uint8_t zero_flag = ((registers.C >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_16a(const Arguments& , Registers& registers, MemoryController& ) // 0x16A BIT 5, D
+    {
+        uint8_t zero_flag = ((registers.D >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_16b(const Arguments& , Registers& registers, MemoryController& ) // 0x16B BIT 5, E
+    {
+        uint8_t zero_flag = ((registers.E >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_16c(const Arguments& , Registers& registers, MemoryController& ) // 0x16C BIT 5, H
+    {
+        uint8_t zero_flag = ((registers.H >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_16d(const Arguments& , Registers& registers, MemoryController& ) // 0x16D BIT 5, L
+    {
+        uint8_t zero_flag = ((registers.L >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_16e(const Arguments& , Registers& registers, MemoryController& controller) // 0x16E BIT 5, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_16f(const Arguments& , Registers& registers, MemoryController& ) // 0x16F BIT 5, A
+    {
+        uint8_t zero_flag = ((registers.A >> 5) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_170(const Arguments& , Registers& registers, MemoryController& ) // 0x170 BIT 6, B
+    {
+        uint8_t zero_flag = ((registers.B >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_171(const Arguments& , Registers& registers, MemoryController& ) // 0x171 BIT 6, C
+    {
+        uint8_t zero_flag = ((registers.C >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_172(const Arguments& , Registers& registers, MemoryController& ) // 0x172 BIT 6, D
+    {
+        uint8_t zero_flag = ((registers.D >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_173(const Arguments& , Registers& registers, MemoryController& ) // 0x173 BIT 6, E
+    {
+        uint8_t zero_flag = ((registers.E >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_174(const Arguments& , Registers& registers, MemoryController& ) // 0x174 BIT 6, H
+    {
+        uint8_t zero_flag = ((registers.H >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_175(const Arguments& , Registers& registers, MemoryController& ) // 0x175 BIT 6, L
+    {
+        uint8_t zero_flag = ((registers.L >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_176(const Arguments& , Registers& registers, MemoryController& controller) // 0x176 BIT 6, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_177(const Arguments& , Registers& registers, MemoryController& ) // 0x177 BIT 6, A
+    {
+        uint8_t zero_flag = ((registers.A >> 6) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_178(const Arguments& , Registers& registers, MemoryController& ) // 0x178 BIT 7, B
+    {
+        uint8_t zero_flag = ((registers.B >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_179(const Arguments& , Registers& registers, MemoryController& ) // 0x179 BIT 7, C
+    {
+        uint8_t zero_flag = ((registers.C >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_17a(const Arguments& , Registers& registers, MemoryController& ) // 0x17A BIT 7, D
+    {
+        uint8_t zero_flag = ((registers.D >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_17b(const Arguments& , Registers& registers, MemoryController& ) // 0x17B BIT 7, E
+    {
+        uint8_t zero_flag = ((registers.E >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_17c(const Arguments& , Registers& registers, MemoryController& ) // 0x17C BIT 7, H
+    {
+        uint8_t zero_flag = ((registers.H >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_17d(const Arguments& , Registers& registers, MemoryController& ) // 0x17D BIT 7, L
+    {
+        uint8_t zero_flag = ((registers.L >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t bit_17e(const Arguments& , Registers& registers, MemoryController& controller) // 0x17E BIT 7, (HL)
+    {
+        uint8_t zero_flag = ((controller.get(registers.get_HL()) >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t bit_17f(const Arguments& , Registers& registers, MemoryController& ) // 0x17F BIT 7, A
+    {
+        uint8_t zero_flag = ((registers.A >> 7) & 0b1) == 0;
+        registers.F &= 0b00010000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
 }
