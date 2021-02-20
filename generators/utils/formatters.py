@@ -23,6 +23,13 @@ def _(code: list, nb_indent: int = 1) -> str:
     )
 
 
+def make_if_else_code(condition: str, action: str, else_action: str):
+    return f"if ({condition})\n" \
+           f"{{\n{indent_code(action)}\n}}\n" \
+           f"else\n" \
+           f"{{\n{indent_code(else_action)}\n}}"
+
+
 def make_function(signature: str, code: Union[str, List[str]], parameters: Iterable[str] = ()) -> str:
     indented_code = indent_code(code).replace("\n\n", "\n")  # Remove double empty line inside function
     # Remove unused parameters

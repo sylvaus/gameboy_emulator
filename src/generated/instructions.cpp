@@ -76,10 +76,13 @@ namespace emulator::generated
         return 8;
     }
 
-    uint16_t rlca_007(const Arguments& , Registers& registers, MemoryController& ) // 0x7 RLCA
+    uint16_t rlca_007(const Arguments& , Registers& registers, MemoryController& ) // 0x7 RLCA A
     {
-        uint8_t carry_flag = (registers.A >> 7) & 0b1;
-        registers.A = (registers.A << 1) + carry_flag;
+        uint8_t value = registers.A;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + carry_flag;
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= carry_flag;
         registers.PC += 1;
@@ -163,10 +166,13 @@ namespace emulator::generated
         return 8;
     }
 
-    uint16_t rrca_00f(const Arguments& , Registers& registers, MemoryController& ) // 0xF RRCA
+    uint16_t rrca_00f(const Arguments& , Registers& registers, MemoryController& ) // 0xF RRCA A
     {
-        uint8_t carry_flag = registers.A & 0b1;
-        registers.A = (registers.A >> 1) + (carry_flag << 7);
+        uint8_t value = registers.A;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (carry_flag << 7);
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= carry_flag;
         registers.PC += 1;
@@ -235,10 +241,13 @@ namespace emulator::generated
         return 8;
     }
 
-    uint16_t rla_017(const Arguments& , Registers& registers, MemoryController& ) // 0x17 RLA
+    uint16_t rla_017(const Arguments& , Registers& registers, MemoryController& ) // 0x17 RLA A
     {
-        uint8_t carry_flag = (registers.A >> 7) & 0b1;
-        registers.A = (registers.A << 1) + registers.get_carry_flag();
+        uint8_t value = registers.A;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= carry_flag;
         registers.PC += 1;
@@ -321,10 +330,13 @@ namespace emulator::generated
         return 8;
     }
 
-    uint16_t rra_01f(const Arguments& , Registers& registers, MemoryController& ) // 0x1F RRA
+    uint16_t rra_01f(const Arguments& , Registers& registers, MemoryController& ) // 0x1F RRA A
     {
-        uint8_t carry_flag = registers.A & 0b1;
-        registers.A = (registers.A >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t value = registers.A;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= carry_flag;
         registers.PC += 1;
@@ -2680,6 +2692,214 @@ namespace emulator::generated
         uint8_t value = registers.A;
         uint8_t carry_flag = value & 0b1;
         uint8_t result = (value >> 1) + (carry_flag << 7);
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_110(const Arguments& , Registers& registers, MemoryController& ) // 0x110 RL B
+    {
+        uint8_t value = registers.B;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.B = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_111(const Arguments& , Registers& registers, MemoryController& ) // 0x111 RL C
+    {
+        uint8_t value = registers.C;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.C = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_112(const Arguments& , Registers& registers, MemoryController& ) // 0x112 RL D
+    {
+        uint8_t value = registers.D;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.D = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_113(const Arguments& , Registers& registers, MemoryController& ) // 0x113 RL E
+    {
+        uint8_t value = registers.E;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.E = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_114(const Arguments& , Registers& registers, MemoryController& ) // 0x114 RL H
+    {
+        uint8_t value = registers.H;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.H = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_115(const Arguments& , Registers& registers, MemoryController& ) // 0x115 RL L
+    {
+        uint8_t value = registers.L;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.L = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rl_116(const Arguments& , Registers& registers, MemoryController& controller) // 0x116 RL (HL)
+    {
+        uint8_t value = controller.get(registers.get_HL());
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        controller.set(registers.get_HL(), result);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t rl_117(const Arguments& , Registers& registers, MemoryController& ) // 0x117 RL A
+    {
+        uint8_t value = registers.A;
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
+        uint8_t zero_flag = result == 0;
+        registers.A = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_118(const Arguments& , Registers& registers, MemoryController& ) // 0x118 RR B
+    {
+        uint8_t value = registers.B;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.B = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_119(const Arguments& , Registers& registers, MemoryController& ) // 0x119 RR C
+    {
+        uint8_t value = registers.C;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.C = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_11a(const Arguments& , Registers& registers, MemoryController& ) // 0x11A RR D
+    {
+        uint8_t value = registers.D;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.D = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_11b(const Arguments& , Registers& registers, MemoryController& ) // 0x11B RR E
+    {
+        uint8_t value = registers.E;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.E = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_11c(const Arguments& , Registers& registers, MemoryController& ) // 0x11C RR H
+    {
+        uint8_t value = registers.H;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.H = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_11d(const Arguments& , Registers& registers, MemoryController& ) // 0x11D RR L
+    {
+        uint8_t value = registers.L;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        registers.L = result;
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t rr_11e(const Arguments& , Registers& registers, MemoryController& controller) // 0x11E RR (HL)
+    {
+        uint8_t value = controller.get(registers.get_HL());
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t zero_flag = result == 0;
+        controller.set(registers.get_HL(), result);
+        registers.F &= 0b00000000;
+        registers.F |= zero_flag + carry_flag;
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t rr_11f(const Arguments& , Registers& registers, MemoryController& ) // 0x11F RR A
+    {
+        uint8_t value = registers.A;
+        uint8_t carry_flag = value & 0b1;
+        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
         uint8_t zero_flag = result == 0;
         registers.A = result;
         registers.F &= 0b00000000;
