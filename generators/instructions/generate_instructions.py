@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Dict, Callable, Optional, List, Union
+from typing import Dict, Callable, Optional, List, Union, Tuple
 from collections import OrderedDict, namedtuple
 
 from generators.instructions.gbinstruction import read_instruction_csv, InstructionType, \
@@ -292,26 +292,17 @@ def make_add_sub_flag_code(
         second_value: Optional[Union[str, int]] = None,
         third_value: Optional[Union[str, int]] = None
 ) -> AddSubFlagCode:
-    two_bytes_op = (instruction.first_arg.value_nb_bytes > 1) or \
-                   (instruction.second_arg and (instruction.second_arg.value_nb_bytes > 1))
-
-    carry_max_value = "0xFFFF" if two_bytes_op else "0xFF"
-    half_carry_max_value = "0xFFF" if two_bytes_op else "0xF"
+    carry_max_value, half_carry_max_value = get_operation_carry_max_values(instruction)
     sign = "+" if is_add else "-"
-
-    third_op = ""
-    if third_value:
-        third_op = f" {sign} {third_value}"
+    third_op = f" {sign} {third_value}" if third_value else ""
 
     half_result_code = ""
     flag_values = []
     if instruction.zero_flag == FlagAction.CUSTOM:
-        flag_values.append(f"uint8_t {ZERO_FLAG} = ((result == 0) << {OFFSET_ZERO_FLAG});")
+        flag_values.append(f"uint8_t {ZERO_FLAG} = result == 0;")
     if instruction.half_carry_flag == FlagAction.CUSTOM:
         flag_values.append(make_half_carry_flag(half_carry_max_value, is_add))
-        half_result_code = \
-            f"int32_t half_result = " \
-            f"(lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value}){third_op};\n"
+        half_result_code = make_half_carry_code(half_carry_max_value, sign, third_op)
     if instruction.carry_flag == FlagAction.CUSTOM:
         flag_values.append(make_carry_flag(carry_max_value, is_add))
 
@@ -324,27 +315,34 @@ def make_add_sub_flag_code(
         f"result & {carry_max_value}",
         f"int32_t lhs = {first_value};\n"
         f"int32_t rhs = {second_value};\n"
-        f"{half_result_code}"
+        f"{half_result_code}\n"
         f"int32_t result = lhs {sign} rhs{third_op};\n"
         f"{flag_value_code}\n"
         f"{make_flag_code(instruction.flags)}"
     )
 
 
-def make_half_carry_flag(half_carry_max_value: str, is_add: bool) -> str:
-    flag = f"uint8_t {HALF_CARRY_FLAG}"
-    if is_add:
-        return f"{flag} = ((half_result > {half_carry_max_value}) << {OFFSET_HALF_CARRY_FLAG});"
+def get_operation_carry_max_values(instruction: GbInstruction) -> Tuple[str, str]:
+    two_bytes_op = (instruction.first_arg.value_nb_bytes > 1) or \
+                   (instruction.second_arg and (instruction.second_arg.value_nb_bytes > 1))
 
-    return f"{flag} = ((half_result < 0) << {OFFSET_HALF_CARRY_FLAG});"
+    carry_max_value = "0xFFFF" if two_bytes_op else "0xFF"
+    half_carry_max_value = "0xFFF" if two_bytes_op else "0xF"
+    return carry_max_value, half_carry_max_value
+
+
+def make_half_carry_code(half_carry_max_value, sign, third_op):
+    return f"int32_t half_result = (lhs & {half_carry_max_value}) {sign} (rhs & {half_carry_max_value}){third_op};"
+
+
+def make_half_carry_flag(half_carry_max_value: str, is_add: bool) -> str:
+    value = f"half_result > {half_carry_max_value}" if is_add else "half_result < 0"
+    return f"uint8_t {HALF_CARRY_FLAG} = {value};"
 
 
 def make_carry_flag(carry_max_value: str, is_add: bool) -> str:
-    flag = f"uint8_t {CARRY_FLAG}"
-    if is_add:
-        return f"{flag} = ((result > {carry_max_value}) << {OFFSET_CARRY_FLAG});"
-
-    return f"{flag} = ((result < 0) << {OFFSET_CARRY_FLAG});"
+    value = f"half_result > {carry_max_value}" if is_add else "half_result < 0"
+    return f"uint8_t {CARRY_FLAG} = {value};"
 
 
 def make_flag_code(flags: InstructionFlags) -> str:
@@ -362,7 +360,7 @@ def make_flag_code(flags: InstructionFlags) -> str:
                         ((flags.carry == FlagAction.NONE) << OFFSET_CARRY_FLAG_VALUE)
 
     flag_setting = f"{REGISTERS_FLAGS} &= 0b{current_flag_mask:08b};"
-    flag_variables = get_custom_flag_names(flags)
+    flag_variables = get_custom_flag_values(flags)
     if initial_flag:
         flag_variables.insert(0, f"0b{initial_flag:08b}")
 
@@ -371,14 +369,14 @@ def make_flag_code(flags: InstructionFlags) -> str:
     return flag_setting
 
 
-def get_custom_flag_names(flags: InstructionFlags) -> List[str]:
+def get_custom_flag_values(flags: InstructionFlags) -> List[str]:
     flag_names = []
     if flags.zero == FlagAction.CUSTOM:
-        flag_names.append(ZERO_FLAG)
+        flag_names.append(f"({ZERO_FLAG} << {OFFSET_ZERO_FLAG})")
     if flags.half_carry == FlagAction.CUSTOM:
-        flag_names.append(HALF_CARRY_FLAG)
+        flag_names.append(f"({HALF_CARRY_FLAG} << {OFFSET_HALF_CARRY_FLAG})")
     if flags.carry == FlagAction.CUSTOM:
-        flag_names.append(CARRY_FLAG)
+        flag_names.append(f"({CARRY_FLAG} << {OFFSET_CARRY_FLAG})")
 
     return flag_names
 
