@@ -38,9 +38,11 @@ endif()
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Add googletest directly to our build. This defines  the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
+add_subdirectory(
+        ${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-        EXCLUDE_FROM_ALL)
+        EXCLUDE_FROM_ALL
+)
 
 
 include_directories("include")
@@ -62,7 +64,12 @@ if (TESTS)
     endif()
 
     file(GLOB_RECURSE TESTS_SRC ${PROJECT_SOURCE_DIR}/tests/test_*.cpp)
-    add_executable(tests ${TESTS_SRC} src/memory/registers.cpp src/generated/instructions.cpp)
+    add_executable(
+            tests ${TESTS_SRC}
+            src/memory/registers.cpp
+            src/generated/instructions.cpp
+            tests/instructions/fixtures/instruction.cpp
+    )
     target_link_libraries(tests gtest_main gmock ${CMAKE_THREAD_LIBS_INIT})
     add_test(all_tests tests)
 endif()

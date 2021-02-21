@@ -5,7 +5,7 @@
 
 namespace emulator::mocks
 {
-class MockMemoryController : public emulator::memory::MemoryController
+    class MockMemoryController : public emulator::memory::MemoryController
     {
     public:
         MOCK_METHOD(void, set, (uint32_t address, uint8_t value), (override));
