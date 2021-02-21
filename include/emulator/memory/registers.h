@@ -25,6 +25,7 @@ namespace emulator::memory
         uint16_t PC;
 
         bool halted;
+        bool stopped;
         bool ime_flag;  // Interrupt Master Enable Flag
 
         [[nodiscard]] uint16_t get_AF() const;

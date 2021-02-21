@@ -101,6 +101,7 @@ REGISTERS_FLAGS_GET_NON_ZERO = f"{REGISTERS}.get_non_zero_flag()"
 REGISTERS_STACK_POINTER = f"{REGISTERS}.SP"
 REGISTERS_PROGRAM_COUNTER = f"{REGISTERS}.PC"
 REGISTERS_HALTED = f"{REGISTERS}.halted"
+REGISTERS_STOPPED = f"{REGISTERS}.stopped"
 REGISTERS_IME_FLAG = f"{REGISTERS}.ime_flag"
 
 REGISTERS_FLAG_TO_GETTER = {
@@ -560,18 +561,13 @@ def sbc_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(instruction, code)
 
 
-@register_generator(InstructionType.XOR)
-def xor_generator(instruction: GbInstruction) -> InstructionFunction:
-    code = f"{REGISTERS_A} ^= {make_get_code(instruction.first_arg)};\n" \
-           f"uint8_t {ZERO_FLAG} = {REGISTERS_A} == 0;\n" \
-           f"{make_flag_code(instruction.flags)}"
-
-    return make_instruction_function(instruction, code)
+BITWISE_OPERATOR_MAP = {InstructionType.XOR: "^", InstructionType.OR: "|", InstructionType.AND: "&"}
 
 
-@register_generator(InstructionType.OR)
-def or_generator(instruction: GbInstruction) -> InstructionFunction:
-    code = f"{REGISTERS_A} |= {make_get_code(instruction.first_arg)};\n" \
+@register_generator(*BITWISE_OPERATOR_MAP.keys())
+def bitwise_operations_generator(instruction: GbInstruction) -> InstructionFunction:
+    operator = BITWISE_OPERATOR_MAP[instruction.type_]
+    code = f"{REGISTERS_A} {operator}= {make_get_code(instruction.first_arg)};\n" \
            f"uint8_t {ZERO_FLAG} = {REGISTERS_A} == 0;\n" \
            f"{make_flag_code(instruction.flags)}"
 
@@ -725,6 +721,32 @@ def bit_generator(instruction: GbInstruction) -> InstructionFunction:
     return make_instruction_function(
         instruction, f"uint8_t {ZERO_FLAG} = {zero_flag_value};\n{make_flag_code(instruction.flags)}"
     )
+
+
+@register_generator(InstructionType.RES)
+def res_generator(instruction: GbInstruction) -> InstructionFunction:
+    value = f"{make_get_code(instruction.second_arg)} & 0b{0xFF - (1 << instruction.first_arg.value):08b}"
+    return make_instruction_function(instruction, make_set_code_from_value(instruction.second_arg, value, nb_bytes=1))
+
+
+@register_generator(InstructionType.SET)
+def set_generator(instruction: GbInstruction) -> InstructionFunction:
+    value = f"{make_get_code(instruction.second_arg)} | 0b{1 << instruction.first_arg.value:08b}"
+    return make_instruction_function(instruction, make_set_code_from_value(instruction.second_arg, value, nb_bytes=1))
+
+
+@register_generator(InstructionType.STOP)
+def stop_generator(instruction: GbInstruction) -> InstructionFunction:
+    return make_instruction_function(instruction, f"{REGISTERS_STOPPED} = true;")
+
+
+@register_generator(InstructionType.RETI)
+def reti_generator(instruction: GbInstruction) -> InstructionFunction:
+    code = f"{REGISTERS_IME_FLAG} = true;\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} = {make_get_from_address(REGISTERS_STACK_POINTER + '++')};\n" \
+           f"{REGISTERS_PROGRAM_COUNTER} += ({make_get_from_address(REGISTERS_STACK_POINTER + '++')}) << 8;"
+
+    return make_instruction_function(instruction, code, remove_pc_update=True)
 
 
 def main():

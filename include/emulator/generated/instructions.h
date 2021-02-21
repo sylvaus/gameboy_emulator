@@ -57,6 +57,8 @@ namespace emulator::generated
 
     uint16_t rrca_00f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xF RRCA
 
+    uint16_t stop_010(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x10 STOP 0
+
     uint16_t ld_011(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x11 LD DE, d16
 
     uint16_t ld_012(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x12 LD (DE), A
@@ -343,6 +345,22 @@ namespace emulator::generated
 
     uint16_t sbc_09f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x9F SBC A, A
 
+    uint16_t and_0a0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA0 AND B
+
+    uint16_t and_0a1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA1 AND C
+
+    uint16_t and_0a2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA2 AND D
+
+    uint16_t and_0a3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA3 AND E
+
+    uint16_t and_0a4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA4 AND H
+
+    uint16_t and_0a5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA5 AND L
+
+    uint16_t and_0a6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA6 AND (HL)
+
+    uint16_t and_0a7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA7 AND A
+
     uint16_t xor_0a8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA8 XOR B
 
     uint16_t xor_0a9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xA9 XOR C
@@ -441,6 +459,8 @@ namespace emulator::generated
 
     uint16_t ret_0d8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xD8 RET C
 
+    uint16_t reti_0d9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xD9 RETI
+
     uint16_t jp_0da(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xDA JP C, a16
 
     uint16_t unknown_0db(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xDB UNKNOWN
@@ -464,6 +484,8 @@ namespace emulator::generated
     uint16_t unknown_0e4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE4 UNKNOWN
 
     uint16_t push_0e5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE5 PUSH HL
+
+    uint16_t and_0e6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE6 AND d8
 
     uint16_t rst_0e7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0xE7 RST 20H
 
@@ -771,7 +793,263 @@ namespace emulator::generated
 
     uint16_t bit_17f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x17F BIT 7, A
 
-    const std::array<InstructionFunction, 373> INSTRUCTION_FUNCTIONS = {
+    uint16_t res_180(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x180 RES 0, B
+
+    uint16_t res_181(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x181 RES 0, C
+
+    uint16_t res_182(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x182 RES 0, D
+
+    uint16_t res_183(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x183 RES 0, E
+
+    uint16_t res_184(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x184 RES 0, H
+
+    uint16_t res_185(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x185 RES 0, L
+
+    uint16_t res_186(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x186 RES 0, (HL)
+
+    uint16_t res_187(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x187 RES 0, A
+
+    uint16_t res_188(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x188 RES 1, B
+
+    uint16_t res_189(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x189 RES 1, C
+
+    uint16_t res_18a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18A RES 1, D
+
+    uint16_t res_18b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18B RES 1, E
+
+    uint16_t res_18c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18C RES 1, H
+
+    uint16_t res_18d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18D RES 1, L
+
+    uint16_t res_18e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18E RES 1, (HL)
+
+    uint16_t res_18f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x18F RES 1, A
+
+    uint16_t res_190(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x190 RES 2, B
+
+    uint16_t res_191(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x191 RES 2, C
+
+    uint16_t res_192(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x192 RES 2, D
+
+    uint16_t res_193(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x193 RES 2, E
+
+    uint16_t res_194(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x194 RES 2, H
+
+    uint16_t res_195(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x195 RES 2, L
+
+    uint16_t res_196(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x196 RES 2, (HL)
+
+    uint16_t res_197(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x197 RES 2, A
+
+    uint16_t res_198(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x198 RES 3, B
+
+    uint16_t res_199(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x199 RES 3, C
+
+    uint16_t res_19a(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x19A RES 3, D
+
+    uint16_t res_19b(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x19B RES 3, E
+
+    uint16_t res_19c(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x19C RES 3, H
+
+    uint16_t res_19d(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x19D RES 3, L
+
+    uint16_t res_19e(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x19E RES 3, (HL)
+
+    uint16_t res_19f(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x19F RES 3, A
+
+    uint16_t res_1a0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A0 RES 4, B
+
+    uint16_t res_1a1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A1 RES 4, C
+
+    uint16_t res_1a2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A2 RES 4, D
+
+    uint16_t res_1a3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A3 RES 4, E
+
+    uint16_t res_1a4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A4 RES 4, H
+
+    uint16_t res_1a5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A5 RES 4, L
+
+    uint16_t res_1a6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A6 RES 4, (HL)
+
+    uint16_t res_1a7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A7 RES 4, A
+
+    uint16_t res_1a8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A8 RES 5, B
+
+    uint16_t res_1a9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1A9 RES 5, C
+
+    uint16_t res_1aa(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1AA RES 5, D
+
+    uint16_t res_1ab(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1AB RES 5, E
+
+    uint16_t res_1ac(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1AC RES 5, H
+
+    uint16_t res_1ad(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1AD RES 5, L
+
+    uint16_t res_1ae(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1AE RES 5, (HL)
+
+    uint16_t res_1af(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1AF RES 5, A
+
+    uint16_t res_1b0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B0 RES 6, B
+
+    uint16_t res_1b1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B1 RES 6, C
+
+    uint16_t res_1b2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B2 RES 6, D
+
+    uint16_t res_1b3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B3 RES 6, E
+
+    uint16_t res_1b4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B4 RES 6, H
+
+    uint16_t res_1b5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B5 RES 6, L
+
+    uint16_t res_1b6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B6 RES 6, (HL)
+
+    uint16_t res_1b7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B7 RES 6, A
+
+    uint16_t res_1b8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B8 RES 7, B
+
+    uint16_t res_1b9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1B9 RES 7, C
+
+    uint16_t res_1ba(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1BA RES 7, D
+
+    uint16_t res_1bb(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1BB RES 7, E
+
+    uint16_t res_1bc(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1BC RES 7, H
+
+    uint16_t res_1bd(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1BD RES 7, L
+
+    uint16_t res_1be(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1BE RES 7, (HL)
+
+    uint16_t res_1bf(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1BF RES 7, A
+
+    uint16_t set_1c0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C0 SET 0, B
+
+    uint16_t set_1c1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C1 SET 0, C
+
+    uint16_t set_1c2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C2 SET 0, D
+
+    uint16_t set_1c3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C3 SET 0, E
+
+    uint16_t set_1c4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C4 SET 0, H
+
+    uint16_t set_1c5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C5 SET 0, L
+
+    uint16_t set_1c6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C6 SET 0, (HL)
+
+    uint16_t set_1c7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C7 SET 0, A
+
+    uint16_t set_1c8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C8 SET 1, B
+
+    uint16_t set_1c9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1C9 SET 1, C
+
+    uint16_t set_1ca(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1CA SET 1, D
+
+    uint16_t set_1cb(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1CB SET 1, E
+
+    uint16_t set_1cc(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1CC SET 1, H
+
+    uint16_t set_1cd(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1CD SET 1, L
+
+    uint16_t set_1ce(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1CE SET 1, (HL)
+
+    uint16_t set_1cf(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1CF SET 1, A
+
+    uint16_t set_1d0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D0 SET 2, B
+
+    uint16_t set_1d1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D1 SET 2, C
+
+    uint16_t set_1d2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D2 SET 2, D
+
+    uint16_t set_1d3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D3 SET 2, E
+
+    uint16_t set_1d4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D4 SET 2, H
+
+    uint16_t set_1d5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D5 SET 2, L
+
+    uint16_t set_1d6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D6 SET 2, (HL)
+
+    uint16_t set_1d7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D7 SET 2, A
+
+    uint16_t set_1d8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D8 SET 3, B
+
+    uint16_t set_1d9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1D9 SET 3, C
+
+    uint16_t set_1da(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1DA SET 3, D
+
+    uint16_t set_1db(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1DB SET 3, E
+
+    uint16_t set_1dc(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1DC SET 3, H
+
+    uint16_t set_1dd(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1DD SET 3, L
+
+    uint16_t set_1de(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1DE SET 3, (HL)
+
+    uint16_t set_1df(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1DF SET 3, A
+
+    uint16_t set_1e0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E0 SET 4, B
+
+    uint16_t set_1e1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E1 SET 4, C
+
+    uint16_t set_1e2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E2 SET 4, D
+
+    uint16_t set_1e3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E3 SET 4, E
+
+    uint16_t set_1e4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E4 SET 4, H
+
+    uint16_t set_1e5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E5 SET 4, L
+
+    uint16_t set_1e6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E6 SET 4, (HL)
+
+    uint16_t set_1e7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E7 SET 4, A
+
+    uint16_t set_1e8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E8 SET 5, B
+
+    uint16_t set_1e9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1E9 SET 5, C
+
+    uint16_t set_1ea(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1EA SET 5, D
+
+    uint16_t set_1eb(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1EB SET 5, E
+
+    uint16_t set_1ec(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1EC SET 5, H
+
+    uint16_t set_1ed(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1ED SET 5, L
+
+    uint16_t set_1ee(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1EE SET 5, (HL)
+
+    uint16_t set_1ef(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1EF SET 5, A
+
+    uint16_t set_1f0(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F0 SET 6, B
+
+    uint16_t set_1f1(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F1 SET 6, C
+
+    uint16_t set_1f2(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F2 SET 6, D
+
+    uint16_t set_1f3(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F3 SET 6, E
+
+    uint16_t set_1f4(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F4 SET 6, H
+
+    uint16_t set_1f5(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F5 SET 6, L
+
+    uint16_t set_1f6(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F6 SET 6, (HL)
+
+    uint16_t set_1f7(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F7 SET 6, A
+
+    uint16_t set_1f8(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F8 SET 7, B
+
+    uint16_t set_1f9(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1F9 SET 7, C
+
+    uint16_t set_1fa(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1FA SET 7, D
+
+    uint16_t set_1fb(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1FB SET 7, E
+
+    uint16_t set_1fc(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1FC SET 7, H
+
+    uint16_t set_1fd(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1FD SET 7, L
+
+    uint16_t set_1fe(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1FE SET 7, (HL)
+
+    uint16_t set_1ff(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x1FF SET 7, A
+
+    const std::array<InstructionFunction, 512> INSTRUCTION_FUNCTIONS = {
         &nop_000,
         &ld_001,
         &ld_002,
@@ -788,6 +1066,7 @@ namespace emulator::generated
         &dec_00d,
         &ld_00e,
         &rrca_00f,
+        &stop_010,
         &ld_011,
         &ld_012,
         &inc_013,
@@ -931,6 +1210,14 @@ namespace emulator::generated
         &sbc_09d,
         &sbc_09e,
         &sbc_09f,
+        &and_0a0,
+        &and_0a1,
+        &and_0a2,
+        &and_0a3,
+        &and_0a4,
+        &and_0a5,
+        &and_0a6,
+        &and_0a7,
         &xor_0a8,
         &xor_0a9,
         &xor_0aa,
@@ -980,6 +1267,7 @@ namespace emulator::generated
         &sub_0d6,
         &rst_0d7,
         &ret_0d8,
+        &reti_0d9,
         &jp_0da,
         &unknown_0db,
         &call_0dc,
@@ -992,6 +1280,7 @@ namespace emulator::generated
         &unknown_0e3,
         &unknown_0e4,
         &push_0e5,
+        &and_0e6,
         &rst_0e7,
         &add_0e8,
         &jp_0e9,
@@ -1144,10 +1433,138 @@ namespace emulator::generated
         &bit_17c,
         &bit_17d,
         &bit_17e,
-        &bit_17f
+        &bit_17f,
+        &res_180,
+        &res_181,
+        &res_182,
+        &res_183,
+        &res_184,
+        &res_185,
+        &res_186,
+        &res_187,
+        &res_188,
+        &res_189,
+        &res_18a,
+        &res_18b,
+        &res_18c,
+        &res_18d,
+        &res_18e,
+        &res_18f,
+        &res_190,
+        &res_191,
+        &res_192,
+        &res_193,
+        &res_194,
+        &res_195,
+        &res_196,
+        &res_197,
+        &res_198,
+        &res_199,
+        &res_19a,
+        &res_19b,
+        &res_19c,
+        &res_19d,
+        &res_19e,
+        &res_19f,
+        &res_1a0,
+        &res_1a1,
+        &res_1a2,
+        &res_1a3,
+        &res_1a4,
+        &res_1a5,
+        &res_1a6,
+        &res_1a7,
+        &res_1a8,
+        &res_1a9,
+        &res_1aa,
+        &res_1ab,
+        &res_1ac,
+        &res_1ad,
+        &res_1ae,
+        &res_1af,
+        &res_1b0,
+        &res_1b1,
+        &res_1b2,
+        &res_1b3,
+        &res_1b4,
+        &res_1b5,
+        &res_1b6,
+        &res_1b7,
+        &res_1b8,
+        &res_1b9,
+        &res_1ba,
+        &res_1bb,
+        &res_1bc,
+        &res_1bd,
+        &res_1be,
+        &res_1bf,
+        &set_1c0,
+        &set_1c1,
+        &set_1c2,
+        &set_1c3,
+        &set_1c4,
+        &set_1c5,
+        &set_1c6,
+        &set_1c7,
+        &set_1c8,
+        &set_1c9,
+        &set_1ca,
+        &set_1cb,
+        &set_1cc,
+        &set_1cd,
+        &set_1ce,
+        &set_1cf,
+        &set_1d0,
+        &set_1d1,
+        &set_1d2,
+        &set_1d3,
+        &set_1d4,
+        &set_1d5,
+        &set_1d6,
+        &set_1d7,
+        &set_1d8,
+        &set_1d9,
+        &set_1da,
+        &set_1db,
+        &set_1dc,
+        &set_1dd,
+        &set_1de,
+        &set_1df,
+        &set_1e0,
+        &set_1e1,
+        &set_1e2,
+        &set_1e3,
+        &set_1e4,
+        &set_1e5,
+        &set_1e6,
+        &set_1e7,
+        &set_1e8,
+        &set_1e9,
+        &set_1ea,
+        &set_1eb,
+        &set_1ec,
+        &set_1ed,
+        &set_1ee,
+        &set_1ef,
+        &set_1f0,
+        &set_1f1,
+        &set_1f2,
+        &set_1f3,
+        &set_1f4,
+        &set_1f5,
+        &set_1f6,
+        &set_1f7,
+        &set_1f8,
+        &set_1f9,
+        &set_1fa,
+        &set_1fb,
+        &set_1fc,
+        &set_1fd,
+        &set_1fe,
+        &set_1ff
     };
 
-    const std::array<ArgumentType, 373> INSTRUCTION_ARGUMENT_TYPES = {
+    const std::array<ArgumentType, 512> INSTRUCTION_ARGUMENT_TYPES = {
         ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
@@ -1164,22 +1581,7 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::uint8,
         ArgumentType::none,
-        ArgumentType::uint16,
         ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::uint8,
-        ArgumentType::none,
-        ArgumentType::int8,
-        ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::none,
-        ArgumentType::uint8,
-        ArgumentType::none,
-        ArgumentType::int8,
         ArgumentType::uint16,
         ArgumentType::none,
         ArgumentType::none,
@@ -1211,6 +1613,30 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::uint8,
         ArgumentType::none,
+        ArgumentType::int8,
+        ArgumentType::uint16,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::int8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
@@ -1356,6 +1782,7 @@ namespace emulator::generated
         ArgumentType::uint8,
         ArgumentType::none,
         ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::uint16,
         ArgumentType::none,
         ArgumentType::uint16,
@@ -1368,6 +1795,7 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
+        ArgumentType::uint8,
         ArgumentType::none,
         ArgumentType::int8,
         ArgumentType::none,
@@ -1392,6 +1820,134 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::uint8,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
+        ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,
         ArgumentType::none,

@@ -179,6 +179,13 @@ namespace emulator::generated
         return 4;
     }
 
+    uint16_t stop_010(const Arguments& , Registers& registers, MemoryController& ) // 0x10 STOP 0
+    {
+        registers.stopped = true;
+        registers.PC += 2;
+        return 4;
+    }
+
     uint16_t ld_011(const Arguments& arguments, Registers& registers, MemoryController& ) // 0x11 LD DE, d16
     {
         registers.set_DE(arguments.uint16);
@@ -1653,6 +1660,86 @@ namespace emulator::generated
         return 4;
     }
 
+    uint16_t and_0a0(const Arguments& , Registers& registers, MemoryController& ) // 0xA0 AND B
+    {
+        registers.A &= registers.B;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t and_0a1(const Arguments& , Registers& registers, MemoryController& ) // 0xA1 AND C
+    {
+        registers.A &= registers.C;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t and_0a2(const Arguments& , Registers& registers, MemoryController& ) // 0xA2 AND D
+    {
+        registers.A &= registers.D;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t and_0a3(const Arguments& , Registers& registers, MemoryController& ) // 0xA3 AND E
+    {
+        registers.A &= registers.E;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t and_0a4(const Arguments& , Registers& registers, MemoryController& ) // 0xA4 AND H
+    {
+        registers.A &= registers.H;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t and_0a5(const Arguments& , Registers& registers, MemoryController& ) // 0xA5 AND L
+    {
+        registers.A &= registers.L;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
+    uint16_t and_0a6(const Arguments& , Registers& registers, MemoryController& controller) // 0xA6 AND (HL)
+    {
+        registers.A &= controller.get(registers.get_HL());
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 8;
+    }
+
+    uint16_t and_0a7(const Arguments& , Registers& registers, MemoryController& ) // 0xA7 AND A
+    {
+        registers.A &= registers.A;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 1;
+        return 4;
+    }
+
     uint16_t xor_0a8(const Arguments& , Registers& registers, MemoryController& ) // 0xA8 XOR B
     {
         registers.A ^= registers.B;
@@ -2191,6 +2278,14 @@ namespace emulator::generated
         return 8;
     }
 
+    uint16_t reti_0d9(const Arguments& , Registers& registers, MemoryController& controller) // 0xD9 RETI
+    {
+        registers.ime_flag = true;
+        registers.PC = controller.get(registers.SP++);
+        registers.PC += (controller.get(registers.SP++)) << 8;
+        return 16;
+    }
+
     uint16_t jp_0da(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xDA JP C, a16
     {
         if (registers.get_carry_flag())
@@ -2288,6 +2383,16 @@ namespace emulator::generated
         controller.set(--registers.SP, registers.L);
         registers.PC += 1;
         return 16;
+    }
+
+    uint16_t and_0e6(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xE6 AND d8
+    {
+        registers.A &= arguments.uint8;
+        uint8_t zero_flag = registers.A == 0;
+        registers.F &= 0b00000000;
+        registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
     }
 
     uint16_t rst_0e7(const Arguments& , Registers& registers, MemoryController& controller) // 0xE7 RST 20H
@@ -3888,6 +3993,902 @@ namespace emulator::generated
         uint8_t zero_flag = ((registers.A >> 7) & 0b1) == 0;
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + zero_flag;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_180(const Arguments& , Registers& registers, MemoryController& ) // 0x180 RES 0, B
+    {
+        registers.B = registers.B & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_181(const Arguments& , Registers& registers, MemoryController& ) // 0x181 RES 0, C
+    {
+        registers.C = registers.C & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_182(const Arguments& , Registers& registers, MemoryController& ) // 0x182 RES 0, D
+    {
+        registers.D = registers.D & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_183(const Arguments& , Registers& registers, MemoryController& ) // 0x183 RES 0, E
+    {
+        registers.E = registers.E & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_184(const Arguments& , Registers& registers, MemoryController& ) // 0x184 RES 0, H
+    {
+        registers.H = registers.H & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_185(const Arguments& , Registers& registers, MemoryController& ) // 0x185 RES 0, L
+    {
+        registers.L = registers.L & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_186(const Arguments& , Registers& registers, MemoryController& controller) // 0x186 RES 0, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b11111110);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_187(const Arguments& , Registers& registers, MemoryController& ) // 0x187 RES 0, A
+    {
+        registers.A = registers.A & 0b11111110;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_188(const Arguments& , Registers& registers, MemoryController& ) // 0x188 RES 1, B
+    {
+        registers.B = registers.B & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_189(const Arguments& , Registers& registers, MemoryController& ) // 0x189 RES 1, C
+    {
+        registers.C = registers.C & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_18a(const Arguments& , Registers& registers, MemoryController& ) // 0x18A RES 1, D
+    {
+        registers.D = registers.D & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_18b(const Arguments& , Registers& registers, MemoryController& ) // 0x18B RES 1, E
+    {
+        registers.E = registers.E & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_18c(const Arguments& , Registers& registers, MemoryController& ) // 0x18C RES 1, H
+    {
+        registers.H = registers.H & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_18d(const Arguments& , Registers& registers, MemoryController& ) // 0x18D RES 1, L
+    {
+        registers.L = registers.L & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_18e(const Arguments& , Registers& registers, MemoryController& controller) // 0x18E RES 1, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b11111101);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_18f(const Arguments& , Registers& registers, MemoryController& ) // 0x18F RES 1, A
+    {
+        registers.A = registers.A & 0b11111101;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_190(const Arguments& , Registers& registers, MemoryController& ) // 0x190 RES 2, B
+    {
+        registers.B = registers.B & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_191(const Arguments& , Registers& registers, MemoryController& ) // 0x191 RES 2, C
+    {
+        registers.C = registers.C & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_192(const Arguments& , Registers& registers, MemoryController& ) // 0x192 RES 2, D
+    {
+        registers.D = registers.D & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_193(const Arguments& , Registers& registers, MemoryController& ) // 0x193 RES 2, E
+    {
+        registers.E = registers.E & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_194(const Arguments& , Registers& registers, MemoryController& ) // 0x194 RES 2, H
+    {
+        registers.H = registers.H & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_195(const Arguments& , Registers& registers, MemoryController& ) // 0x195 RES 2, L
+    {
+        registers.L = registers.L & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_196(const Arguments& , Registers& registers, MemoryController& controller) // 0x196 RES 2, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b11111011);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_197(const Arguments& , Registers& registers, MemoryController& ) // 0x197 RES 2, A
+    {
+        registers.A = registers.A & 0b11111011;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_198(const Arguments& , Registers& registers, MemoryController& ) // 0x198 RES 3, B
+    {
+        registers.B = registers.B & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_199(const Arguments& , Registers& registers, MemoryController& ) // 0x199 RES 3, C
+    {
+        registers.C = registers.C & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_19a(const Arguments& , Registers& registers, MemoryController& ) // 0x19A RES 3, D
+    {
+        registers.D = registers.D & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_19b(const Arguments& , Registers& registers, MemoryController& ) // 0x19B RES 3, E
+    {
+        registers.E = registers.E & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_19c(const Arguments& , Registers& registers, MemoryController& ) // 0x19C RES 3, H
+    {
+        registers.H = registers.H & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_19d(const Arguments& , Registers& registers, MemoryController& ) // 0x19D RES 3, L
+    {
+        registers.L = registers.L & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_19e(const Arguments& , Registers& registers, MemoryController& controller) // 0x19E RES 3, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b11110111);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_19f(const Arguments& , Registers& registers, MemoryController& ) // 0x19F RES 3, A
+    {
+        registers.A = registers.A & 0b11110111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a0(const Arguments& , Registers& registers, MemoryController& ) // 0x1A0 RES 4, B
+    {
+        registers.B = registers.B & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a1(const Arguments& , Registers& registers, MemoryController& ) // 0x1A1 RES 4, C
+    {
+        registers.C = registers.C & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a2(const Arguments& , Registers& registers, MemoryController& ) // 0x1A2 RES 4, D
+    {
+        registers.D = registers.D & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a3(const Arguments& , Registers& registers, MemoryController& ) // 0x1A3 RES 4, E
+    {
+        registers.E = registers.E & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a4(const Arguments& , Registers& registers, MemoryController& ) // 0x1A4 RES 4, H
+    {
+        registers.H = registers.H & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a5(const Arguments& , Registers& registers, MemoryController& ) // 0x1A5 RES 4, L
+    {
+        registers.L = registers.L & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a6(const Arguments& , Registers& registers, MemoryController& controller) // 0x1A6 RES 4, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b11101111);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_1a7(const Arguments& , Registers& registers, MemoryController& ) // 0x1A7 RES 4, A
+    {
+        registers.A = registers.A & 0b11101111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a8(const Arguments& , Registers& registers, MemoryController& ) // 0x1A8 RES 5, B
+    {
+        registers.B = registers.B & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1a9(const Arguments& , Registers& registers, MemoryController& ) // 0x1A9 RES 5, C
+    {
+        registers.C = registers.C & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1aa(const Arguments& , Registers& registers, MemoryController& ) // 0x1AA RES 5, D
+    {
+        registers.D = registers.D & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1ab(const Arguments& , Registers& registers, MemoryController& ) // 0x1AB RES 5, E
+    {
+        registers.E = registers.E & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1ac(const Arguments& , Registers& registers, MemoryController& ) // 0x1AC RES 5, H
+    {
+        registers.H = registers.H & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1ad(const Arguments& , Registers& registers, MemoryController& ) // 0x1AD RES 5, L
+    {
+        registers.L = registers.L & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1ae(const Arguments& , Registers& registers, MemoryController& controller) // 0x1AE RES 5, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b11011111);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_1af(const Arguments& , Registers& registers, MemoryController& ) // 0x1AF RES 5, A
+    {
+        registers.A = registers.A & 0b11011111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b0(const Arguments& , Registers& registers, MemoryController& ) // 0x1B0 RES 6, B
+    {
+        registers.B = registers.B & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b1(const Arguments& , Registers& registers, MemoryController& ) // 0x1B1 RES 6, C
+    {
+        registers.C = registers.C & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b2(const Arguments& , Registers& registers, MemoryController& ) // 0x1B2 RES 6, D
+    {
+        registers.D = registers.D & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b3(const Arguments& , Registers& registers, MemoryController& ) // 0x1B3 RES 6, E
+    {
+        registers.E = registers.E & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b4(const Arguments& , Registers& registers, MemoryController& ) // 0x1B4 RES 6, H
+    {
+        registers.H = registers.H & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b5(const Arguments& , Registers& registers, MemoryController& ) // 0x1B5 RES 6, L
+    {
+        registers.L = registers.L & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b6(const Arguments& , Registers& registers, MemoryController& controller) // 0x1B6 RES 6, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b10111111);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_1b7(const Arguments& , Registers& registers, MemoryController& ) // 0x1B7 RES 6, A
+    {
+        registers.A = registers.A & 0b10111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b8(const Arguments& , Registers& registers, MemoryController& ) // 0x1B8 RES 7, B
+    {
+        registers.B = registers.B & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1b9(const Arguments& , Registers& registers, MemoryController& ) // 0x1B9 RES 7, C
+    {
+        registers.C = registers.C & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1ba(const Arguments& , Registers& registers, MemoryController& ) // 0x1BA RES 7, D
+    {
+        registers.D = registers.D & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1bb(const Arguments& , Registers& registers, MemoryController& ) // 0x1BB RES 7, E
+    {
+        registers.E = registers.E & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1bc(const Arguments& , Registers& registers, MemoryController& ) // 0x1BC RES 7, H
+    {
+        registers.H = registers.H & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1bd(const Arguments& , Registers& registers, MemoryController& ) // 0x1BD RES 7, L
+    {
+        registers.L = registers.L & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t res_1be(const Arguments& , Registers& registers, MemoryController& controller) // 0x1BE RES 7, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) & 0b01111111);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t res_1bf(const Arguments& , Registers& registers, MemoryController& ) // 0x1BF RES 7, A
+    {
+        registers.A = registers.A & 0b01111111;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c0(const Arguments& , Registers& registers, MemoryController& ) // 0x1C0 SET 0, B
+    {
+        registers.B = registers.B | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c1(const Arguments& , Registers& registers, MemoryController& ) // 0x1C1 SET 0, C
+    {
+        registers.C = registers.C | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c2(const Arguments& , Registers& registers, MemoryController& ) // 0x1C2 SET 0, D
+    {
+        registers.D = registers.D | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c3(const Arguments& , Registers& registers, MemoryController& ) // 0x1C3 SET 0, E
+    {
+        registers.E = registers.E | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c4(const Arguments& , Registers& registers, MemoryController& ) // 0x1C4 SET 0, H
+    {
+        registers.H = registers.H | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c5(const Arguments& , Registers& registers, MemoryController& ) // 0x1C5 SET 0, L
+    {
+        registers.L = registers.L | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c6(const Arguments& , Registers& registers, MemoryController& controller) // 0x1C6 SET 0, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b00000001);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1c7(const Arguments& , Registers& registers, MemoryController& ) // 0x1C7 SET 0, A
+    {
+        registers.A = registers.A | 0b00000001;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c8(const Arguments& , Registers& registers, MemoryController& ) // 0x1C8 SET 1, B
+    {
+        registers.B = registers.B | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1c9(const Arguments& , Registers& registers, MemoryController& ) // 0x1C9 SET 1, C
+    {
+        registers.C = registers.C | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1ca(const Arguments& , Registers& registers, MemoryController& ) // 0x1CA SET 1, D
+    {
+        registers.D = registers.D | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1cb(const Arguments& , Registers& registers, MemoryController& ) // 0x1CB SET 1, E
+    {
+        registers.E = registers.E | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1cc(const Arguments& , Registers& registers, MemoryController& ) // 0x1CC SET 1, H
+    {
+        registers.H = registers.H | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1cd(const Arguments& , Registers& registers, MemoryController& ) // 0x1CD SET 1, L
+    {
+        registers.L = registers.L | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1ce(const Arguments& , Registers& registers, MemoryController& controller) // 0x1CE SET 1, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b00000010);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1cf(const Arguments& , Registers& registers, MemoryController& ) // 0x1CF SET 1, A
+    {
+        registers.A = registers.A | 0b00000010;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d0(const Arguments& , Registers& registers, MemoryController& ) // 0x1D0 SET 2, B
+    {
+        registers.B = registers.B | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d1(const Arguments& , Registers& registers, MemoryController& ) // 0x1D1 SET 2, C
+    {
+        registers.C = registers.C | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d2(const Arguments& , Registers& registers, MemoryController& ) // 0x1D2 SET 2, D
+    {
+        registers.D = registers.D | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d3(const Arguments& , Registers& registers, MemoryController& ) // 0x1D3 SET 2, E
+    {
+        registers.E = registers.E | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d4(const Arguments& , Registers& registers, MemoryController& ) // 0x1D4 SET 2, H
+    {
+        registers.H = registers.H | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d5(const Arguments& , Registers& registers, MemoryController& ) // 0x1D5 SET 2, L
+    {
+        registers.L = registers.L | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d6(const Arguments& , Registers& registers, MemoryController& controller) // 0x1D6 SET 2, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b00000100);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1d7(const Arguments& , Registers& registers, MemoryController& ) // 0x1D7 SET 2, A
+    {
+        registers.A = registers.A | 0b00000100;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d8(const Arguments& , Registers& registers, MemoryController& ) // 0x1D8 SET 3, B
+    {
+        registers.B = registers.B | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1d9(const Arguments& , Registers& registers, MemoryController& ) // 0x1D9 SET 3, C
+    {
+        registers.C = registers.C | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1da(const Arguments& , Registers& registers, MemoryController& ) // 0x1DA SET 3, D
+    {
+        registers.D = registers.D | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1db(const Arguments& , Registers& registers, MemoryController& ) // 0x1DB SET 3, E
+    {
+        registers.E = registers.E | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1dc(const Arguments& , Registers& registers, MemoryController& ) // 0x1DC SET 3, H
+    {
+        registers.H = registers.H | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1dd(const Arguments& , Registers& registers, MemoryController& ) // 0x1DD SET 3, L
+    {
+        registers.L = registers.L | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1de(const Arguments& , Registers& registers, MemoryController& controller) // 0x1DE SET 3, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b00001000);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1df(const Arguments& , Registers& registers, MemoryController& ) // 0x1DF SET 3, A
+    {
+        registers.A = registers.A | 0b00001000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e0(const Arguments& , Registers& registers, MemoryController& ) // 0x1E0 SET 4, B
+    {
+        registers.B = registers.B | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e1(const Arguments& , Registers& registers, MemoryController& ) // 0x1E1 SET 4, C
+    {
+        registers.C = registers.C | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e2(const Arguments& , Registers& registers, MemoryController& ) // 0x1E2 SET 4, D
+    {
+        registers.D = registers.D | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e3(const Arguments& , Registers& registers, MemoryController& ) // 0x1E3 SET 4, E
+    {
+        registers.E = registers.E | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e4(const Arguments& , Registers& registers, MemoryController& ) // 0x1E4 SET 4, H
+    {
+        registers.H = registers.H | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e5(const Arguments& , Registers& registers, MemoryController& ) // 0x1E5 SET 4, L
+    {
+        registers.L = registers.L | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e6(const Arguments& , Registers& registers, MemoryController& controller) // 0x1E6 SET 4, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b00010000);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1e7(const Arguments& , Registers& registers, MemoryController& ) // 0x1E7 SET 4, A
+    {
+        registers.A = registers.A | 0b00010000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e8(const Arguments& , Registers& registers, MemoryController& ) // 0x1E8 SET 5, B
+    {
+        registers.B = registers.B | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1e9(const Arguments& , Registers& registers, MemoryController& ) // 0x1E9 SET 5, C
+    {
+        registers.C = registers.C | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1ea(const Arguments& , Registers& registers, MemoryController& ) // 0x1EA SET 5, D
+    {
+        registers.D = registers.D | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1eb(const Arguments& , Registers& registers, MemoryController& ) // 0x1EB SET 5, E
+    {
+        registers.E = registers.E | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1ec(const Arguments& , Registers& registers, MemoryController& ) // 0x1EC SET 5, H
+    {
+        registers.H = registers.H | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1ed(const Arguments& , Registers& registers, MemoryController& ) // 0x1ED SET 5, L
+    {
+        registers.L = registers.L | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1ee(const Arguments& , Registers& registers, MemoryController& controller) // 0x1EE SET 5, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b00100000);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1ef(const Arguments& , Registers& registers, MemoryController& ) // 0x1EF SET 5, A
+    {
+        registers.A = registers.A | 0b00100000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f0(const Arguments& , Registers& registers, MemoryController& ) // 0x1F0 SET 6, B
+    {
+        registers.B = registers.B | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f1(const Arguments& , Registers& registers, MemoryController& ) // 0x1F1 SET 6, C
+    {
+        registers.C = registers.C | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f2(const Arguments& , Registers& registers, MemoryController& ) // 0x1F2 SET 6, D
+    {
+        registers.D = registers.D | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f3(const Arguments& , Registers& registers, MemoryController& ) // 0x1F3 SET 6, E
+    {
+        registers.E = registers.E | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f4(const Arguments& , Registers& registers, MemoryController& ) // 0x1F4 SET 6, H
+    {
+        registers.H = registers.H | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f5(const Arguments& , Registers& registers, MemoryController& ) // 0x1F5 SET 6, L
+    {
+        registers.L = registers.L | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f6(const Arguments& , Registers& registers, MemoryController& controller) // 0x1F6 SET 6, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b01000000);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1f7(const Arguments& , Registers& registers, MemoryController& ) // 0x1F7 SET 6, A
+    {
+        registers.A = registers.A | 0b01000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f8(const Arguments& , Registers& registers, MemoryController& ) // 0x1F8 SET 7, B
+    {
+        registers.B = registers.B | 0b10000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1f9(const Arguments& , Registers& registers, MemoryController& ) // 0x1F9 SET 7, C
+    {
+        registers.C = registers.C | 0b10000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1fa(const Arguments& , Registers& registers, MemoryController& ) // 0x1FA SET 7, D
+    {
+        registers.D = registers.D | 0b10000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1fb(const Arguments& , Registers& registers, MemoryController& ) // 0x1FB SET 7, E
+    {
+        registers.E = registers.E | 0b10000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1fc(const Arguments& , Registers& registers, MemoryController& ) // 0x1FC SET 7, H
+    {
+        registers.H = registers.H | 0b10000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1fd(const Arguments& , Registers& registers, MemoryController& ) // 0x1FD SET 7, L
+    {
+        registers.L = registers.L | 0b10000000;
+        registers.PC += 2;
+        return 8;
+    }
+
+    uint16_t set_1fe(const Arguments& , Registers& registers, MemoryController& controller) // 0x1FE SET 7, (HL)
+    {
+        controller.set(registers.get_HL(), controller.get(registers.get_HL()) | 0b10000000);
+        registers.PC += 2;
+        return 16;
+    }
+
+    uint16_t set_1ff(const Arguments& , Registers& registers, MemoryController& ) // 0x1FF SET 7, A
+    {
+        registers.A = registers.A | 0b10000000;
         registers.PC += 2;
         return 8;
     }
