@@ -3,7 +3,7 @@
 namespace emulator::instructions::fixtures
 {
 
-    void InstructionTest::SetUp()
+    void InstructionTestFixture::SetUp()
     {
         registers = Registers{};
         registers.PC = 0x15FA;
@@ -21,7 +21,7 @@ namespace emulator::instructions::fixtures
         arguments = Arguments{};
     }
 
-    void InstructionTest::TearDown()
+    void InstructionTestFixture::TearDown()
     {
         EXPECT_EQ(expected_registers.PC, registers.PC);
         EXPECT_EQ(expected_registers.SP, registers.SP);
@@ -35,22 +35,22 @@ namespace emulator::instructions::fixtures
         EXPECT_EQ(expected_registers.L, registers.L);
     }
 
-    void InstructionTest::set_expected_pc_increase(int16_t length)
+    void InstructionTestFixture::set_expected_pc_increase(int16_t length)
     {
         expected_registers.PC = registers.PC + length;
     }
 
-    void InstructionTest::set_expected_pc(uint16_t value)
+    void InstructionTestFixture::set_expected_pc(uint16_t value)
     {
         expected_registers.PC = value;
     }
 
-    void InstructionTest::set_expected_sp_increase(int16_t length)
+    void InstructionTestFixture::set_expected_sp_increase(int16_t length)
     {
         expected_registers.SP = registers.SP + length;
     }
 
-    void InstructionTest::set_expected_sp(uint16_t value)
+    void InstructionTestFixture::set_expected_sp(uint16_t value)
     {
         expected_registers.SP = value;
     }

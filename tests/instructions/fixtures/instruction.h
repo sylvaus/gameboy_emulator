@@ -14,7 +14,7 @@ using emulator::mocks::MockMemoryController;
 
 namespace emulator::instructions::fixtures
 {
-    class InstructionTest: public testing::Test
+    class InstructionTestFixture: public testing::Test
     {
     protected:
         void SetUp() override;
