@@ -57,6 +57,7 @@ Errors in resources
 ### [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 * 0xE2 and 0xF2 should have a length of one instead of 2
 * JP (HL) should be JP HL
+* All SRA commands should compute the carry flag (instead of resetting it)
 
 
 Resources

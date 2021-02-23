@@ -459,10 +459,11 @@ def rotate_generator(instruction: GbInstruction) -> InstructionFunction:
     carry_value = "(value >> 7) & 0b1" if left else "value & 0b1"
     bit_carried = CARRY_FLAG if instruction.type_ in CARRY_ROTATIONS else REGISTERS_FLAGS_GET_CARRY
     result_value = f"(value << 1) + {bit_carried}" if left else f"(value >> 1) + ({bit_carried} << 7)"
+    zero_flag_code = f"uint8_t {ZERO_FLAG} = result == 0;\n" if instruction.zero_flag == FlagAction.CUSTOM else ""
     code = f"uint8_t value = {make_get_code(argument)};\n" \
            f"uint8_t {CARRY_FLAG} = {carry_value};\n" \
            f"uint8_t result = {result_value};\n" \
-           f"uint8_t {ZERO_FLAG} = result == 0;\n" \
+           f"{zero_flag_code}" \
            f"{make_set_code_from_value(argument, 'result', nb_bytes=1)}\n" \
            f"{make_flag_code(instruction.flags)}"
     return make_instruction_function(instruction, code)

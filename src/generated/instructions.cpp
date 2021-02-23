@@ -81,7 +81,6 @@ namespace emulator::generated
         uint8_t value = registers.A;
         uint8_t carry_flag = (value >> 7) & 0b1;
         uint8_t result = (value << 1) + carry_flag;
-        uint8_t zero_flag = result == 0;
         registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= (carry_flag << OFFSET_CARRY_FLAG);
@@ -171,7 +170,6 @@ namespace emulator::generated
         uint8_t value = registers.A;
         uint8_t carry_flag = value & 0b1;
         uint8_t result = (value >> 1) + (carry_flag << 7);
-        uint8_t zero_flag = result == 0;
         registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= (carry_flag << OFFSET_CARRY_FLAG);
@@ -253,7 +251,6 @@ namespace emulator::generated
         uint8_t value = registers.A;
         uint8_t carry_flag = value & 0b1;
         uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
-        uint8_t zero_flag = result == 0;
         registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= (carry_flag << OFFSET_CARRY_FLAG);
@@ -342,7 +339,6 @@ namespace emulator::generated
         uint8_t value = registers.A;
         uint8_t carry_flag = value & 0b1;
         uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
-        uint8_t zero_flag = result == 0;
         registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= (carry_flag << OFFSET_CARRY_FLAG);
@@ -3125,7 +3121,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.B = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
@@ -3138,7 +3134,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.C = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
@@ -3151,7 +3147,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.D = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
@@ -3164,7 +3160,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.E = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
@@ -3177,7 +3173,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.H = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
@@ -3190,7 +3186,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.L = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
@@ -3203,7 +3199,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         controller.set(registers.get_HL(), result);
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 16;
     }
@@ -3216,7 +3212,7 @@ namespace emulator::generated
         uint8_t zero_flag = result == 0;
         registers.A = result;
         registers.F &= 0b00000000;
-        registers.F |= (zero_flag << OFFSET_ZERO_FLAG);
+        registers.F |= (zero_flag << OFFSET_ZERO_FLAG) + (carry_flag << OFFSET_CARRY_FLAG);
         registers.PC += 2;
         return 8;
     }
