@@ -299,7 +299,7 @@ def make_add_sub_flag_code(
     half_result_code = ""
     flag_values = []
     if instruction.zero_flag == FlagAction.CUSTOM:
-        flag_values.append(f"uint8_t {ZERO_FLAG} = result == 0;")
+        flag_values.append(f"uint8_t {ZERO_FLAG} = (result & {carry_max_value}) == 0;")
     if instruction.half_carry_flag == FlagAction.CUSTOM:
         flag_values.append(make_half_carry_flag(half_carry_max_value, is_add))
         half_result_code = make_half_carry_code(half_carry_max_value, sign, third_op)
@@ -459,7 +459,9 @@ def rotate_generator(instruction: GbInstruction) -> InstructionFunction:
     carry_value = "(value >> 7) & 0b1" if left else "value & 0b1"
     bit_carried = CARRY_FLAG if instruction.type_ in CARRY_ROTATIONS else REGISTERS_FLAGS_GET_CARRY
     result_value = f"(value << 1) + {bit_carried}" if left else f"(value >> 1) + ({bit_carried} << 7)"
-    zero_flag_code = f"uint8_t {ZERO_FLAG} = result == 0;\n" if instruction.zero_flag == FlagAction.CUSTOM else ""
+    zero_flag_code = ""
+    if instruction.zero_flag == FlagAction.CUSTOM:
+        zero_flag_code = f"uint8_t {ZERO_FLAG} = (result & 0xFF) == 0;\n"
     code = f"uint8_t value = {make_get_code(argument)};\n" \
            f"uint8_t {CARRY_FLAG} = {carry_value};\n" \
            f"uint8_t result = {result_value};\n" \
