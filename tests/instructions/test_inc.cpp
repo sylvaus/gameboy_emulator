@@ -53,7 +53,7 @@ namespace
     {
         uint16_t register_index = GetParam();
         uint16_t instruction_index = (register_index << 3) + 0b100;
-        // Test from Chapter 4: page 106
+        // Test from Chapter 4: page 107
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0xA8);
         registers.F = 0;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, 0xA9);
