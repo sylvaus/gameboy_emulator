@@ -52,7 +52,7 @@ Errors in resources
 ---------------------
 ### [Gameboy Programming Manual](https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf)
 * Chapter 4 page 95: register code for D should be 010 instead of 101 (which is the code for L)
-
+* Chapter 4 page 109: RLCA example, resulting register A should be 0x0B (and not 0x0A)
 
 ### [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 * 0xE2 and 0xF2 should have a length of one instead of 2
