@@ -341,7 +341,7 @@ def make_half_carry_flag(half_carry_max_value: str, is_add: bool) -> str:
 
 
 def make_carry_flag(carry_max_value: str, is_add: bool) -> str:
-    value = f"half_result > {carry_max_value}" if is_add else "half_result < 0"
+    value = f"result > {carry_max_value}" if is_add else "result < 0"
     return f"uint8_t {CARRY_FLAG} = {value};"
 
 
