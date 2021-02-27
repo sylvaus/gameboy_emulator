@@ -59,9 +59,21 @@ namespace emulator::memory
         return (F >> OFFSET_CARRY_FLAG) & 0x1;
     }
 
+    void Registers::set_carry_flag(bool value)
+    {
+        F &=  ~(1 << OFFSET_CARRY_FLAG);
+        F |= (value << OFFSET_CARRY_FLAG);
+    }
+
     bool Registers::get_half_carry_flag() const
     {
         return (F >> OFFSET_HALF_CARRY_FLAG) & 0x1;
+    }
+
+    void Registers::set_half_carry_flag(bool value)
+    {
+        F &=  ~(1 << OFFSET_HALF_CARRY_FLAG);
+        F |= (value << OFFSET_HALF_CARRY_FLAG);
     }
 
     bool Registers::get_add_sub_flag() const
@@ -69,9 +81,21 @@ namespace emulator::memory
         return (F >> OFFSET_ADD_SUB_FLAG) & 0x1;
     }
 
+    void Registers::set_add_sub_flag(bool value)
+    {
+        F &=  ~(1 << OFFSET_ADD_SUB_FLAG);
+        F |= (value << OFFSET_ADD_SUB_FLAG);
+    }
+
     bool Registers::get_zero_flag() const
     {
         return (F >> OFFSET_ZERO_FLAG) & 0x1;
+    }
+
+    void Registers::set_zero_flag(bool value)
+    {
+        F &=  ~(1 << OFFSET_ZERO_FLAG);
+        F |= (value << OFFSET_ZERO_FLAG);
     }
 
     bool Registers::get_non_carry_flag() const

@@ -38,9 +38,13 @@ namespace emulator::memory
         void set_HL(uint16_t value);
 
         [[nodiscard]] bool get_carry_flag() const;
+        void set_carry_flag(bool value);
         [[nodiscard]] bool get_half_carry_flag() const;
+        void set_half_carry_flag(bool value);
         [[nodiscard]] bool get_add_sub_flag() const;
+        void set_add_sub_flag(bool value);
         [[nodiscard]] bool get_zero_flag() const;
+        void set_zero_flag(bool value);
         [[nodiscard]] bool get_non_carry_flag() const;
         [[nodiscard]] bool get_non_half_carry_flag() const;
         [[nodiscard]] bool get_non_add_sub_flag() const;

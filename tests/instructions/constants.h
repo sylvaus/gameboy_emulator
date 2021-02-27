@@ -55,13 +55,28 @@ namespace emulator::instructions
         {0b11, "Register_SP"}
     };
 
+    const auto REGISTER_FLAG_VALUES = ::testing::Values(0b00, 0b01, 0b10, 0b11);
+    // Table Chapter 4: section 2.7 in GameBoyProgManVer1.1.pdf  symbol: cc
+    const unordered_map<uint16_t, function<void(Registers&, bool value)>> REGISTER_FLAG_VALUE_SETTER_MAP = {
+        {0b00, [](Registers& registers, bool value){registers.set_zero_flag(!value);}},
+        {0b01, [](Registers& registers, bool value){registers.set_zero_flag(value);}},
+        {0b10, [](Registers& registers, bool value){registers.set_carry_flag(!value);}},
+        {0b11, [](Registers& registers, bool value){registers.set_carry_flag(value);}}
+    };
+    const unordered_map<uint16_t, std::string> REGISTER_FLAG_VALUE_NAME_MAP = {
+        {0b00, "NonZero"},
+        {0b01, "Zero"},
+        {0b10, "NoCarry"},
+        {0b11, "Carry"}
+    };
+
 
     template<class ParamType>
     class NameMapPrinter
     {
     public:
         explicit NameMapPrinter(const std::unordered_map<ParamType, std::string>& name_map): name_map_(name_map) {}
-        std::string operator()(const testing::TestParamInfo<ParamType>& info) const
+        std::string operator()(testing::TestParamInfo<ParamType> info) const
         {
             return name_map_.at(info.param);
         }
