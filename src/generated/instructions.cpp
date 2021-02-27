@@ -249,8 +249,8 @@ namespace emulator::generated
     uint16_t rla_017(const Arguments& , Registers& registers, MemoryController& ) // 0x17 RLA
     {
         uint8_t value = registers.A;
-        uint8_t carry_flag = value & 0b1;
-        uint8_t result = (value >> 1) + (registers.get_carry_flag() << 7);
+        uint8_t carry_flag = (value >> 7) & 0b1;
+        uint8_t result = (value << 1) + registers.get_carry_flag();
         registers.A = result;
         registers.F &= 0b00000000;
         registers.F |= (carry_flag << OFFSET_CARRY_FLAG);

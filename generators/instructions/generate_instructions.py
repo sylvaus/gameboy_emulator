@@ -448,7 +448,7 @@ ALL_ROTATIONS = (
     InstructionType.RLCA, InstructionType.RRCA, InstructionType.RLA, InstructionType.RRA,
     InstructionType.RLC, InstructionType.RL, InstructionType.RRC, InstructionType.RR
 )
-LEFT_ROTATIONS = (InstructionType.RLCA, InstructionType.RLC, InstructionType.RL)
+LEFT_ROTATIONS = (InstructionType.RLCA, InstructionType.RLA, InstructionType.RLC, InstructionType.RL)
 CARRY_ROTATIONS = (InstructionType.RLCA, InstructionType.RRCA, InstructionType.RLC, InstructionType.RRC)
 
 
