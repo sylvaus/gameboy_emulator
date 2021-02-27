@@ -27,9 +27,9 @@ namespace gen = emulator::generated;
 
 namespace
 {
-    class RlcaTestFixture: public InstructionTestFixture {};
+    class RotateTestFixture: public InstructionTestFixture {};
 
-    TEST_F(RlcaTestFixture, RLCA)
+    TEST_F(RotateTestFixture, RLCA)
     {
         // Test from Chapter 4: page 109
         registers.A = 0b01001101;
@@ -44,7 +44,7 @@ namespace
         EXPECT_EQ(4, cycle);
     }
 
-    TEST_F(RlcaTestFixture, RLCACarry)
+    TEST_F(RotateTestFixture, RLCACarry)
     {
         // Test from Chapter 4: page 109
         registers.A = 0x85;
@@ -55,6 +55,36 @@ namespace
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[0x07](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(RotateTestFixture, RRCA)
+    {
+        // Test from Chapter 4: page 109
+        registers.A = 0b1001'1010;
+        registers.F = emulator::memory::make_flag(true, true, true, true);
+        expected_registers.A = 0b0100'1101;
+        expected_registers.F = emulator::memory::make_flag(false, false, false, false);
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1111](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(RotateTestFixture, RRCACarry)
+    {
+        // Test from Chapter 4: page 109
+        registers.A = 0x3B;
+        registers.F = emulator::memory::make_flag(true, true, true, false);
+        expected_registers.A = 0x9D;
+        expected_registers.F = emulator::memory::make_flag(false, false, false, true);
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1111](arguments, registers, controller);
 
         EXPECT_EQ(4, cycle);
     }
