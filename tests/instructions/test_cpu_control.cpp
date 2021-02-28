@@ -33,4 +33,16 @@ namespace
 
         EXPECT_EQ(4, cycle);
     }
+
+    TEST_F(CpuControlTestFixture, HALT)
+    {
+        // Test from Chapter 4: page 124
+        registers.halted = false;
+        expected_registers.halted = true;
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0x76](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
 }
