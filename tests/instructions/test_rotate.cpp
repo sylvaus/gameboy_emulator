@@ -133,4 +133,49 @@ namespace
 
         EXPECT_EQ(4, cycle);
     }
+
+    TEST_F(RotateTestFixture, RRA)
+    {
+        // Test from Chapter 4: page 109
+        registers.A = 0b1001'1010;
+        registers.F = emulator::memory::make_flag(true, true, true, false);
+        expected_registers.A = 0b0100'1101;
+        expected_registers.F = emulator::memory::make_flag(false, false, false, false);
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b11111](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(RotateTestFixture, RRACarry)
+    {
+        // Test from Chapter 4: page 109
+        registers.A = 0x81;
+        registers.F = emulator::memory::make_flag(true, true, true, false);
+        expected_registers.A = 0x40;
+        expected_registers.F = emulator::memory::make_flag(false, false, false, true);
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b11111](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(RotateTestFixture, RRACarryAlreadyPresent)
+    {
+        // Test from Chapter 4: page 109
+        registers.A = 0b1001'1100;
+        registers.F = emulator::memory::make_flag(true, true, true, true);
+        expected_registers.A = 0b1100'1110;
+        expected_registers.F = emulator::memory::make_flag(false, false, false, false);
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b11111](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
 }
