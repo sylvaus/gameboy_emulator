@@ -42,7 +42,7 @@ namespace
 
     TEST_P(DaaTestFixture, DAA)
     {
-        // Test from Chapter 4: page 109
+        // Test from Chapter 4: page 122
         const auto params = GetParam();
         registers.A = params.a_before_execution;
         registers.F = emulator::memory::make_flag(
