@@ -21,6 +21,16 @@ namespace
 {
     class GeneralPurposeArithmeticTestFixture: public InstructionTestFixture {};
 
+    TEST_F(GeneralPurposeArithmeticTestFixture, NOP)
+    {
+        // Test from Chapter 4: page 122
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0x00](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
     TEST_F(GeneralPurposeArithmeticTestFixture, CPL)
     {
         // Test from Chapter 4: page 122
