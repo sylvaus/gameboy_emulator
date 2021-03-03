@@ -294,7 +294,8 @@ def make_add_sub_flag_code(
 ) -> AddSubFlagCode:
     carry_max_value, half_carry_max_value = get_operation_carry_max_values(instruction)
     sign = "+" if is_add else "-"
-    third_op = f" {sign} {third_value}" if third_value else ""
+    third_value_code = f"int32_t rrhs = {third_value};\n" if third_value else ""
+    third_op = f" {sign} rrhs" if third_value else ""
 
     half_result_code = ""
     flag_values = []
@@ -315,6 +316,7 @@ def make_add_sub_flag_code(
         f"result & {carry_max_value}",
         f"int32_t lhs = {first_value};\n"
         f"int32_t rhs = {second_value};\n"
+        f"{third_value_code}"
         f"{half_result_code}\n"
         f"int32_t result = lhs {sign} rhs{third_op};\n"
         f"{flag_value_code}\n"
