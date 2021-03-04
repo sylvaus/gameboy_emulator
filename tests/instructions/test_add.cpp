@@ -14,10 +14,12 @@ The pages referenced in this file are pointing to [GameBoyProgManVer1.1.pdf](htt
 
 using emulator::generated::Arguments;
 using emulator::memory::Registers;
-using emulator::instructions::REGISTER_8_BITS_VALUES;
-using emulator::instructions::REGISTER_16_BITS_VALUES;
+using emulator::instructions::REGISTER_A_INDEX;
+using emulator::instructions::REGISTER_8_BITS_VALUES_WITHOUT_A;
 using emulator::instructions::REGISTER_8_BITS_VALUE_SETTER_MAP;
 using emulator::instructions::REGISTER_8_BITS_VALUE_NAME_MAP;
+using emulator::instructions::REGISTER_HL_INDEX;
+using emulator::instructions::REGISTER_16_BITS_VALUES_WITHOUT_HL;
 using emulator::instructions::REGISTER_16_BITS_VALUE_SETTER_MAP;
 using emulator::instructions::REGISTER_16_BITS_VALUE_NAME_MAP;
 using emulator::instructions::NameMapPrinter;
@@ -42,10 +44,7 @@ namespace
 
         expected_registers.F = emulator::memory::make_flag(true, false, false, false);
         REGISTER_16_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, other_register_value);
-        if (register_index == 0b10) // add HL to HL
-            expected_registers.set_HL(2 * hl_value);
-        else
-            expected_registers.set_HL(other_register_value + hl_value);
+        expected_registers.set_HL(other_register_value + hl_value);
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
@@ -64,18 +63,10 @@ namespace
         REGISTER_16_BITS_VALUE_SETTER_MAP.at(register_index)(registers, other_register_value);
         registers.set_HL(hl_value);
 
-
         REGISTER_16_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, other_register_value);
-        if (register_index == 0b10) // add HL to HL
-        {
-            expected_registers.set_HL(0x1446);
-            expected_registers.F = emulator::memory::make_flag(true, false, true, true);
-        }
-        else
-        {
-            expected_registers.set_HL(other_register_value + hl_value);
-            expected_registers.F = emulator::memory::make_flag(true, false, true, false);
-        }
+        expected_registers.set_HL(other_register_value + hl_value);
+        expected_registers.F = emulator::memory::make_flag(true, false, true, false);
+
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
@@ -96,10 +87,7 @@ namespace
 
         expected_registers.F = emulator::memory::make_flag(true, false, false, true);
         REGISTER_16_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, other_register_value);
-        if (register_index == 0b10) // add HL to HL
-            expected_registers.set_HL(0x0);
-        else
-            expected_registers.set_HL(0x1000);
+        expected_registers.set_HL(0x1000);
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
@@ -108,8 +96,54 @@ namespace
     }
 
     INSTANTIATE_TEST_SUITE_P(
-        Add16BitsTest, Add16BitsTestFixture, REGISTER_16_BITS_VALUES, NameMapPrinter(REGISTER_16_BITS_VALUE_NAME_MAP)
+        Add16BitsTest, Add16BitsTestFixture, REGISTER_16_BITS_VALUES_WITHOUT_HL, NameMapPrinter(REGISTER_16_BITS_VALUE_NAME_MAP)
     );
+
+    TEST_F(Add16BitsTestFixture, ADD16BitsRegisterHL)
+    {
+        uint16_t instruction_index = (REGISTER_HL_INDEX << 4) + 0b1001;
+        // Test from Chapter 4: page 107
+        registers.F = emulator::memory::make_flag(true, true, false, false);
+        registers.set_HL(0x456);
+        expected_registers.F = emulator::memory::make_flag(true, false, false, false);
+        expected_registers.set_HL(2 * 0x456);
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(8, cycle);
+    }
+
+    TEST_F(Add16BitsTestFixture, ADD16BitsHalfCarryRegisterHL)
+    {
+        uint16_t instruction_index = (REGISTER_HL_INDEX << 4) + 0b1001;
+        // Test from Chapter 4: page 107
+        registers.F = emulator::memory::make_flag(true, true, false, false);
+        registers.set_HL(0x8A23);
+        expected_registers.set_HL(0x1446);
+        expected_registers.F = emulator::memory::make_flag(true, false, true, true);
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(8, cycle);
+    }
+
+    TEST_F(Add16BitsTestFixture, ADD16BitsCarryRegisterHL)
+    {
+        uint16_t instruction_index = (REGISTER_HL_INDEX << 4) + 0b1001;
+        // Test from Chapter 4: page 107
+        registers.F = emulator::memory::make_flag(true, true, false, false);
+        registers.set_HL(0x8000);
+        expected_registers.F = emulator::memory::make_flag(true, false, false, true);
+        expected_registers.set_HL(0x0);
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(8, cycle);
+    }
 
     class Add8BitsTestFixture: public InstructionTestFixture, public ::testing::WithParamInterface<uint16_t> {};
 
@@ -125,14 +159,8 @@ namespace
         registers.A = a_value;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, other_register_value);
         expected_registers.F = 0;
-        if (register_index == 0b111)
-        {
-            expected_registers.A = 2 * a_value;
-        }
-        else
-        {
-            expected_registers.A = a_value + other_register_value;
-        }
+        expected_registers.A = a_value + other_register_value;
+
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
@@ -152,14 +180,8 @@ namespace
         registers.A = a_value;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, other_register_value);
         expected_registers.F = emulator::memory::make_flag(false, false, true, false);
-        if (register_index == 0b111)
-        {
-            expected_registers.A = 0x14;
-        }
-        else
-        {
-            expected_registers.A = a_value + other_register_value;
-        }
+        expected_registers.A = a_value + other_register_value;
+
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
@@ -179,14 +201,8 @@ namespace
         registers.A = a_value;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, other_register_value);
         expected_registers.F = emulator::memory::make_flag(false, false, false, true);
-        if (register_index == 0b111)
-        {
-            expected_registers.A = 0x80;
-        }
-        else
-        {
-            expected_registers.A = a_value + other_register_value;
-        }
+        expected_registers.A = a_value + other_register_value;
+
         set_expected_pc_increase(1);
 
         const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
@@ -216,8 +232,72 @@ namespace
     }
 
     INSTANTIATE_TEST_SUITE_P(
-        Add8BitsTest, Add8BitsTestFixture, REGISTER_8_BITS_VALUES, NameMapPrinter(REGISTER_8_BITS_VALUE_NAME_MAP)
+        Add8BitsTest, Add8BitsTestFixture, REGISTER_8_BITS_VALUES_WITHOUT_A, NameMapPrinter(REGISTER_8_BITS_VALUE_NAME_MAP)
     );
+
+    TEST_F(Add8BitsTestFixture, ADD8RegisterABits)
+    {
+        uint16_t instruction_index = REGISTER_A_INDEX + 0b10'000'000;
+        // Test from Chapter 4: page 102
+        registers.F = 0;
+        registers.A = 0x45;
+        expected_registers.F = 0;
+        expected_registers.A = 0x8A;
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(Add8BitsTestFixture, ADD8BitsRegisterAHalfCarry)
+    {
+        uint16_t instruction_index = REGISTER_A_INDEX + 0b10'000'000;
+        // Test from Chapter 4: page 102
+        registers.F = 0;
+        registers.A = 0xA;
+        expected_registers.F = emulator::memory::make_flag(false, false, true, false);
+        expected_registers.A = 0x14;
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(Add8BitsTestFixture, ADD8BitsRegisterACarry)
+    {
+        uint16_t instruction_index = REGISTER_A_INDEX + 0b10'000'000;
+        // Test from Chapter 4: page 102
+        registers.F = 0;
+        registers.A = 0xC0;
+        expected_registers.F = emulator::memory::make_flag(false, false, false, true);
+        expected_registers.A = 0x80;
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(Add8BitsTestFixture, ADD8BitsRegisterAZero)
+    {
+        uint16_t instruction_index = REGISTER_A_INDEX + 0b10'000'000;
+        // Test from Chapter 4: page 102
+        registers.F = 0;
+        registers.A = 0x00;
+        expected_registers.F = emulator::memory::make_flag(true, false, false, false);
+        expected_registers.A = 0x00;
+
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
 
     TEST_F(Add8BitsTestFixture, ADD8BitsAddress)
     {

@@ -20,6 +20,10 @@ namespace emulator::instructions
     const auto REGISTER_8_BITS_VALUES = ::testing::Values(
         0b111, 0b000, 0b001, 0b010, 0b011, 0b100, 0b101
     );
+    constexpr uint16_t REGISTER_A_INDEX = 0b111;
+    const auto REGISTER_8_BITS_VALUES_WITHOUT_A = ::testing::Values(
+        0b000, 0b001, 0b010, 0b011, 0b100, 0b101
+    );
     // Table Chapter 4: section 2.1 in GameBoyProgManVer1.1.pdf  symbol: r
     const unordered_map<uint16_t, function<void(Registers&, uint8_t value)>> REGISTER_8_BITS_VALUE_SETTER_MAP = {
         {0b111, [](Registers& registers, uint8_t value){registers.A = value;}},
@@ -41,6 +45,8 @@ namespace emulator::instructions
     };
 
     const auto REGISTER_16_BITS_VALUES = ::testing::Values(0b00, 0b01, 0b10, 0b11);
+    constexpr uint16_t REGISTER_HL_INDEX = 0b10;
+    const auto REGISTER_16_BITS_VALUES_WITHOUT_HL = ::testing::Values(0b00, 0b01, 0b11);
     // Table Chapter 4: section 2.4 in GameBoyProgManVer1.1.pdf symbol: ss
     const unordered_map<uint16_t, function<void(Registers&, uint16_t value)>> REGISTER_16_BITS_VALUE_SETTER_MAP = {
         {0b00, [](Registers& registers, uint16_t value){registers.set_BC(value);}},
