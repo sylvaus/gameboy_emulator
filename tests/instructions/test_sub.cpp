@@ -25,8 +25,6 @@ namespace gen = emulator::generated;
 
 namespace
 {
-    constexpr uint16_t REGISTER_A_INDEX = 0b111;
-
     class Sub8BitsTestFixture: public InstructionTestFixture, public ::testing::WithParamInterface<uint16_t> {};
 
     TEST_P(Sub8BitsTestFixture, SUB8Bits)
