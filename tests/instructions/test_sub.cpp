@@ -117,7 +117,7 @@ namespace
 
     TEST_F(Sub8BitsTestFixture, SUBBitsRegisterA)
     {
-        uint16_t instruction_index = REGISTER_A_INDEX + 0b1001'1000;
+        uint16_t instruction_index = REGISTER_A_INDEX + 0b1001'0000;
         // Test from Chapter 4: page 102
         registers.F = 0;
         registers.A = 0xD6;
