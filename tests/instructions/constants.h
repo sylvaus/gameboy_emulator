@@ -61,6 +61,20 @@ namespace emulator::instructions
         {0b11, "Register_SP"}
     };
 
+    // Table Chapter 4: section 2.2 in GameBoyProgManVer1.1.pdf symbol: qq
+    const unordered_map<uint16_t, function<void(Registers&, uint16_t value)>> REGISTER_16_BITS_VARIANT_VALUE_SETTER_MAP = {
+        {0b00, [](Registers& registers, uint16_t value){registers.set_BC(value);}},
+        {0b01, [](Registers& registers, uint16_t value){registers.set_DE(value);}},
+        {0b10, [](Registers& registers, uint16_t value){registers.set_HL(value);}},
+        {0b11, [](Registers& registers, uint16_t value){registers.set_AF(value);}}
+    };
+    const unordered_map<uint16_t, std::string> REGISTER_16_BITS_VARIANT_VALUE_NAME_MAP = {
+        {0b00, "Register_BC"},
+        {0b01, "Register_DE"},
+        {0b10, "Register_HL"},
+        {0b11, "Register_AF"}
+    };
+
     const auto REGISTER_FLAG_VALUES = ::testing::Values(0b00, 0b01, 0b10, 0b11);
     // Table Chapter 4: section 2.7 in GameBoyProgManVer1.1.pdf  symbol: cc
     const unordered_map<uint16_t, function<void(Registers&, bool value)>> REGISTER_FLAG_VALUE_SETTER_MAP = {
