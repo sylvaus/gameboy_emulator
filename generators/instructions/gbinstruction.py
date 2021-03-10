@@ -62,6 +62,9 @@ class Argument:
     def short_repr(self):
         return f"({self.name})" if self.is_address else self.name
 
+    def is_register(self):
+        return self.type_ != ArgumentType.REGISTER
+
 
 def argument_to_csv(argument: Optional[Argument]) -> List[str]:
     if argument is None:

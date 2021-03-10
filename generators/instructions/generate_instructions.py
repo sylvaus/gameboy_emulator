@@ -90,6 +90,7 @@ REGISTERS_D = f"{REGISTERS}.D"
 REGISTERS_E = f"{REGISTERS}.E"
 REGISTERS_H = f"{REGISTERS}.H"
 REGISTERS_L = f"{REGISTERS}.L"
+REGISTERS_HL = f"{REGISTERS}.get_HL()"
 REGISTERS_FLAGS_GET_CARRY = f"{REGISTERS}.get_carry_flag()"
 REGISTERS_FLAGS_GET_HALF_CARRY = f"{REGISTERS}.get_half_carry_flag()"
 REGISTERS_FLAGS_GET_ADD_SUB = f"{REGISTERS}.get_add_sub_flag()"
@@ -614,7 +615,7 @@ def pop_generator(instruction: GbInstruction) -> InstructionFunction:
 @register_generator(InstructionType.JP)
 def jp_generator(instruction: GbInstruction) -> InstructionFunction:
     if not instruction.second_arg:
-        code = f"{REGISTERS_PROGRAM_COUNTER} = {ARGUMENT_UINT16};"
+        code = f"{REGISTERS_PROGRAM_COUNTER} = {make_get_code(instruction.first_arg)};"
         return make_instruction_function(instruction, code, remove_pc_update=True)
 
     code = f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \

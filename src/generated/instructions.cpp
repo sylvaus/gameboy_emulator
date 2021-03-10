@@ -2433,9 +2433,9 @@ namespace emulator::generated
         return 16;
     }
 
-    uint16_t jp_0e9(const Arguments& arguments, Registers& registers, MemoryController& ) // 0xE9 JP HL
+    uint16_t jp_0e9(const Arguments& , Registers& registers, MemoryController& ) // 0xE9 JP HL
     {
-        registers.PC = arguments.uint16;
+        registers.PC = registers.get_HL();
         return 4;
     }
 
