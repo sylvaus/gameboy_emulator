@@ -635,20 +635,20 @@ def call_generator(instruction: GbInstruction) -> InstructionFunction:
     upper_pc_value = f"({REGISTERS_PROGRAM_COUNTER} >> 8) & 0xFF"
     code = f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, upper_pc_value)}\n" \
            f"{make_set_memory_address('--' + REGISTERS_STACK_POINTER, lower_pc_value)}\n" \
-           f"{REGISTERS_PROGRAM_COUNTER} = {ARGUMENT_UINT16};"
+           f"{REGISTERS_PROGRAM_COUNTER} = {ARGUMENT_UINT16};\n" \
+           f"return {instruction.duration};"
 
-    if not instruction.second_arg:
-        return make_instruction_function(instruction, code, remove_pc_update=True)
+    if instruction.second_arg:
+        code = f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
+               f"{{\n" \
+               f"{indent_code(code)}\n" \
+               f"}}\n" \
+               f"return {instruction.duration_no_action};"
 
-    code += f"\nreturn {instruction.duration};"
-    code = f"if ({REGISTERS_FLAG_TO_GETTER[instruction.first_arg.name]})\n" \
-           f"{{\n" \
-           f"{indent_code(code)}\n" \
-           f"}}\n" \
-           f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n" \
-           f"return {instruction.duration_no_action};"
-
-    return make_instruction_function(instruction, code, remove_pc_update=True, remove_duration_return=True)
+    return make_instruction_function(
+        instruction, f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};\n{code}",
+        remove_pc_update=True, remove_duration_return=True
+    )
 
 
 @register_generator(InstructionType.PUSH)

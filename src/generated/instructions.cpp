@@ -2071,6 +2071,7 @@ namespace emulator::generated
 
     uint16_t call_0c4(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xC4 CALL NZ, a16
     {
+        registers.PC += 3;
         if (registers.get_non_zero_flag())
         {
             controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
@@ -2078,7 +2079,6 @@ namespace emulator::generated
             registers.PC = arguments.uint16;
             return 24;
         }
-        registers.PC += 3;
         return 12;
     }
 
@@ -2152,6 +2152,7 @@ namespace emulator::generated
 
     uint16_t call_0cc(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xCC CALL Z, a16
     {
+        registers.PC += 3;
         if (registers.get_zero_flag())
         {
             controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
@@ -2159,12 +2160,12 @@ namespace emulator::generated
             registers.PC = arguments.uint16;
             return 24;
         }
-        registers.PC += 3;
         return 12;
     }
 
     uint16_t call_0cd(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xCD CALL a16
     {
+        registers.PC += 3;
         controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
         controller.set(--registers.SP, registers.PC & 0xFF);
         registers.PC = arguments.uint16;
@@ -2235,6 +2236,7 @@ namespace emulator::generated
 
     uint16_t call_0d4(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xD4 CALL NC, a16
     {
+        registers.PC += 3;
         if (registers.get_non_carry_flag())
         {
             controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
@@ -2242,7 +2244,6 @@ namespace emulator::generated
             registers.PC = arguments.uint16;
             return 24;
         }
-        registers.PC += 3;
         return 12;
     }
 
@@ -2317,6 +2318,7 @@ namespace emulator::generated
 
     uint16_t call_0dc(const Arguments& arguments, Registers& registers, MemoryController& controller) // 0xDC CALL C, a16
     {
+        registers.PC += 3;
         if (registers.get_carry_flag())
         {
             controller.set(--registers.SP, (registers.PC >> 8) & 0xFF);
@@ -2324,7 +2326,6 @@ namespace emulator::generated
             registers.PC = arguments.uint16;
             return 24;
         }
-        registers.PC += 3;
         return 12;
     }
 
