@@ -45,4 +45,28 @@ namespace
 
         EXPECT_EQ(4, cycle);
     }
+
+    TEST_F(CpuControlTestFixture, DI)
+    {
+        // Test from Chapter 4: page 123
+        registers.ime_flag = true;
+        expected_registers.ime_flag = false;
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1111'0011](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
+
+    TEST_F(CpuControlTestFixture, EI)
+    {
+        // Test from Chapter 4: page 123
+        registers.ime_flag = false;
+        expected_registers.ime_flag = true;
+        set_expected_pc_increase(1);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1111'1011](arguments, registers, controller);
+
+        EXPECT_EQ(4, cycle);
+    }
 }
