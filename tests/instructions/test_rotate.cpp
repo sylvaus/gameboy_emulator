@@ -229,6 +229,57 @@ namespace
         EXPECT_EQ(8, cycle);
     }
 
+    TEST_P(RotateGenericTestFixture, RRC)
+    {
+        // Test from Chapter 4: page 111
+        uint16_t register_index = GetParam();
+        uint16_t instruction_index = register_index + 0b1'0000'1000;
+        REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0b0110'1100);
+        registers.F = emulator::memory::make_flag(true, true, true, true);
+        REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, 0b0011'0110);
+        expected_registers.F = emulator::memory::make_flag(false, false, false, false);
+
+        set_expected_pc_increase(2);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(8, cycle);
+    }
+
+    TEST_P(RotateGenericTestFixture, RRCCarry)
+    {
+        // Test from Chapter 4: page 111
+        uint16_t register_index = GetParam();
+        uint16_t instruction_index = register_index + 0b1'0000'1000;
+        REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x01);
+        registers.F = emulator::memory::make_flag(true, true, true, true);
+        REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, 0x80);
+        expected_registers.F = emulator::memory::make_flag(false, false, false, true);
+
+        set_expected_pc_increase(2);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(8, cycle);
+    }
+
+    TEST_P(RotateGenericTestFixture, RRCZero)
+    {
+        // Test from Chapter 4: page 111
+        uint16_t register_index = GetParam();
+        uint16_t instruction_index = register_index + 0b1'0000'1000;
+        REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x0);
+        registers.F = emulator::memory::make_flag(false, true, true, true);
+        REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(expected_registers, 0x0);
+        expected_registers.F = emulator::memory::make_flag(true, false, false, false);
+
+        set_expected_pc_increase(2);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+
+        EXPECT_EQ(8, cycle);
+    }
+
     INSTANTIATE_TEST_SUITE_P(
         RotateGenericTest, RotateGenericTestFixture, REGISTER_8_BITS_VALUES, NameMapPrinter(REGISTER_8_BITS_VALUE_NAME_MAP)
     );
@@ -237,7 +288,6 @@ namespace
     TEST_F(RotateGenericTestFixture, RLCAddress)
     {
         // Test from Chapter 4: page 110
-        uint16_t instruction_index = 0b1'0000'0110;
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0b0110'1100));
         registers.F = emulator::memory::make_flag(true, true, true, true);
@@ -247,7 +297,7 @@ namespace
 
         set_expected_pc_increase(2);
 
-        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1'0000'0110](arguments, registers, controller);
 
         EXPECT_EQ(16, cycle);
     }
@@ -255,7 +305,6 @@ namespace
     TEST_F(RotateGenericTestFixture, RLCAddressCarry)
     {
         // Test from Chapter 4: page 110
-        uint16_t instruction_index = 0b1'0000'0110;
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x85));
         registers.F = emulator::memory::make_flag(true, true, true, true);
@@ -265,7 +314,7 @@ namespace
 
         set_expected_pc_increase(2);
 
-        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1'0000'0110](arguments, registers, controller);
 
         EXPECT_EQ(16, cycle);
     }
@@ -273,7 +322,6 @@ namespace
     TEST_F(RotateGenericTestFixture, RLCAddressZero)
     {
         // Test from Chapter 4: page 110
-        uint16_t instruction_index = 0b1'0000'0110;
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x0));
         registers.F = emulator::memory::make_flag(false, true, true, true);
@@ -283,7 +331,58 @@ namespace
 
         set_expected_pc_increase(2);
 
-        const auto cycle = gen::INSTRUCTION_FUNCTIONS[instruction_index](arguments, registers, controller);
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1'0000'0110](arguments, registers, controller);
+
+        EXPECT_EQ(16, cycle);
+    }
+
+    TEST_F(RotateGenericTestFixture, RRCAddress)
+    {
+        // Test from Chapter 4: page 111
+        registers.set_HL(0xD1C7);
+        EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0b0110'1100));
+        registers.F = emulator::memory::make_flag(true, true, true, true);
+        expected_registers.set_HL(0xD1C7);
+        EXPECT_CALL (controller, set(0xD1C7, 0b0011'0110)).Times(1);
+        expected_registers.F = emulator::memory::make_flag(false, false, false, false);
+
+        set_expected_pc_increase(2);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1'0000'1110](arguments, registers, controller);
+
+        EXPECT_EQ(16, cycle);
+    }
+
+    TEST_F(RotateGenericTestFixture, RRCAddressCarry)
+    {
+        // Test from Chapter 4: page 111
+        registers.set_HL(0xD1C7);
+        EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x01));
+        registers.F = emulator::memory::make_flag(true, true, true, true);
+        expected_registers.set_HL(0xD1C7);
+        EXPECT_CALL (controller, set(0xD1C7, 0x80)).Times(1);
+        expected_registers.F = emulator::memory::make_flag(false, false, false, true);
+
+        set_expected_pc_increase(2);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1'0000'1110](arguments, registers, controller);
+
+        EXPECT_EQ(16, cycle);
+    }
+
+    TEST_F(RotateGenericTestFixture, RRCAddressZero)
+    {
+        // Test from Chapter 4: page 111
+        registers.set_HL(0xD1C7);
+        EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x0));
+        registers.F = emulator::memory::make_flag(false, true, true, true);
+        expected_registers.set_HL(0xD1C7);
+        EXPECT_CALL (controller, set(0xD1C7, 0x0)).Times(1);
+        expected_registers.F = emulator::memory::make_flag(true, false, false, false);
+
+        set_expected_pc_increase(2);
+
+        const auto cycle = gen::INSTRUCTION_FUNCTIONS[0b1'0000'1110](arguments, registers, controller);
 
         EXPECT_EQ(16, cycle);
     }
