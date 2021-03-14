@@ -29,6 +29,9 @@ In the folder, run the following commands:
 
 Important Findings
 ------------------
+### Endianness
+* Gameboy uses little endian
+
 ### Cycle vs M-Cycles
 Cycle refers to an actual clock cycle for a clock frequency of (4.194304 MHz)
 and M-Cycle refers to 4 cycles. [source](https://gbdev.io/pandocs/#instruction-set)

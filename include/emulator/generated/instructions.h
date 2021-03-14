@@ -23,7 +23,7 @@ namespace emulator::generated
     };
     using emulator::memory::Registers;
     using emulator::memory::MemoryController;
-    using InstructionFunction = std::function<uint16_t (const Arguments& arguments, Registers& registers, MemoryController& controller)>;
+    using InstructionFunction = uint16_t (*)(const Arguments& arguments, Registers& registers, MemoryController& controller);
 
     uint16_t nop_000(const Arguments& arguments, Registers& registers, MemoryController& controller); // 0x0 NOP
 

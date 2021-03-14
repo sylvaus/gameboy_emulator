@@ -71,7 +71,7 @@ FUNC_PARAMETERS = [ARGUMENT_NAME, REGISTERS, MEMORY_CONTROLLER]
 INSTRUCTION_FUNCTION_TYPE = "InstructionFunction"
 INCLUDE_USING_DEFS = f"using emulator::memory::Registers;\n" \
                      f"using emulator::memory::MemoryController;\n" \
-                     f"using {INSTRUCTION_FUNCTION_TYPE} = std::function<uint16_t {OPCODE_FUNC_PARAMETERS}>;"
+                     f"using {INSTRUCTION_FUNCTION_TYPE} = uint16_t (*){OPCODE_FUNC_PARAMETERS};"
 
 
 SRC_INCLUDE_DEFS = f"using emulator::memory::{OFFSET_CARRY_FLAG};\n" \
@@ -123,6 +123,30 @@ REGISTERS_WITH_GETTER_SETTERS = {"AF", "BC", "DE", "HL"}
 ARGUMENT_REGISTERS_A = Argument(ArgumentType.REGISTER, is_address=False, nb_bytes=1, name="A")
 
 SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n"""
+SRC_EXECUTION_METHOD = """uint16_t execute_next_instruction(Registers& registers, MemoryController& controller)
+{
+    uint16_t pc = registers.PC;
+    uint16_t opcode = controller.get(pc);
+    if (0xCB == opcode)
+        opcode = 0x100 + controller.get(++pc);
+
+    Arguments arguments{};
+    switch (INSTRUCTION_ARGUMENT_TYPES[opcode])
+    {
+        case ArgumentType::int8:
+            arguments.int8 = controller.get(++pc);
+            break;
+        case ArgumentType::uint8:
+            arguments.uint8 = controller.get(++pc);
+            break;
+        case ArgumentType::uint16:
+            arguments.uint16 = controller.get(pc + 1) + (controller.get(pc + 2) << 8);
+            break;
+        default:
+            break;
+    }
+    return INSTRUCTION_FUNCTIONS[opcode](arguments, registers, controller);
+}"""
 
 INCLUDE_HEADER = f"""#pragma once\n
 #include <cstdint>
@@ -774,7 +798,8 @@ def main():
 
     with open(SRC_FILE, "w") as f:
         f.write(SRC_HEADER)
-        code = f"{SRC_INCLUDE_DEFS}\n" + "\n\n".join(func.definition for func in functions)
+        functions_code = "\n\n".join(func.definition for func in functions)
+        code = f"{SRC_INCLUDE_DEFS}\n{functions_code}\n\n{SRC_EXECUTION_METHOD}"
         f.write(put_code_in_namespace(code, NAMESPACE))
 
 

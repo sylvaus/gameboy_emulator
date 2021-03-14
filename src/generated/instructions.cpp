@@ -4907,4 +4907,29 @@ namespace emulator::generated
         registers.PC += 2;
         return 8;
     }
+
+    uint16_t execute_next_instruction(Registers& registers, MemoryController& controller)
+    {
+        uint16_t pc = registers.PC;
+        uint16_t opcode = controller.get(pc);
+        if (0xCB == opcode)
+            opcode = 0x100 + controller.get(++pc);
+
+        Arguments arguments{};
+        switch (INSTRUCTION_ARGUMENT_TYPES[opcode])
+        {
+            case ArgumentType::int8:
+                arguments.int8 = controller.get(++pc);
+                break;
+            case ArgumentType::uint8:
+                arguments.uint8 = controller.get(++pc);
+                break;
+            case ArgumentType::uint16:
+                arguments.uint16 = controller.get(pc + 1) + (controller.get(pc + 2) << 8);
+                break;
+            default:
+                break;
+        }
+        return INSTRUCTION_FUNCTIONS[opcode](arguments, registers, controller);
+    }
 }
