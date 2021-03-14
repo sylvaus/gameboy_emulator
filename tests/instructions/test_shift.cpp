@@ -28,7 +28,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SLA)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'0000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0b0110'1100);
@@ -45,7 +45,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SLACarry)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'0000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x85);
@@ -62,7 +62,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SLAZero)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'0000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x0);
@@ -79,7 +79,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SLAZeroCarry)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'0000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x80);
@@ -96,7 +96,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SRA)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'1000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x8A);
@@ -113,7 +113,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SRACarry)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'1000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x11);
@@ -130,7 +130,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SRAZero)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'1000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x0);
@@ -147,7 +147,7 @@ namespace
 
     TEST_P(ShiftTestFixture, SRAZeroCarry)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         uint16_t register_index = GetParam();
         uint16_t instruction_index = register_index + 0b1'0010'1000;
         REGISTER_8_BITS_VALUE_SETTER_MAP.at(register_index)(registers, 0x1);
@@ -169,7 +169,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SLAAddress)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0b0110'1100));
         registers.F = emulator::memory::make_flag(true, true, true, true);
@@ -186,7 +186,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SLAAddressCarry)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x85));
         registers.F = emulator::memory::make_flag(true, true, true, true);
@@ -203,7 +203,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SLAAddressZero)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x0));
         registers.F = emulator::memory::make_flag(false, true, true, true);
@@ -220,7 +220,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SLAAddressZeroCarry)
     {
-        // Test from Chapter 4: page 110
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x80));
         registers.F = emulator::memory::make_flag(false, true, true, false);
@@ -237,7 +237,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SRAAddress)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x8A));
         registers.F = emulator::memory::make_flag(true, true, true, true);
@@ -254,7 +254,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SRAAddressCarry)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x11));
         registers.F = emulator::memory::make_flag(true, true, true, true);
@@ -271,7 +271,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SRAAddressZero)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x0));
         registers.F = emulator::memory::make_flag(false, true, true, true);
@@ -288,7 +288,7 @@ namespace
 
     TEST_F(ShiftTestFixture, SRAAddressZeroCarry)
     {
-        // Test from Chapter 4: page 111
+        // Test from Chapter 4: page 112
         registers.set_HL(0xD1C7);
         EXPECT_CALL (controller, get(0xD1C7)).Times(1).WillOnce(::testing::Return(0x01));
         registers.F = emulator::memory::make_flag(false, true, true, false);
