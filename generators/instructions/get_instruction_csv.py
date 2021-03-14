@@ -124,6 +124,11 @@ class OpcodeHTMLParser(HTMLParser):
         if 0x128 <= value <= 0x12F:  # SRA should have the carry flag set
             c_flag = FlagAction.CUSTOM
 
+        bit_hl_mask = 0b1_1100_0111
+        bit_hl_value = 0b1_0100_0110
+        if (value & bit_hl_mask) == bit_hl_value:
+            duration = 12
+
         self._opcodes.append(GbInstruction(
             value, type_, arguments.get(0), arguments.get(1),
             length, duration, duration_no_action,

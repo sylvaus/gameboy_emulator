@@ -3496,7 +3496,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_147(const Arguments& , Registers& registers, MemoryController& ) // 0x147 BIT 0, A
@@ -3568,7 +3568,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_14f(const Arguments& , Registers& registers, MemoryController& ) // 0x14F BIT 1, A
@@ -3640,7 +3640,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_157(const Arguments& , Registers& registers, MemoryController& ) // 0x157 BIT 2, A
@@ -3712,7 +3712,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_15f(const Arguments& , Registers& registers, MemoryController& ) // 0x15F BIT 3, A
@@ -3784,7 +3784,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_167(const Arguments& , Registers& registers, MemoryController& ) // 0x167 BIT 4, A
@@ -3856,7 +3856,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_16f(const Arguments& , Registers& registers, MemoryController& ) // 0x16F BIT 5, A
@@ -3928,7 +3928,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_177(const Arguments& , Registers& registers, MemoryController& ) // 0x177 BIT 6, A
@@ -4000,7 +4000,7 @@ namespace emulator::generated
         registers.F &= 0b00010000;
         registers.F |= 0b00100000 + (zero_flag << OFFSET_ZERO_FLAG);
         registers.PC += 2;
-        return 16;
+        return 12;
     }
 
     uint16_t bit_17f(const Arguments& , Registers& registers, MemoryController& ) // 0x17F BIT 7, A

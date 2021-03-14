@@ -58,6 +58,7 @@ Errors in resources
 * 0xE2 and 0xF2 should have a length of one instead of 2
 * JP (HL) should be JP HL
 * All SRA commands should compute the carry flag (instead of resetting it)
+* BIT (HL) should take only 12 cycles
 
 
 Resources
