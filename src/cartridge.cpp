@@ -20,9 +20,7 @@ namespace emulator
     using memory::ROM_BANK_SIZE;
     using utils::UnMutableDefaultMap;
     using MemoryBankControllerPtr = std::unique_ptr<memory::RomRamController>;
-    using MemoryBankControllerProvider = std::function<MemoryBankControllerPtr(
-        vector<memory::RomBank>&, uint8_t nb_ram_banks, memory::CartridgeType
-    )>;
+    using MemoryBankControllerProvider = MemoryBankControllerPtr(*)(vector<memory::RomBank>&, uint8_t nb_ram_banks);
 
     auto LOGGER = Logging::get_logger("Cartridge");
 
@@ -36,11 +34,10 @@ namespace emulator
         return rom_banks;
     }
 
-    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t, memory::CartridgeType)
+    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t)
     {
         return nullptr;
     }
-
 
     const UnMutableDefaultMap<memory::MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
     {&provides_null, {
@@ -67,6 +64,6 @@ namespace emulator
 
         auto roms = load_roms(stream, nb_rom_banks);
 
-        return MEMORY_CONTROLLER_MAP.get(cartridge_type.type)(roms, nb_ram_banks, cartridge_type);
+        return MEMORY_CONTROLLER_MAP.get(cartridge_type.type)(roms, nb_ram_banks);
     }
 }

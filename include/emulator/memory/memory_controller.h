@@ -15,15 +15,15 @@ namespace emulator::memory
     class MemoryController
     {
     public:
-        virtual void set(uint32_t address, uint8_t value) = 0;
+        virtual void set(uint16_t address, uint8_t value) = 0;
 
-        void set16bits(uint32_t address, uint16_t value)
+        void set16bits(uint16_t address, uint16_t value)
         {
             set(address, value & 0xFF);
             set(address + 1, (value >> 8) & 0xFF);
         }
 
-        [[nodiscard]] virtual uint8_t get(uint32_t address) const = 0;
+        [[nodiscard]] virtual uint8_t get(uint16_t address) const = 0;
 
         virtual ~MemoryController() = default;
 

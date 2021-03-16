@@ -6,7 +6,7 @@
 #include "emulator/memory/registers.h"
 #include "emulator/generated/instructions.h"
 
-#include "../../mocks/memory_controller.h"
+#include "../../mocks/romram_controller.h"
 
 using emulator::generated::Arguments;
 using emulator::memory::Registers;

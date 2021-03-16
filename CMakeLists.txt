@@ -52,7 +52,7 @@ add_executable(
         src/cartridge.cpp
         src/logging.cpp
         src/memory/memory_map.cpp
-        src/memory/memory_controller.cpp
+        src/memory/romram_controller.cpp
         src/generated/instructions.cpp
         src/memory/registers.cpp
 )
