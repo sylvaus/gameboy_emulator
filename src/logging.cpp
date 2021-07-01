@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_map>
 
 #include "emulator/logging.h"
 
@@ -33,7 +34,7 @@ namespace emulator
 
     void Logger::log(uint8_t level, const std::string& text)
     {
-        manager_->log(level, name_, text);
+        manager_.log(level, name_, text);
     }
 
     void Logger::trace(const std::string& text)
@@ -63,26 +64,29 @@ namespace emulator
 
     void Logger::flush()
     {
-        manager_->flush();
+        manager_.flush();
     }
 
-    Logger::Logger(std::shared_ptr<LogManager> manager, std::string name):
-        manager_(std::move(manager)), name_(std::move(name))
+    Logger::Logger(LogManager& manager, std::string name):
+        manager_(manager), name_(std::move(name))
     {}
 
-    Logger Logging::get_logger(const std::string& name)
+    Logger& Logging::get_logger(const std::string& name)
     {
-        return Logger(get_manager(), name);
+        static std::unordered_map<std::string, Logger> loggers;
+        if (!loggers.count(name))
+            loggers.emplace(name, Logger(get_manager(), name));
+        return loggers.at(name);
     }
 
     void Logging::set_logging_level(uint8_t level)
     {
-        get_manager()->set_logging_level(level, "");
+        get_manager().set_logging_level(level, "");
     }
 
-    std::shared_ptr<LogManager> Logging::get_manager()
+    LogManager& Logging::get_manager()
     {
-        static auto manager = std::make_shared<LogManager>();
+        static LogManager manager{};
         return manager;
     }
 }

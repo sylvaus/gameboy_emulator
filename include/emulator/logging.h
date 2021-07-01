@@ -50,19 +50,19 @@ namespace emulator
 
         void flush();
     private:
-        std::shared_ptr<LogManager> manager_;
+        LogManager& manager_;
         std::string name_;
 
-        Logger(std::shared_ptr<LogManager> manager, std::string name);
+        Logger(LogManager& manager, std::string name);
     };
 
     class Logging
     {
     public:
-        static Logger get_logger(const std::string& name = "");
+        static Logger& get_logger(const std::string& name = "");
         static void set_logging_level(uint8_t level);
     private:
-        static std::shared_ptr<LogManager> get_manager();
+        static LogManager& get_manager();
     };
 }
 

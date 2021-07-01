@@ -7,7 +7,7 @@
 #include "emulator/exceptions.h"
 #include "emulator/logging.h"
 #include "emulator/memory/memory_map.h"
-#include "emulator/memory/romram_controller.h"
+#include "emulator/memory/mbc.h"
 #include "emulator/cartridge.h"
 
 
@@ -15,12 +15,12 @@ namespace emulator
 {
     using std::vector;
     using std::unique_ptr;
-    using memory::RomRamController;
+    using memory::MemoryBankController;
     using memory::RomBank;
     using memory::ROM_BANK_SIZE;
     using utils::UnMutableDefaultMap;
-    using MemoryBankControllerPtr = std::unique_ptr<memory::RomRamController>;
-    using MemoryBankControllerProvider = MemoryBankControllerPtr(*)(vector<memory::RomBank>&, uint8_t nb_ram_banks);
+    using MemoryBankControllerPtr = std::unique_ptr<memory::MemoryBankController>;
+    using MemoryBankControllerProvider = MemoryBankControllerPtr(*)(vector<memory::RomBank>&);
 
     auto LOGGER = Logging::get_logger("Cartridge");
 
@@ -34,14 +34,14 @@ namespace emulator
         return rom_banks;
     }
 
-    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t)
+    MemoryBankControllerPtr provides_null(vector<RomBank>&)
     {
         return nullptr;
     }
 
-    const UnMutableDefaultMap<memory::MemoryBankType, MemoryBankControllerProvider> MEMORY_CONTROLLER_MAP
+    const UnMutableDefaultMap<memory::MemoryBankType, MemoryBankControllerProvider> ROM_RAM_CONTROLLER_MAP
     {&provides_null, {
-        {memory::MemoryBankType::ROM_ONLY, &memory::RomRamControllerNoExternal::create}
+        {memory::MemoryBankType::ROM_ONLY, &memory::NoMemoryBankController::create}
     }};
 
 
@@ -64,6 +64,6 @@ namespace emulator
 
         auto roms = load_roms(stream, nb_rom_banks);
 
-        return MEMORY_CONTROLLER_MAP.get(cartridge_type.type)(roms, nb_ram_banks);
+        return ROM_RAM_CONTROLLER_MAP.get(cartridge_type.type)(roms);
     }
 }

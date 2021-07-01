@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "romram_controller.h"
+#include "mbc.h"
 #include "emulator/logging.h"
 
 namespace emulator::memory
@@ -12,7 +12,7 @@ namespace emulator::memory
     using std::vector;
     using std::unique_ptr;
 
-    class MemoryController
+    class Memory
     {
     public:
         virtual void set(uint16_t address, uint8_t value) = 0;
@@ -25,9 +25,9 @@ namespace emulator::memory
 
         [[nodiscard]] virtual uint8_t get(uint16_t address) const = 0;
 
-        virtual ~MemoryController() = default;
+        virtual ~Memory() = default;
 
     private:
-        unique_ptr<RomRamController> rom_ram_;
+        unique_ptr<MemoryBankController> rom_ram_;
     };
 }

@@ -214,7 +214,7 @@ namespace emulator::memory
     using RomBank = std::array<uint8_t, ROM_BANK_SIZE>;
     using VideoRam = std::array<uint8_t, 0x2000>;
     using RamBank = std::array<uint8_t, 0x2000>;
-    using WorkRamBank = std::array<uint8_t, 0x2000>;
+    using WorkRamBank = std::array<uint8_t, 0x1000>;
     using EchoRamBank = std::array<uint8_t, 0x1E00>;
     using SpriteAttributeTable = std::array<uint8_t, 0xA0>;
     using HighRam = std::array<uint8_t, 0x7F>;

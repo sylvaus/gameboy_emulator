@@ -64,13 +64,13 @@ ARGUMENT_NAME = "arguments"
 REGISTERS = "registers"
 MEMORY_CONTROLLER = "controller"
 OPCODE_FUNC_PARAMETERS = f"(const {ARGUMENT_STRUCT_NAME}& {ARGUMENT_NAME}, " \
-                        f"Registers& {REGISTERS}, MemoryController& {MEMORY_CONTROLLER})"
+                        f"Registers& {REGISTERS}, Memory& {MEMORY_CONTROLLER})"
 
 FUNC_PARAMETERS = [ARGUMENT_NAME, REGISTERS, MEMORY_CONTROLLER]
 
 INSTRUCTION_FUNCTION_TYPE = "InstructionFunction"
 INCLUDE_USING_DEFS = f"using emulator::memory::Registers;\n" \
-                     f"using emulator::memory::MemoryController;\n" \
+                     f"using emulator::memory::Memory;\n" \
                      f"using {INSTRUCTION_FUNCTION_TYPE} = uint16_t (*){OPCODE_FUNC_PARAMETERS};"
 
 
@@ -123,7 +123,7 @@ REGISTERS_WITH_GETTER_SETTERS = {"AF", "BC", "DE", "HL"}
 ARGUMENT_REGISTERS_A = Argument(ArgumentType.REGISTER, is_address=False, nb_bytes=1, name="A")
 
 SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n"""
-SRC_EXECUTION_METHOD = """uint16_t execute_next_instruction(Registers& registers, MemoryController& controller)
+SRC_EXECUTION_METHOD = """uint16_t execute_next_instruction(Registers& registers, Memory& controller)
 {
     uint16_t pc = registers.PC;
     uint16_t opcode = controller.get(pc);
@@ -153,7 +153,7 @@ INCLUDE_HEADER = f"""#pragma once\n
 #include <functional>
 #include <array>
 #include "emulator/memory/registers.h"
-#include "emulator/memory/memory_controller.h"\n\n"""
+#include "emulator/memory/memory.h"\n\n"""
 
 
 @dataclass

@@ -74,7 +74,9 @@ namespace emulator::memory
 
     std::string get_title(RomBank rom)
     {
-        return std::string(reinterpret_cast<char *>(&rom[ADDRESS_TITLE]), SIZE_TITLE);
+        std::string title(reinterpret_cast<char *>(&rom[ADDRESS_TITLE]), SIZE_TITLE);
+        title.erase(title.find_first_of('\0'), std::string::npos);
+        return title;
     }
 
     uint8_t get_destination_code(const RomBank& rom)
