@@ -17,6 +17,19 @@ Dependencies
 * CMake >= 3.10
 * conan [installation](https://docs.conan.io/en/latest/installation.html)
 
+Tested on:
+* WSL2
+  * Apt packages: `sudo apt install build-essential gcc g++ cmake python3 python3-dev python3-pip python3-venv gdb`
+  * Conan: `python3 -m pip install conan`
+
+Setup 
+-----
+### CLion
+
+* You may have to tick the Settings > Advanced Settings > Execute commands in login
+![settings clion wsl execute with login](/doc/images/settings_clion_execute_with_login.png)
+
+
 
 Installation
 ------------

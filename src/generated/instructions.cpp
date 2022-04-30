@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "emulator/generated/instructions.h"
 
 namespace emulator::generated

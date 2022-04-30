@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(emulator)
 
 option(TESTS "Build test programs" OFF)
@@ -19,32 +19,6 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
-# Google test management
-configure_file(tests/googletest-download/CMakeLists.txt.in googletest-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-        RESULT_VARIABLE result
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
-    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-endif()
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-        RESULT_VARIABLE result
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
-    message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
-
-# Prevent overriding the parent project's compiler/linker settings on Windows
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-# Add googletest directly to our build. This defines  the gtest and gtest_main targets.
-add_subdirectory(
-        ${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-        ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-        EXCLUDE_FROM_ALL
-)
-
-
 include_directories("include")
 add_executable(
         emulator
@@ -59,6 +33,16 @@ add_executable(
 )
 
 if (TESTS)
+    # Google test management: https://google.github.io/googletest/quickstart-cmake.html
+    include(FetchContent)
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
     enable_testing()
     if (TEST_COVERAGE)
         set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage")
@@ -72,5 +56,7 @@ if (TESTS)
             tests/instructions/fixtures/instruction.cpp
     )
     target_link_libraries(tests gtest_main gmock ${CMAKE_THREAD_LIBS_INIT})
-    add_test(all_tests tests)
+
+    include(GoogleTest)
+    gtest_discover_tests(tests)
 endif()

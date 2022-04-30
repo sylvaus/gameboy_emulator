@@ -122,7 +122,9 @@ REGISTERS_16_TO_LOWER_UPPER_8_MAP = {
 REGISTERS_WITH_GETTER_SETTERS = {"AF", "BC", "DE", "HL"}
 ARGUMENT_REGISTERS_A = Argument(ArgumentType.REGISTER, is_address=False, nb_bytes=1, name="A")
 
-SRC_HEADER = f"""#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n"""
+SRC_HEADER = f"""#include <stdexcept>
+
+#include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n"""
 SRC_EXECUTION_METHOD = """uint16_t execute_next_instruction(Registers& registers, Memory& controller)
 {
     uint16_t pc = registers.PC;
