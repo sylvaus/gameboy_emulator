@@ -20,17 +20,22 @@ endif()
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
 include_directories("include")
-add_executable(
-        emulator
-        main.cpp
+
+add_library(
+        emulator_lib
         src/cartridge.cpp
         src/logging.cpp
         src/memory/memory_map.cpp
+        src/memory/memory.cpp
         src/memory/mbc.cpp
-        src/memory/ram.cpp
-        src/generated/instructions.cpp
         src/memory/registers.cpp
+        src/memory/ram.cpp
+        src/video/controller.cpp
+        src/generated/instructions.cpp
 )
+
+add_executable(emulator main.cpp)
+target_link_libraries(emulator emulator_lib)
 
 if (TESTS)
     # Google test management: https://google.github.io/googletest/quickstart-cmake.html
@@ -51,11 +56,9 @@ if (TESTS)
     file(GLOB_RECURSE TESTS_SRC ${PROJECT_SOURCE_DIR}/tests/test_*.cpp)
     add_executable(
             tests ${TESTS_SRC}
-            src/memory/registers.cpp
-            src/generated/instructions.cpp
             tests/instructions/fixtures/instruction.cpp
     )
-    target_link_libraries(tests gtest_main gmock ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(tests gtest_main gmock emulator_lib ${CMAKE_THREAD_LIBS_INIT})
 
     include(GoogleTest)
     gtest_discover_tests(tests)

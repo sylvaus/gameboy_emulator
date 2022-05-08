@@ -4,18 +4,20 @@
 #include <memory>
 #include <vector>
 
-#include "mbc.h"
+#include "emulator/memory/mbc.h"
+#include "emulator/video/controller.h"
 #include "emulator/logging.h"
+#include "ram.h"
 
 namespace emulator::memory
 {
-    using std::vector;
-    using std::unique_ptr;
-
     class Memory
     {
     public:
-        virtual void set(uint16_t address, uint8_t value) = 0;
+        explicit Memory(MemoryBankControllerPtr mbc) : mbc_(std::move(mbc))
+        {}
+
+        virtual void set(uint16_t address, uint8_t value);
 
         void set16bits(uint16_t address, uint16_t value)
         {
@@ -23,11 +25,16 @@ namespace emulator::memory
             set(address + 1, (value >> 8) & 0xFF);
         }
 
-        [[nodiscard]] virtual uint8_t get(uint16_t address) const = 0;
+        [[nodiscard]] virtual uint8_t get(uint16_t address) const;
 
         virtual ~Memory() = default;
 
     private:
-        unique_ptr<MemoryBankController> rom_ram_;
+        MemoryBankControllerPtr mbc_;
+        std::shared_ptr<emulator::video::VideoController> video_;
+        std::shared_ptr<RamController> ram_;
+
+        void set_io_register(uint16_t address, uint8_t value);
+        [[nodiscard]] uint8_t get_io_register(uint16_t address) const;
     };
 }

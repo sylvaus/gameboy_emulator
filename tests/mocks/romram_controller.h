@@ -8,7 +8,12 @@ namespace emulator::mocks
     class MockMemoryController : public emulator::memory::Memory
     {
     public:
+        MockMemoryController() : Memory(nullptr)
+        {}
+
         MOCK_METHOD(void, set, (uint16_t address, uint8_t value), (override));
         MOCK_METHOD(uint8_t, get, (uint16_t  address), (const, override));
+
+        ~MockMemoryController() override {};
     };
 }

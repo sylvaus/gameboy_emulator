@@ -11,6 +11,10 @@ namespace emulator::memory
 
     [[nodiscard]] uint8_t make_flag(bool zero, bool add_sub, bool half_carry, bool carry);
 
+    /**
+     * This structure represents the Gameboy register and flags described here:
+     *      https://gbdev.io/pandocs/CPU_Registers_and_Flags.html
+     */
     struct Registers
     {
         uint8_t F;

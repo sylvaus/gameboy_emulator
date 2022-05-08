@@ -16,11 +16,11 @@ namespace emulator
     using std::vector;
     using std::unique_ptr;
     using memory::MemoryBankController;
+    using memory::MemoryBankControllerPtr;
     using memory::RomBank;
     using memory::ROM_BANK_SIZE;
     using utils::UnMutableDefaultMap;
-    using MemoryBankControllerPtr = std::unique_ptr<memory::MemoryBankController>;
-    using MemoryBankControllerProvider = MemoryBankControllerPtr(*)(vector<memory::RomBank>&);
+    using MemoryBankControllerProvider = MemoryBankControllerPtr(*)(vector<memory::RomBank>&, uint8_t);
 
     auto LOGGER = Logging::get_logger("Cartridge");
 
@@ -34,7 +34,7 @@ namespace emulator
         return rom_banks;
     }
 
-    MemoryBankControllerPtr provides_null(vector<RomBank>&)
+    MemoryBankControllerPtr provides_null(vector<RomBank>&, uint8_t)
     {
         return nullptr;
     }
@@ -54,16 +54,23 @@ namespace emulator
         auto rom_banks =  vector<RomBank>(1);
         stream.read(reinterpret_cast<char *>(rom_banks[0].data()), ROM_BANK_SIZE);
 
-        LOGGER.debug("Name of the game: " + memory::get_title(rom_banks[0]));
-        LOGGER.debug("Rom size: " + memory::ROM_SIZE_NAME_MAP.get(memory::get_rom_size(rom_banks[0])));
-        LOGGER.debug("Ram size: " + memory::RAM_SIZE_NAME_MAP.get(memory::get_ram_size(rom_banks[0])));
-
         const auto cartridge_type = memory::get_cartridge_type(rom_banks[0]);
         const auto nb_rom_banks = memory::get_nb_rom_banks(rom_banks[0]);
         const auto nb_ram_banks = memory::get_nb_ram_banks(rom_banks[0]);
+        const auto checksum = memory::get_header_checksum(rom_banks[0]);
+        const auto computed_checksum = memory::compute_header_checksum(rom_banks[0]);
 
-        auto roms = load_roms(stream, nb_rom_banks);
+        LOGGER.debug("Name of the game: " + memory::get_title(rom_banks[0]));
+        LOGGER.debug("Rom size: " + std::to_string(nb_rom_banks));
+        LOGGER.debug("Ram size: " + std::to_string(nb_ram_banks));
+        LOGGER.debug("Checksum matches: " + std::to_string(checksum == computed_checksum));
 
-        return ROM_RAM_CONTROLLER_MAP.get(cartridge_type.type)(roms);
+        for (size_t i = 1; i < nb_rom_banks; ++i)
+        {
+            rom_banks.emplace_back();
+            stream.read(reinterpret_cast<char *>(rom_banks.back().data()), ROM_BANK_SIZE);
+        }
+
+        return ROM_RAM_CONTROLLER_MAP.get(cartridge_type.type)(rom_banks, nb_ram_banks);
     }
 }

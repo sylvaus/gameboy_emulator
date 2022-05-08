@@ -7,6 +7,6 @@
 
 namespace emulator
 {
-    std::unique_ptr<memory::MemoryBankController> load_cartridge(const std::string &filename);
+    memory::MemoryBankControllerPtr load_cartridge(const std::string &filename);
 }
 

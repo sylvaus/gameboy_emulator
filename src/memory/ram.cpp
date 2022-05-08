@@ -2,75 +2,44 @@
 
 namespace emulator::memory
 {
-    RamControllerBase::RamControllerBase(uint8_t nb_ram_banks): external_ram_banks_(nb_ram_banks)
-    {}
-
-    void RamControllerBase::set(uint16_t address, uint8_t value)
+    void RamController::set_wram(uint16_t address, uint8_t value)
     {
+        wram_[address - START_FIRST_WORK_RAM] = value;
     }
 
-    uint8_t RamControllerBase::get(uint16_t address) const
+    uint8_t RamController::get_wram(uint16_t address) const
     {
-        return 0;
+        return wram_[address - START_FIRST_WORK_RAM];
     }
 
-    std::unique_ptr<memory::RamController> RamControllerNoCGBOnly::create(uint8_t nb_ram_banks)
+    void RamController::set_echo_ram(uint16_t address, uint8_t value)
     {
-        return std::unique_ptr<memory::RamController>();
+        set_wram(address - 0x2000, value);
     }
 
-    RamControllerNoCGBOnly::RamControllerNoCGBOnly(uint8_t nb_ram_banks) : RamControllerBase(nb_ram_banks)
+    uint8_t RamController::get_echo_ram(uint16_t address) const
     {
-
+        return get_wram(address - 0x2000);
     }
 
-    void RamControllerNoCGBOnly::set(uint16_t address, uint8_t value)
+    void RamController::set_hram(uint16_t address, uint8_t value)
     {
-        RamControllerBase::set(address, value);
+        hram_[address - START_HRAM] = value;
     }
 
-    uint8_t RamControllerNoCGBOnly::get(uint16_t address) const
+    uint8_t RamController::get_hram(uint16_t address) const
     {
-        return RamControllerBase::get(address);
+        return hram_[address - START_HRAM];
     }
 
-    void RamControllerNoCGBOnly::set_work_ram(uint16_t address, uint8_t value)
+    void RamController::set_wram_select(uint16_t address, uint8_t value)
     {
-
+        // Nothing to do for non cgb
     }
 
-    uint8_t RamControllerNoCGBOnly::get_work_ram(uint16_t address) const
+    uint8_t RamController::get_wram_select(uint16_t address) const
     {
-        return 0;
-    }
-
-    std::unique_ptr<memory::RamController> RamControllerCGBOnly::create(uint8_t nb_ram_banks)
-    {
-        return std::unique_ptr<memory::RamController>();
-    }
-
-    RamControllerCGBOnly::RamControllerCGBOnly(uint8_t nb_ram_banks) : RamControllerBase(nb_ram_banks)
-    {
-
-    }
-
-    void RamControllerCGBOnly::set(uint16_t address, uint8_t value)
-    {
-        RamControllerBase::set(address, value);
-    }
-
-    uint8_t RamControllerCGBOnly::get(uint16_t address) const
-    {
-        return RamControllerBase::get(address);
-    }
-
-    void RamControllerCGBOnly::set_work_ram(uint16_t address, uint8_t value)
-    {
-
-    }
-
-    uint8_t RamControllerCGBOnly::get_work_ram(uint16_t address) const
-    {
+        // Nothing to do for non cgb
         return 0;
     }
 }

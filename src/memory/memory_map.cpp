@@ -99,6 +99,14 @@ namespace emulator::memory
         return rom[ADDRESS_HEADER_CHECKSUM];
     }
 
+    uint8_t compute_header_checksum(const RomBank &rom)
+    {
+        uint8_t result{0};
+        for (size_t i = ADDRESS_SHORT_TITLE; i < ADDRESS_HEADER_CHECKSUM; ++i)
+            result -= rom[i] + 1;
+        return result;
+    }
+
     uint16_t get_global_checksum(const RomBank& rom)
     {
         return (rom[ADDRESS_GLOBAL_CHECKSUM] << 8) + rom[ADDRESS_GLOBAL_CHECKSUM + 1];

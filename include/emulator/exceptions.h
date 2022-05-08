@@ -24,4 +24,16 @@ namespace emulator
         using BaseEmulatorException::BaseEmulatorException;
     };
 
+    class MemoryConfigurationError: public BaseEmulatorException
+    {
+    public:
+        using BaseEmulatorException::BaseEmulatorException;
+    };
+
+    class MemoryAccessError: public BaseEmulatorException
+    {
+    public:
+        using BaseEmulatorException::BaseEmulatorException;
+    };
+
 }
