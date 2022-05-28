@@ -2078,4 +2078,6 @@ namespace emulator::generated
         ArgumentType::none,
         ArgumentType::none
     };
+
+    uint16_t execute_next_instruction(Registers& registers, Memory& controller);
 }

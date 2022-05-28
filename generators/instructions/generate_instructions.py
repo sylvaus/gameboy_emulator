@@ -157,6 +157,8 @@ INCLUDE_HEADER = f"""#pragma once\n
 #include "emulator/memory/registers.h"
 #include "emulator/memory/memory.h"\n\n"""
 
+INCLUDE_EXECUTION_DECLARATION = "uint16_t execute_next_instruction(Registers& registers, Memory& controller);"
+
 
 @dataclass
 class InstructionFunction:
@@ -795,7 +797,8 @@ def main():
         code += "\n};"
         code += f"\n\nconst std::array<{ARGUMENT_ENUM_NAME}, {len(functions)}> INSTRUCTION_ARGUMENT_TYPES = {{\n"
         code += indent_code(",\n".join(f"{ARGUMENT_ENUM_NAME}::{func.argument_type}" for func in functions))
-        code += "\n};"
+        code += "\n};\n\n"
+        code += INCLUDE_EXECUTION_DECLARATION
         f.write(put_code_in_namespace(code, NAMESPACE))
 
     with open(SRC_FILE, "w") as f:
