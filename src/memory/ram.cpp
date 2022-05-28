@@ -32,12 +32,12 @@ namespace emulator::memory
         return hram_[address - START_HRAM];
     }
 
-    void RamController::set_wram_select(uint16_t address, uint8_t value)
+    void RamController::select_wram_bank(uint8_t value)
     {
         // Nothing to do for non cgb
     }
 
-    uint8_t RamController::get_wram_select(uint16_t address) const
+    uint8_t RamController::get_wram_selected() const
     {
         // Nothing to do for non cgb
         return 0;

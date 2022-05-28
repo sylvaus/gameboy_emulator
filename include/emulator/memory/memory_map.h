@@ -202,46 +202,90 @@ namespace emulator::memory
          {0x01, DESTINATION_CODE::NON_JAPANESE},
     }};
 
-    constexpr std::size_t ROM_BANK_SIZE = 0x4000;
-    constexpr std::size_t START_ROM_0 = 0x0000;
-    constexpr std::size_t END_ROM_0 = 0x3FFF;
-    constexpr std::size_t START_ROM_1_N = 0x4000;
-    constexpr std::size_t END_ROM_1_N = 0x7FFF;
+    constexpr uint16_t ROM_BANK_SIZE = 0x4000;
+    constexpr uint16_t START_ROM_0 = 0x0000;
+    constexpr uint16_t END_ROM_0 = 0x3FFF;
+    constexpr uint16_t START_ROM_1_N = 0x4000;
+    constexpr uint16_t END_ROM_1_N = 0x7FFF;
 
-    constexpr std::size_t VRAM_SIZE = 0x2000;
-    constexpr std::size_t START_VRAM = 0x8000;
-    constexpr std::size_t END_VRAM = 0x9FFF;
+    constexpr uint16_t VRAM_SIZE = 0x2000;
+    constexpr uint16_t START_VRAM = 0x8000;
+    constexpr uint16_t END_VRAM = 0x9FFF;
 
-    constexpr std::size_t EXT_RAM_BANK_SIZE = 0x2000;
-    constexpr std::size_t START_EXT_RAM = 0xA000;
-    constexpr std::size_t END_EXT_RAM = 0xBFFF;
+    constexpr uint16_t EXT_RAM_BANK_SIZE = 0x2000;
+    constexpr uint16_t START_EXT_RAM = 0xA000;
+    constexpr uint16_t END_EXT_RAM = 0xBFFF;
 
-    constexpr std::size_t WORK_RAM_SIZE = 0x1000;
-    constexpr std::size_t START_FIRST_WORK_RAM = 0xC000;
-    constexpr std::size_t END_FIRST_WORK_RAM = 0xCFFF;
-    constexpr std::size_t START_SECOND_WORK_RAM = 0xD000;
-    constexpr std::size_t END_SECOND_WORK_RAM = 0xDFFF;
+    constexpr uint16_t WORK_RAM_SIZE = 0x1000;
+    constexpr uint16_t START_FIRST_WORK_RAM = 0xC000;
+    constexpr uint16_t END_FIRST_WORK_RAM = 0xCFFF;
+    constexpr uint16_t START_SECOND_WORK_RAM = 0xD000;
+    constexpr uint16_t END_SECOND_WORK_RAM = 0xDFFF;
 
-    constexpr std::size_t ECHO_RAM_SIZE = 0x1E00;
-    constexpr std::size_t START_ECHO_RAM = 0xE000;
-    constexpr std::size_t END_ECHO_RAM = 0xFDFF;
+    constexpr uint16_t ECHO_RAM_SIZE = 0x1E00;
+    constexpr uint16_t START_ECHO_RAM = 0xE000;
+    constexpr uint16_t END_ECHO_RAM = 0xFDFF;
 
-    constexpr std::size_t OAM_SIZE = 0x100;
-    constexpr std::size_t START_OAM = 0xFE00;
-    constexpr std::size_t END_OAM = 0xFE9F;
+    constexpr uint16_t OAM_SIZE = 0x100;
+    constexpr uint16_t START_OAM = 0xFE00;
+    constexpr uint16_t END_OAM = 0xFE9F;
 
-    constexpr std::size_t START_NOT_USABLE = 0xFEA0;
-    constexpr std::size_t END_NOT_USABLE = 0xFEFF;
+    constexpr uint16_t START_NOT_USABLE = 0xFEA0;
+    constexpr uint16_t END_NOT_USABLE = 0xFEFF;
 
-    constexpr std::size_t IO_REGISTER_SIZE = 0x80;
-    constexpr std::size_t START_IO_REGISTER = 0xFF00;
-    constexpr std::size_t END_IO_REGISTER = 0xFF7F;
+    constexpr uint16_t IO_REGISTER_SIZE = 0x80;
+    constexpr uint16_t START_IO_REGISTER = 0xFF00;
+    constexpr uint16_t END_IO_REGISTER = 0xFF7F;
 
-    constexpr std::size_t HRAM_SIZE = 0x100;
-    constexpr std::size_t START_HRAM = 0xFF80;
-    constexpr std::size_t END_HRAM = 0xFFFE;
+    // https://gbdev.io/pandocs/Memory_Map.html#io-ranges
+    constexpr uint16_t JOYPAD_INPUT_ADDRESS = 0xFF00;
 
-    constexpr std::size_t INTERRUPT_ENABLE_ADDRESS = 0xFFFF;
+    constexpr uint16_t START_SERIAL_TRANSFER = 0xFF01;
+    constexpr uint16_t END_SERIAL_TRANSFER = 0xFF02;
+
+    constexpr uint16_t START_TIME_DIVIDER = 0xFF04;
+    constexpr uint16_t END_TIME_DIVIDER = 0xFF07;
+
+    constexpr uint16_t START_SOUND = 0xFF10;
+    constexpr uint16_t END_SOUND = 0xFF26;
+
+    constexpr uint16_t START_WAVE_PATTERN = 0xFF30;
+    constexpr uint16_t END_WAVE_PATTERN = 0xFF3F;
+
+    constexpr uint16_t START_IO_LCD = 0xFF40;
+    constexpr uint16_t LCD_CONTROL_ADDRESS = 0xFF40;
+    constexpr uint16_t LCD_STATUS_ADDRESS = 0xFF41;
+    constexpr uint16_t LCD_SCROLL_Y_ADDRESS = 0xFF42;
+    constexpr uint16_t LCD_SCROLL_X_ADDRESS = 0xFF43;
+    constexpr uint16_t LCD_COORDINATE_Y_ADDRESS = 0xFF44;
+    constexpr uint16_t LCD_LY_COMPARE_ADDRESS = 0xFF45;
+    constexpr uint16_t OAM_DMA_ADDRESS = 0xFF46;
+    constexpr uint16_t BGP_PALETTE_DATA_ADDRESS = 0xFF47;
+    constexpr uint16_t OBJ_PALETTE_DATA_0_ADDRESS = 0xFF48;
+    constexpr uint16_t OBJ_PALETTE_DATA_1_ADDRESS = 0xFF49;
+    constexpr uint16_t LCD_WINDOWS_Y_ADDRESS = 0xFF4A;
+    constexpr uint16_t LCD_WINDOWS_X_ADDRESS = 0xFF4B;
+    constexpr uint16_t END_IO_LCD = 0xFF4B;
+
+    constexpr uint16_t SELECT_VRAM_BANK_ADDRESS = 0xFF4F;
+
+    constexpr uint16_t DISABLE_BOOT_ROM_ADDRESS = 0xFF50;
+
+    constexpr uint16_t START_VRAM_DMA = 0xFF51;
+    constexpr uint16_t END_VRAM_DMA = 0xFF55;
+
+    constexpr uint16_t START_BJ_OBJ_PALETTES = 0xFF68;
+    constexpr uint16_t END_BJ_OBJ_PALETTES = 0xFF69;
+
+    constexpr uint16_t SELECT_WRAM_BANK_ADDRESS = 0xFF70;
+
+    // End of io ranges
+
+    constexpr uint16_t HRAM_SIZE = 0x100;
+    constexpr uint16_t START_HRAM = 0xFF80;
+    constexpr uint16_t END_HRAM = 0xFFFE;
+
+    constexpr uint16_t INTERRUPT_ENABLE_ADDRESS = 0xFFFF;
 
     using RomBank = std::array<uint8_t, ROM_BANK_SIZE>;
     using VideoRam = std::array<uint8_t, VRAM_SIZE>;

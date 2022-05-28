@@ -17,8 +17,8 @@ namespace emulator::memory
         virtual void set_hram(uint16_t address, uint8_t value);
         [[nodiscard]] virtual uint8_t get_hram(uint16_t address) const;
 
-        virtual void set_wram_select(uint16_t address, uint8_t value);
-        [[nodiscard]] virtual uint8_t get_wram_select(uint16_t address) const;
+        virtual void select_wram_bank(uint8_t value);
+        [[nodiscard]] virtual uint8_t get_wram_selected() const;
 
         virtual ~RamController() = default;
 

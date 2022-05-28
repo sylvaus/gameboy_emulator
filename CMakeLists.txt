@@ -25,11 +25,15 @@ add_library(
         emulator_lib
         src/cartridge.cpp
         src/logging.cpp
+        src/io/joypad.cpp
+        src/io/serial.cpp
         src/memory/memory_map.cpp
         src/memory/memory.cpp
         src/memory/mbc.cpp
         src/memory/registers.cpp
         src/memory/ram.cpp
+        src/time/timer.cpp
+        src/sound/controller.cpp
         src/video/controller.cpp
         src/generated/instructions.cpp
 )
