@@ -25,6 +25,9 @@ namespace emulator::memory
 
     using MemoryBankControllerPtr = std::shared_ptr<MemoryBankController>;
 
+    /**
+     * https://gbdev.io/pandocs/nombc.html
+     */
     class NoMemoryBankController : public MemoryBankController
     {
     public:

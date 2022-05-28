@@ -1,9 +1,29 @@
 #include "emulator/exceptions.h"
 #include "emulator/memory/memory.h"
 
+#include <utility>
+
 namespace emulator::memory
 {
-    void Memory::set(uint16_t address, uint8_t value)
+    MemoryNoCGB::MemoryNoCGB(
+        MemoryBankControllerPtr mbc,
+        std::shared_ptr<emulator::video::VideoController> video,
+        std::shared_ptr<RamController> ram,
+        std::shared_ptr<emulator::io::Joypad> joypad,
+        std::shared_ptr<emulator::io::SerialTransfer> serial,
+        std::shared_ptr<emulator::sound::SoundController> sound,
+        std::shared_ptr<emulator::time::Timer> timer
+    ) :
+        mbc_(std::move(mbc)),
+        video_(std::move(video)),
+        ram_(std::move(ram)),
+        joypad_(std::move(joypad)),
+        serial_(std::move(serial)),
+        sound_(std::move(sound)),
+        timer_(std::move(timer))
+    {}
+
+    void MemoryNoCGB::set(uint16_t address, uint8_t value)
     {
         if (address <= END_ROM_1_N)
         {
@@ -47,7 +67,7 @@ namespace emulator::memory
         }
     }
 
-    uint8_t Memory::get(uint16_t address) const
+    uint8_t MemoryNoCGB::get(uint16_t address) const
     {
         if (address <= END_ROM_1_N)
         {
@@ -91,7 +111,7 @@ namespace emulator::memory
         }
     }
 
-    void Memory::set_io_register(uint16_t address, uint8_t value)
+    void MemoryNoCGB::set_io_register(uint16_t address, uint8_t value)
     {
         if (JOYPAD_INPUT_ADDRESS == address)
         {
@@ -143,7 +163,7 @@ namespace emulator::memory
         }
     }
 
-    uint8_t Memory::get_io_register(uint16_t address) const
+    uint8_t MemoryNoCGB::get_io_register(uint16_t address) const
     {
         if (JOYPAD_INPUT_ADDRESS == address)
         {
@@ -196,12 +216,12 @@ namespace emulator::memory
         }
     }
 
-    void Memory::handle_vram_dma(uint16_t address, uint8_t value)
+    void MemoryNoCGB::handle_vram_dma(uint16_t address, uint8_t value)
     {
         // Nothing to do for non CGB
     }
 
-    void Memory::set_lcd(uint16_t address, uint8_t value)
+    void MemoryNoCGB::set_lcd(uint16_t address, uint8_t value)
     {
         switch (address)
         {
@@ -247,7 +267,7 @@ namespace emulator::memory
 
     }
 
-    uint8_t Memory::get_lcd(uint16_t address) const
+    uint8_t MemoryNoCGB::get_lcd(uint16_t address) const
     {
         switch (address)
         {
@@ -280,7 +300,7 @@ namespace emulator::memory
         }
     }
 
-    void Memory::set_oam_dma(uint8_t value)
+    void MemoryNoCGB::set_oam_dma(uint8_t value)
     {
         // This should add some machine cycles somewhere
         // Source: https://gbdev.io/pandocs/OAM_DMA_Transfer.html
@@ -290,7 +310,7 @@ namespace emulator::memory
             set(START_OAM + i, get(high_bits + i));
     }
 
-    uint8_t Memory::get_oam_dma() const
+    uint8_t MemoryNoCGB::get_oam_dma() const
     {
         return oam_dma_high_bits_;
     }

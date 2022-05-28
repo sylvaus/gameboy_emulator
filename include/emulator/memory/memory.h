@@ -18,10 +18,7 @@ namespace emulator::memory
     class Memory
     {
     public:
-        explicit Memory(MemoryBankControllerPtr mbc) : mbc_(std::move(mbc))
-        {}
-
-        virtual void set(uint16_t address, uint8_t value);
+        virtual void set(uint16_t address, uint8_t value) = 0;
 
         void set16bits(uint16_t address, uint16_t value)
         {
@@ -29,9 +26,22 @@ namespace emulator::memory
             set(address + 1, (value >> 8) & 0xFF);
         }
 
-        [[nodiscard]] virtual uint8_t get(uint16_t address) const;
+        [[nodiscard]] virtual uint8_t get(uint16_t address) const = 0;
 
         virtual ~Memory() = default;
+    };
+
+    class MemoryNoCGB: public Memory
+    {
+    public:
+        MemoryNoCGB(MemoryBankControllerPtr mbc, std::shared_ptr<emulator::video::VideoController> video,
+               std::shared_ptr<RamController> ram, std::shared_ptr<emulator::io::Joypad> joypad,
+               std::shared_ptr<emulator::io::SerialTransfer> serial,
+               std::shared_ptr<emulator::sound::SoundController> sound,
+               std::shared_ptr<emulator::time::Timer> timer);
+
+        void set(uint16_t address, uint8_t value) override;
+        [[nodiscard]] uint8_t get(uint16_t address) const override;
 
     private:
         MemoryBankControllerPtr mbc_;
