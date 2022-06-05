@@ -5,7 +5,7 @@ option(TESTS "Build test programs" OFF)
 option(TEST_COVERAGE "Generate test coverage" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -O0")
 
 # Conan management
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -25,6 +25,7 @@ add_library(
         emulator_lib
         src/cartridge.cpp
         src/logging.cpp
+        src/cpu/interrupt.cpp
         src/io/joypad.cpp
         src/io/serial.cpp
         src/memory/memory_map.cpp
@@ -34,6 +35,7 @@ add_library(
         src/memory/ram.cpp
         src/time/timer.cpp
         src/sound/controller.cpp
+        src/utils/to_string.cpp
         src/video/controller.cpp
         src/generated/instructions.cpp
 )
