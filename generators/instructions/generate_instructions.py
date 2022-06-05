@@ -79,6 +79,11 @@ SRC_INCLUDE_DEFS = f"using emulator::memory::{OFFSET_CARRY_FLAG};\n" \
                    f"using emulator::memory::{OFFSET_ADD_SUB_FLAG};\n" \
                    f"using emulator::memory::{OFFSET_ZERO_FLAG};\n"
 
+SRC_LOGGER = """
+constexpr bool TRACE_LOG = false;
+auto LOGGER = Logging::get_logger(\"Instruction\");\n"""
+
+
 ARGUMENT_UINT8 = f"{ARGUMENT_NAME}.uint8"
 ARGUMENT_INT8 = f"{ARGUMENT_NAME}.int8"
 ARGUMENT_UINT16 = f"{ARGUMENT_NAME}.uint16"
@@ -124,6 +129,8 @@ ARGUMENT_REGISTERS_A = Argument(ArgumentType.REGISTER, is_address=False, nb_byte
 
 SRC_HEADER = f"""#include <stdexcept>
 
+#include "emulator/logging.h"
+#include "emulator/utils/to_string.h"
 #include "emulator/{GENERATED_FOLDER_NAME}/{FILE_NAME}.h"\n\n"""
 SRC_EXECUTION_METHOD = """uint16_t execute_next_instruction(Registers& registers, Memory& controller)
 {
@@ -223,6 +230,14 @@ def get_immediate_value_type(instruction: GbInstruction):
 def make_instruction_function(
         instruction: GbInstruction, code: str, remove_pc_update: bool = False, remove_duration_return: bool = False
 ) -> InstructionFunction:
+    code = f"""if constexpr (TRACE_LOG)
+{{
+    LOGGER.trace(\"{instruction.short_repr}\");
+    LOGGER.trace(emulator::utils::to_string({ARGUMENT_NAME}));
+    LOGGER.trace(emulator::utils::to_string({REGISTERS}));
+}}
+""" + code
+
     code_lines = code.splitlines(False)
     if not remove_pc_update:
         code_lines.append(f"{REGISTERS_PROGRAM_COUNTER} += {instruction.length};")
@@ -804,7 +819,7 @@ def main():
     with open(SRC_FILE, "w") as f:
         f.write(SRC_HEADER)
         functions_code = "\n\n".join(func.definition for func in functions)
-        code = f"{SRC_INCLUDE_DEFS}\n{functions_code}\n\n{SRC_EXECUTION_METHOD}"
+        code = f"{SRC_INCLUDE_DEFS}\n{SRC_LOGGER}\n{functions_code}\n\n{SRC_EXECUTION_METHOD}"
         f.write(put_code_in_namespace(code, NAMESPACE))
 
 
