@@ -46,41 +46,77 @@ namespace emulator::video
     class VideoController
     {
     public:
-        std::unordered_set<emulator::cpu::Interrupt> tick(const tick_t nb_cycles);
+        virtual std::unordered_set<emulator::cpu::Interrupt> tick(const tick_t nb_cycles) = 0;
 
-        virtual void set_vram(uint16_t address, uint8_t value);
-        [[nodiscard]] virtual uint8_t get_vram(uint16_t address) const;
-        virtual void set_oam(uint16_t address, uint8_t value);
-        [[nodiscard]] virtual uint8_t get_oam(uint16_t address) const;
-        virtual void set_lcd_control(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_control() const;
-        virtual void set_lcd_status(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_status() const;
-        virtual void set_lcd_scroll_y(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_scroll_y() const;
-        virtual void set_lcd_scroll_x(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_scroll_x() const;
-        virtual void set_lcd_coordinate_y(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_coordinate_y() const;
-        virtual void set_lcd_compare_y(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_compare_y() const;
-        virtual void set_bg_palette_data(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_bg_palette_data() const;
-        virtual void set_obj_palette_data_0(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_obj_palette_data_0() const;
-        virtual void set_obj_palette_data_1(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_obj_palette_data_1() const;
-        virtual void set_lcd_window_position_y(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_window_position_y() const;
-        virtual void set_lcd_window_position_x(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_lcd_window_position_x() const;
-        virtual void select_vram_bank(uint8_t value);
-        [[nodiscard]] virtual uint8_t get_vram_bank() const;
-        virtual void set_cgb_bj_obj_palettes(uint16_t address, uint8_t value);
-        [[nodiscard]] virtual uint8_t get_cgb_bj_obj_palettes(uint16_t address) const;
+        virtual void set_vram(uint16_t address, uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_vram(uint16_t address) const = 0;
+        virtual void set_oam(uint16_t address, uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_oam(uint16_t address) const = 0;
+        virtual void set_lcd_control(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_control() const = 0;
+        virtual void set_lcd_status(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_status() const = 0;
+        virtual void set_lcd_scroll_y(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_scroll_y() const = 0;
+        virtual void set_lcd_scroll_x(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_scroll_x() const = 0;
+        virtual void set_lcd_coordinate_y(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_coordinate_y() const = 0;
+        virtual void set_lcd_compare_y(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_compare_y() const = 0;
+        virtual void set_bg_palette_data(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_bg_palette_data() const = 0;
+        virtual void set_obj_palette_data_0(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_obj_palette_data_0() const = 0;
+        virtual void set_obj_palette_data_1(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_obj_palette_data_1() const = 0;
+        virtual void set_lcd_window_position_y(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_window_position_y() const = 0;
+        virtual void set_lcd_window_position_x(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_lcd_window_position_x() const = 0;
+        virtual void select_vram_bank(uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_vram_bank() const = 0;
+        virtual void set_cgb_bj_obj_palettes(uint16_t address, uint8_t value) = 0;
+        [[nodiscard]] virtual uint8_t get_cgb_bj_obj_palettes(uint16_t address) const = 0;
 
         virtual ~VideoController() = default;
+    };
 
+    class VideoControllerImpl: public VideoController
+    {
+    public:
+        std::unordered_set<emulator::cpu::Interrupt> tick(const tick_t nb_cycles) override;
+
+        void set_vram(uint16_t address, uint8_t value) override;
+        [[nodiscard]] uint8_t get_vram(uint16_t address) const override;
+        void set_oam(uint16_t address, uint8_t value) override;
+        [[nodiscard]] uint8_t get_oam(uint16_t address) const override;
+        void set_lcd_control(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_control() const override;
+        void set_lcd_status(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_status() const override;
+        void set_lcd_scroll_y(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_scroll_y() const override;
+        void set_lcd_scroll_x(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_scroll_x() const override;
+        void set_lcd_coordinate_y(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_coordinate_y() const override;
+        void set_lcd_compare_y(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_compare_y() const override;
+        void set_bg_palette_data(uint8_t value) override;
+        [[nodiscard]] uint8_t get_bg_palette_data() const override;
+        void set_obj_palette_data_0(uint8_t value) override;
+        [[nodiscard]] uint8_t get_obj_palette_data_0() const override;
+        void set_obj_palette_data_1(uint8_t value) override;
+        [[nodiscard]] uint8_t get_obj_palette_data_1() const override;
+        void set_lcd_window_position_y(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_window_position_y() const override;
+        void set_lcd_window_position_x(uint8_t value) override;
+        [[nodiscard]] uint8_t get_lcd_window_position_x() const override;
+        void select_vram_bank(uint8_t value) override;
+        [[nodiscard]] uint8_t get_vram_bank() const override;
+        void set_cgb_bj_obj_palettes(uint16_t address, uint8_t value) override;
+        [[nodiscard]] uint8_t get_cgb_bj_obj_palettes(uint16_t address) const override;
     private:
         emulator::memory::VideoRam ram_{};
         emulator::memory::SpriteAttributeTable oam_{};
@@ -99,7 +135,7 @@ namespace emulator::video
         uint8_t bg_palette_data_;
         uint8_t obj_palette_data_0_;
         uint8_t obj_palette_data_1_;
-        bool start_frame;
+        bool start_frame_;
 
         void update_mode();
         void perform_mode_action();

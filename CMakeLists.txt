@@ -38,7 +38,7 @@ add_library(
         src/utils/to_string.cpp
         src/video/controller.cpp
         src/generated/instructions.cpp
-)
+        src/video/renderer.cpp include/emulator/video/renderer.h)
 
 add_executable(emulator main.cpp)
 target_link_libraries(emulator emulator_lib)

@@ -14,7 +14,7 @@ namespace emulator::video
     constexpr uint8_t LAST_LY_MODE_0 = 143;
     constexpr uint8_t LAST_LY_MODE_1 = 153;
 
-    std::unordered_set<emulator::cpu::Interrupt> VideoController::tick(const tick_t nb_cycles)
+    std::unordered_set<emulator::cpu::Interrupt> VideoControllerImpl::tick(const tick_t nb_cycles)
     {
         if (!lcd_control_.enable_lcd)
         {
@@ -36,7 +36,7 @@ namespace emulator::video
     }
 
     std::unordered_set<cpu::Interrupt>
-    VideoController::compute_interrupts(const uint8_t previous_mode, const uint8_t previous_ly)
+    VideoControllerImpl::compute_interrupts(const uint8_t previous_mode, const uint8_t previous_ly)
     {
         std::unordered_set<cpu::Interrupt> interrupts;
         if (previous_mode != lcd_status_.mode)
@@ -55,7 +55,7 @@ namespace emulator::video
         return interrupts;
     }
 
-    void VideoController::update_mode()
+    void VideoControllerImpl::update_mode()
     {
         // https://gbdev.io/pandocs/STAT.html
         //        Mode 2  2_____2_____2_____2_____2_____2___________________2____
@@ -66,6 +66,7 @@ namespace emulator::video
         switch (lcd_status_.mode)
         {
             case MODE_2_SEARCH_OAM:
+                start_frame_ = false;
                 lcd_status_.mode = MODE_3_TRANSFER;
                 break;
             case MODE_3_TRANSFER:
@@ -78,20 +79,23 @@ namespace emulator::video
             {
                 if (LAST_LY_MODE_1 == lcd_coordinate_y_)
                 {
+                    start_frame_ = true;
                     lcd_status_.mode = MODE_2_SEARCH_OAM;
                 }
             }
         }
     }
 
-    void VideoController::perform_mode_action()
+    void VideoControllerImpl::perform_mode_action()
     {
         switch (lcd_status_.mode)
         {
             case MODE_2_SEARCH_OAM:
-                ++lcd_coordinate_y_;
+            {
+                lcd_coordinate_y_ = start_frame_ ? 0 : (1 + lcd_coordinate_y_);
                 next_action_clock_ = MODE_2_TICKS;
                 break;
+            }
             case MODE_3_TRANSFER:
                 next_action_clock_ = MODE_3_TICKS;
                 break;
@@ -105,27 +109,27 @@ namespace emulator::video
         }
     }
 
-    void VideoController::set_vram(uint16_t address, uint8_t value)
+    void VideoControllerImpl::set_vram(uint16_t address, uint8_t value)
     {
         ram_[address - emulator::memory::START_VRAM] = value;
     }
 
-    uint8_t VideoController::get_vram(uint16_t address) const
+    uint8_t VideoControllerImpl::get_vram(uint16_t address) const
     {
         return ram_[address - emulator::memory::START_VRAM];
     }
 
-    void VideoController::set_oam(uint16_t address, uint8_t value)
+    void VideoControllerImpl::set_oam(uint16_t address, uint8_t value)
     {
         oam_[address - emulator::memory::START_OAM] = value;
     }
 
-    uint8_t VideoController::get_oam(uint16_t address) const
+    uint8_t VideoControllerImpl::get_oam(uint16_t address) const
     {
         return oam_[address - emulator::memory::START_OAM];
     }
 
-    void VideoController::set_lcd_control(uint8_t value)
+    void VideoControllerImpl::set_lcd_control(uint8_t value)
     {
         const auto previous_lcd_enable = lcd_control_.enable_lcd;
         lcd_control_.value = value;
@@ -135,7 +139,7 @@ namespace emulator::video
             lcd_coordinate_y_ = 0;
             clock_ = 0;
             lcd_status_.mode = MODE_2_SEARCH_OAM;
-            start_frame = true;
+            start_frame_ = true;
         }
         // disabling lcd
         else if (previous_lcd_enable && !lcd_control_.enable_lcd)
@@ -153,132 +157,132 @@ namespace emulator::video
         }
     }
 
-    uint8_t VideoController::get_lcd_control() const
+    uint8_t VideoControllerImpl::get_lcd_control() const
     {
         return lcd_control_.value;
     }
 
-    void VideoController::set_lcd_status(uint8_t value)
+    void VideoControllerImpl::set_lcd_status(uint8_t value)
     {
         lcd_status_.value = value;
     }
 
-    uint8_t VideoController::get_lcd_status() const
+    uint8_t VideoControllerImpl::get_lcd_status() const
     {
         return lcd_status_.value;
     }
 
-    void VideoController::set_lcd_scroll_y(uint8_t value)
+    void VideoControllerImpl::set_lcd_scroll_y(uint8_t value)
     {
         lcd_scroll_y_ = value;
     }
 
-    uint8_t VideoController::get_lcd_scroll_y() const
+    uint8_t VideoControllerImpl::get_lcd_scroll_y() const
     {
         return lcd_scroll_y_;
     }
 
-    void VideoController::set_lcd_scroll_x(uint8_t value)
+    void VideoControllerImpl::set_lcd_scroll_x(uint8_t value)
     {
         lcd_scroll_x_ = value;
     }
 
-    uint8_t VideoController::get_lcd_scroll_x() const
+    uint8_t VideoControllerImpl::get_lcd_scroll_x() const
     {
         return lcd_scroll_x_;
     }
 
-    void VideoController::set_lcd_coordinate_y(uint8_t value)
+    void VideoControllerImpl::set_lcd_coordinate_y(uint8_t value)
     {
         lcd_coordinate_y_ = value;
     }
 
-    uint8_t VideoController::get_lcd_coordinate_y() const
+    uint8_t VideoControllerImpl::get_lcd_coordinate_y() const
     {
         return lcd_coordinate_y_;
     }
 
-    void VideoController::set_lcd_compare_y(uint8_t value)
+    void VideoControllerImpl::set_lcd_compare_y(uint8_t value)
     {
         lcd_compare_y_ = value;
     }
 
-    uint8_t VideoController::get_lcd_compare_y() const
+    uint8_t VideoControllerImpl::get_lcd_compare_y() const
     {
         return lcd_compare_y_;
     }
 
-    void VideoController::set_lcd_window_position_y(uint8_t value)
+    void VideoControllerImpl::set_lcd_window_position_y(uint8_t value)
     {
         lcd_window_position_y_ = value;
     }
 
-    uint8_t VideoController::get_lcd_window_position_y() const
+    uint8_t VideoControllerImpl::get_lcd_window_position_y() const
     {
         return lcd_window_position_y_;
     }
 
-    void VideoController::set_lcd_window_position_x(uint8_t value)
+    void VideoControllerImpl::set_lcd_window_position_x(uint8_t value)
     {
         lcd_window_position_x_ = value;
     }
 
-    uint8_t VideoController::get_lcd_window_position_x() const
+    uint8_t VideoControllerImpl::get_lcd_window_position_x() const
     {
         return lcd_window_position_x_;
     }
 
-    void VideoController::set_bg_palette_data(uint8_t value)
+    void VideoControllerImpl::set_bg_palette_data(uint8_t value)
     {
         bg_palette_data_ = value;
     }
 
-    uint8_t VideoController::get_bg_palette_data() const
+    uint8_t VideoControllerImpl::get_bg_palette_data() const
     {
         return bg_palette_data_;
     }
 
-    void VideoController::set_obj_palette_data_0(uint8_t value)
+    void VideoControllerImpl::set_obj_palette_data_0(uint8_t value)
     {
         obj_palette_data_0_ = value;
     }
 
-    uint8_t VideoController::get_obj_palette_data_0() const
+    uint8_t VideoControllerImpl::get_obj_palette_data_0() const
     {
         return obj_palette_data_0_;
     }
 
-    void VideoController::set_obj_palette_data_1(uint8_t value)
+    void VideoControllerImpl::set_obj_palette_data_1(uint8_t value)
     {
         obj_palette_data_1_ = value;
     }
 
-    uint8_t VideoController::get_obj_palette_data_1() const
+    uint8_t VideoControllerImpl::get_obj_palette_data_1() const
     {
         return obj_palette_data_1_;
     }
 
-    void VideoController::select_vram_bank(uint8_t value)
+    void VideoControllerImpl::select_vram_bank(uint8_t value)
     {
         // Nothing to be done for non CGB implementation
     }
 
-    uint8_t VideoController::get_vram_bank() const
+    uint8_t VideoControllerImpl::get_vram_bank() const
     {
         return 0; // Nothing to be done for non CGB implementation
     }
 
-    void VideoController::set_cgb_bj_obj_palettes(uint16_t address, uint8_t value)
+    void VideoControllerImpl::set_cgb_bj_obj_palettes(uint16_t address, uint8_t value)
     {
         // Nothing to be done for non CGB implementation
     }
 
-    uint8_t VideoController::get_cgb_bj_obj_palettes(uint16_t address) const
+    uint8_t VideoControllerImpl::get_cgb_bj_obj_palettes(uint16_t address) const
     {
         return 0; // Nothing to be done for non CGB implementation
     }
 
-    bool VideoController::does_mode_triggers_interrupt()
+    bool VideoControllerImpl::does_mode_triggers_interrupt()
     {
         switch (lcd_status_.mode)
         {
