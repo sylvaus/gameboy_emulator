@@ -4,8 +4,14 @@ project(emulator)
 option(TESTS "Build test programs" OFF)
 option(TEST_COVERAGE "Generate test coverage" OFF)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -O0")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wnon-virtual-dtor")
+
+IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0")
+ELSE()
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O2")
+ENDIF()
 
 # Conan management
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -37,8 +43,7 @@ add_library(
         src/sound/controller.cpp
         src/utils/to_string.cpp
         src/video/controller.cpp
-        src/generated/instructions.cpp
-        src/video/renderer.cpp include/emulator/video/renderer.h)
+        src/generated/instructions.cpp)
 
 add_executable(emulator main.cpp)
 target_link_libraries(emulator emulator_lib)
