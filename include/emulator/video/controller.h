@@ -11,10 +11,23 @@
 
 namespace emulator::video
 {
+    // As according to https://gbdev.io/pandocs/STAT.html
+    // Mode 2 + 3 + 0: 456
+    // Full frame time: 70224
+    // * Mode 2 + 3 + 0 for 143 lines: (173 + 80 + 203) * 144
+    // * Mode 1 for 10 lines: 456 * 10
+    constexpr tick_t MODE_0_TICKS = 173;
+    constexpr tick_t MODE_1_TICKS = 456;
+    constexpr tick_t MODE_2_TICKS = 80;
+    constexpr tick_t MODE_3_TICKS = 203;
+
+    constexpr uint8_t LAST_LY_MODE_0 = 143;
+    constexpr uint8_t LAST_LY_MODE_1 = 153;
+
     class VideoController
     {
     public:
-        virtual std::unordered_set<emulator::cpu::Interrupt> tick(const tick_t nb_cycles) = 0;
+        virtual cpu::Interrupts tick(const tick_t nb_cycles) = 0;
 
         virtual void set_vram(uint16_t address, uint8_t value) = 0;
         [[nodiscard]] virtual uint8_t get_vram(uint16_t address) const = 0;
@@ -53,7 +66,9 @@ namespace emulator::video
     class VideoControllerImpl: public VideoController
     {
     public:
-        std::unordered_set<emulator::cpu::Interrupt> tick(const tick_t nb_cycles) override;
+        VideoControllerImpl(std::shared_ptr<Renderer> renderer);
+
+        cpu::Interrupts tick(const tick_t nb_cycles) override;
 
         void set_vram(uint16_t address, uint8_t value) override;
         [[nodiscard]] uint8_t get_vram(uint16_t address) const override;
@@ -85,6 +100,8 @@ namespace emulator::video
         [[nodiscard]] uint8_t get_vram_bank() const override;
         void set_cgb_bj_obj_palettes(uint16_t address, uint8_t value) override;
         [[nodiscard]] uint8_t get_cgb_bj_obj_palettes(uint16_t address) const override;
+
+        ~VideoControllerImpl() override = default;
     private:
         emulator::memory::VideoRam ram_{};
         emulator::memory::SpriteAttributeTable oam_{};
@@ -98,8 +115,7 @@ namespace emulator::video
 
         void update_mode();
         void perform_mode_action();
-        bool does_mode_triggers_interrupt();
 
-        std::unordered_set<cpu::Interrupt> compute_interrupts(const uint8_t previous_mode, const uint8_t previous_ly);
+        cpu::Interrupts compute_interrupts(const uint8_t previous_mode,  const uint8_t previous_ly) const;
     };
 }

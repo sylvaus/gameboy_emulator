@@ -9,7 +9,7 @@ The pages referenced in this file are pointing to [GameBoyProgManVer1.1.pdf](htt
 #include "emulator/memory/registers.h"
 #include "emulator/generated/instructions.h"
 
-#include "../mocks/romram_controller.h"
+#include "../mocks/memory/memory.h"
 
 using emulator::generated::Arguments;
 using emulator::memory::Registers;

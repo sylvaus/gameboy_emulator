@@ -4,18 +4,14 @@
 
 namespace emulator::video
 {
-    // As according to https://gbdev.io/pandocs/STAT.html
-    // Mode 2 + 3 + 0: 456
-    constexpr tick_t MODE_0_TICKS = 173;
-    constexpr tick_t MODE_1_TICKS = 456;
-    constexpr tick_t MODE_2_TICKS = 80;
-    constexpr tick_t MODE_3_TICKS = 202;
+    bool is_interrupt_triggered_by_mode(LcdStatus status);
 
-    constexpr uint8_t LAST_LY_MODE_0 = 143;
-    constexpr uint8_t LAST_LY_MODE_1 = 153;
+    VideoControllerImpl::VideoControllerImpl(std::shared_ptr<Renderer> renderer): renderer_(std::move(renderer))
+    {}
 
-    std::unordered_set<emulator::cpu::Interrupt> VideoControllerImpl::tick(const tick_t nb_cycles)
+    cpu::Interrupts VideoControllerImpl::tick(const tick_t nb_cycles)
     {
+        clock_ += nb_cycles;
         if (!lcd_bits_.control.enable_lcd)
         {
             // Nothing to do when LCD is not enabled
@@ -35,23 +31,22 @@ namespace emulator::video
         return compute_interrupts(previous_mode, previous_ly);
     }
 
-    std::unordered_set<cpu::Interrupt>
-    VideoControllerImpl::compute_interrupts(const uint8_t previous_mode, const uint8_t previous_ly)
+    cpu::Interrupts VideoControllerImpl::compute_interrupts(const uint8_t previous_mode, const uint8_t previous_ly) const
     {
-        std::unordered_set<cpu::Interrupt> interrupts;
+        cpu::Interrupts interrupts;
         if (previous_mode != lcd_bits_.status.mode)
         {
             // https://gbdev.io/pandocs/Interrupt_Sources.html#int-48---stat-interrupt
-            if (does_mode_triggers_interrupt())
-                interrupts.insert(cpu::Interrupt::LCD_STAT);
+            if (is_interrupt_triggered_by_mode(lcd_bits_.status))
+                interrupts.lcd_stat = true;
             // https://gbdev.io/pandocs/Interrupt_Sources.html#int-40---vblank-interrupt
             if (MODE_3_TRANSFER == lcd_bits_.status.mode)
-                interrupts.insert(cpu::Interrupt::VBLANK);
+                interrupts.vblank = true;
         }
 
         // https://gbdev.io/pandocs/Interrupt_Sources.html#int-48---stat-interrupt
         if ((previous_ly != lcd_bits_.coordinate_y) && (lcd_bits_.coordinate_y == lcd_bits_.compare_y))
-            interrupts.insert(cpu::Interrupt::LCD_STAT);
+            interrupts.lcd_stat = true;
         return interrupts;
     }
 
@@ -262,7 +257,7 @@ namespace emulator::video
         return lcd_bits_.obj_palette_data_1;
     }
 
-    void VideoControllerImpl::select_vram_bank(uint8_t value)
+    void VideoControllerImpl::select_vram_bank(uint8_t)
     {
         // Nothing to be done for non CGB implementation
     }
@@ -272,26 +267,26 @@ namespace emulator::video
         return 0; // Nothing to be done for non CGB implementation
     }
 
-    void VideoControllerImpl::set_cgb_bj_obj_palettes(uint16_t address, uint8_t value)
+    void VideoControllerImpl::set_cgb_bj_obj_palettes(uint16_t, uint8_t)
     {
         // Nothing to be done for non CGB implementation
     }
 
-    uint8_t VideoControllerImpl::get_cgb_bj_obj_palettes(uint16_t address) const
+    uint8_t VideoControllerImpl::get_cgb_bj_obj_palettes(uint16_t) const
     {
         return 0; // Nothing to be done for non CGB implementation
     }
 
-    bool VideoControllerImpl::does_mode_triggers_interrupt()
+    bool is_interrupt_triggered_by_mode(const LcdStatus status)
     {
-        switch (lcd_bits_.status.mode)
+        switch (status.mode)
         {
             case MODE_2_SEARCH_OAM:
-                return lcd_bits_.status.mode2_interrupt;
+                return status.mode2_interrupt;
             case MODE_0_HBLANK:
-                return lcd_bits_.status.mode0_interrupt;
+                return status.mode0_interrupt;
             case MODE_1_VBLANK:
-                return lcd_bits_.status.mode1_interrupt;
+                return status.mode1_interrupt;
             default:
                 return false;
         }

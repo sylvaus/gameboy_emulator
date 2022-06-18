@@ -216,7 +216,7 @@ namespace emulator::memory
         }
     }
 
-    void MemoryNoCGB::handle_vram_dma(uint16_t address, uint8_t value)
+    void MemoryNoCGB::handle_vram_dma(uint16_t, uint8_t)
     {
         // Nothing to do for non CGB
     }

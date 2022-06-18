@@ -2,12 +2,29 @@
 
 namespace emulator::cpu
 {
-    enum class Interrupt
+    struct Interrupts
     {
-        VBLANK,
-        LCD_STAT,
-        TIMER,
-        SERIAL,
-        JOYPAD
+        bool vblank{false};
+        bool lcd_stat{false};
+        bool timer{false};
+        bool serial{false};
+        bool joypad{false};
+
+        Interrupts& operator|= (const Interrupts& other)
+        {
+            vblank |= other.vblank;
+            lcd_stat |= other.lcd_stat;
+            timer |= other.timer;
+            serial |= other.serial;
+            joypad |= other.joypad;
+
+            return *this;
+        }
+
+        Interrupts operator| (const Interrupts& rhs)
+        {
+            Interrupts result = *this;
+            return result |= rhs;
+        }
     };
 } // emulator::cpu
