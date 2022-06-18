@@ -6,6 +6,7 @@ namespace emulator::video
 {
     union LcdControl
     {
+        // Structure defined here: https://gbdev.io/pandocs/LCDC.html
         uint8_t value;
         struct
         {
@@ -21,6 +22,7 @@ namespace emulator::video
 
     union LcdStatus
     {
+        // Structure defined here: https://gbdev.io/pandocs/STAT.html
         uint8_t value;
         struct
         {

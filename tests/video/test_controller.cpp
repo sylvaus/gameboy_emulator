@@ -1,12 +1,13 @@
 #include <memory>
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include "../mocks/video/renderer.h"
 #include "emulator/video/controller.h"
 #include "emulator/utils/ranges.h"
 
-
+using ::testing::_;
 using namespace emulator::video;
 
 namespace
@@ -119,10 +120,126 @@ namespace
         ASSERT_EQ(value, controller->get_obj_palette_data_1());
     }
 
+    TEST_F(VideoControllerFixture, SetGetLCDWindowPositionY)
+    {
+        const uint8_t value = 124;
+        controller->set_lcd_window_position_y(value);
+        ASSERT_EQ(value, controller->get_lcd_window_position_y());
+    }
+
     TEST_F(VideoControllerFixture, SetGetLCDWindowPositionX)
     {
         const uint8_t value = 35;
         controller->set_lcd_window_position_x(value);
         ASSERT_EQ(value, controller->get_lcd_window_position_x());
+    }
+
+    TEST_F(VideoControllerFixture, EnableLCD)
+    {
+        LcdControl control{};
+        control.enable_lcd = false;
+        LcdStatus status{};
+        status.mode = MODE_0_HBLANK;
+
+        controller->set_lcd_control(control.value);
+        controller->set_lcd_status(status.value);
+        controller->set_lcd_coordinate_y(15);
+
+        control.enable_lcd = true;
+        controller->set_lcd_control(control.value);
+        ASSERT_EQ(0, controller->get_lcd_coordinate_y());
+        ASSERT_EQ(MODE_0_HBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+    }
+
+    TEST_F(VideoControllerFixture, EnableLCDWhenAlreadyEnableShouldDoNothing)
+    {
+        LcdControl control{};
+        control.enable_lcd = true;
+        LcdStatus status{};
+        status.mode = MODE_1_VBLANK;
+
+        controller->set_lcd_control(control.value);
+        controller->set_lcd_status(status.value);
+        controller->set_lcd_coordinate_y(56);
+
+        control.enable_lcd = true;
+        controller->set_lcd_control(control.value);
+        ASSERT_EQ(56, controller->get_lcd_coordinate_y());
+        ASSERT_EQ(MODE_1_VBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+    }
+
+    TEST_F(VideoControllerFixture, DisableLCD)
+    {
+        LcdControl control{};
+        control.enable_lcd = true;
+        LcdStatus status{};
+        status.mode = MODE_1_VBLANK;
+
+        controller->set_lcd_control(control.value);
+        controller->set_lcd_status(status.value);
+        controller->set_lcd_coordinate_y(15);
+
+        control.enable_lcd = false;
+        controller->set_lcd_control(control.value);
+        ASSERT_EQ(0, controller->get_lcd_coordinate_y());
+        ASSERT_EQ(MODE_0_HBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+    }
+
+    TEST_F(VideoControllerFixture, TicksCycles)
+    {
+        // https://gbdev.io/pandocs/STAT.html
+        //        Mode 2  2_____2_____2_____2_____2_____2___________________2____
+        //        Mode 3  _33____33____33____33____33____33__________________3___
+        //        Mode 0  ___000___000___000___000___000___000________________000
+        //        Mode 1  ____________________________________11111111111111_____
+
+        LcdControl control{};
+        control.enable_lcd = true;
+        controller->set_lcd_control(control.value);
+
+        controller->tick(1);
+        EXPECT_CALL(*renderer, render_line(_, _, _)).Times(144);
+        emulator::utils::for_range<int>(0, 144, [this](const int line) {
+            ASSERT_EQ(MODE_2_SEARCH_OAM, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            // Nothing should change if tick time not reached
+            controller->tick(MODE_2_TICKS - 30);
+            ASSERT_EQ(MODE_2_SEARCH_OAM, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            controller->tick(30);
+            ASSERT_EQ(MODE_3_TRANSFER, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            // Nothing should change if tick time not reached
+            controller->tick(MODE_3_TICKS - 25);
+            ASSERT_EQ(MODE_3_TRANSFER, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            controller->tick(25);
+            ASSERT_EQ(MODE_0_HBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            controller->tick(MODE_0_TICKS - 10);
+            ASSERT_EQ(MODE_0_HBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+            controller->tick(10);
+        });
+
+        emulator::utils::for_range<int>(144, 154, [this](const int line) {
+            ASSERT_EQ(MODE_1_VBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            // Nothing should change if tick time not reached
+            controller->tick(MODE_1_TICKS - 15);
+            ASSERT_EQ(MODE_1_VBLANK, LcdStatus{.value = controller->get_lcd_status()}.mode);
+            ASSERT_EQ(line, controller->get_lcd_coordinate_y());
+
+            controller->tick(15);
+        });
+
+        ASSERT_EQ(MODE_2_SEARCH_OAM, LcdStatus{.value = controller->get_lcd_status()}.mode);
+        ASSERT_EQ(0, controller->get_lcd_coordinate_y());
     }
 }

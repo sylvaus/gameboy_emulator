@@ -68,7 +68,7 @@ namespace emulator::video
                 lcd_bits_.status.mode = MODE_0_HBLANK;
                 break;
             case MODE_0_HBLANK:
-                lcd_bits_.status.mode = (LAST_LY_MODE_0 == lcd_bits_.coordinate_y) ? MODE_1_VBLANK : MODE_3_TRANSFER;
+                lcd_bits_.status.mode = (LAST_LY_MODE_0 == lcd_bits_.coordinate_y) ? MODE_1_VBLANK : MODE_2_SEARCH_OAM;
                 break;
             case MODE_1_VBLANK:
             {
@@ -133,7 +133,9 @@ namespace emulator::video
         {
             lcd_bits_.coordinate_y = 0;
             clock_ = 0;
-            lcd_bits_.status.mode = MODE_2_SEARCH_OAM;
+            next_action_clock_ = 0;
+            // MODE_0_HBLANK so, we would update right away to MODE_2
+            lcd_bits_.status.mode = MODE_0_HBLANK;
             start_frame_ = true;
         }
         // disabling lcd
