@@ -21,10 +21,24 @@ namespace emulator::cpu
             return *this;
         }
 
-        Interrupts operator| (const Interrupts& rhs)
+        Interrupts operator| (const Interrupts& rhs) const
         {
             Interrupts result = *this;
             return result |= rhs;
+        }
+
+        bool operator==(const Interrupts& rhs) const
+        {
+            return vblank == rhs.vblank &&
+                   lcd_stat == rhs.lcd_stat &&
+                   timer == rhs.timer &&
+                   serial == rhs.serial &&
+                   joypad == rhs.joypad;
+        }
+
+        bool operator!=(const Interrupts& rhs) const
+        {
+            return !(rhs == *this);
         }
     };
 } // emulator::cpu

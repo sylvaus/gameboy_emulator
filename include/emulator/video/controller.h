@@ -107,15 +107,15 @@ namespace emulator::video
         emulator::memory::SpriteAttributeTable oam_{};
         std::shared_ptr<Renderer> renderer_;
 
-        tick_t clock_;
-        tick_t next_action_clock_;
+        tick_t clock_{};
+        tick_t next_action_clock_{};
 
-        LcdAllControlAndStatus lcd_bits_;
-        bool start_frame_;
+        LcdAllControlAndStatus lcd_bits_{};
+        bool start_frame_{};
 
         void update_mode();
         void perform_mode_action();
 
-        cpu::Interrupts compute_interrupts(const uint8_t previous_mode,  const uint8_t previous_ly) const;
+        cpu::Interrupts compute_interrupts(const uint8_t previous_mode);
     };
 }

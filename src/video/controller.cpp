@@ -24,14 +24,12 @@ namespace emulator::video
 
         clock_ -= next_action_clock_;
         const uint8_t previous_mode = lcd_bits_.status.mode;
-        const uint8_t previous_ly = lcd_bits_.coordinate_y;
-
         update_mode();
         perform_mode_action();
-        return compute_interrupts(previous_mode, previous_ly);
+        return compute_interrupts(previous_mode);
     }
 
-    cpu::Interrupts VideoControllerImpl::compute_interrupts(const uint8_t previous_mode, const uint8_t previous_ly) const
+    cpu::Interrupts VideoControllerImpl::compute_interrupts(const uint8_t previous_mode)
     {
         cpu::Interrupts interrupts;
         if (previous_mode != lcd_bits_.status.mode)
@@ -40,13 +38,16 @@ namespace emulator::video
             if (is_interrupt_triggered_by_mode(lcd_bits_.status))
                 interrupts.lcd_stat = true;
             // https://gbdev.io/pandocs/Interrupt_Sources.html#int-40---vblank-interrupt
-            if (MODE_3_TRANSFER == lcd_bits_.status.mode)
+            if (MODE_1_VBLANK == lcd_bits_.status.mode)
                 interrupts.vblank = true;
         }
 
         // https://gbdev.io/pandocs/Interrupt_Sources.html#int-48---stat-interrupt
-        if ((previous_ly != lcd_bits_.coordinate_y) && (lcd_bits_.coordinate_y == lcd_bits_.compare_y))
-            interrupts.lcd_stat = true;
+        if ((MODE_2_SEARCH_OAM == lcd_bits_.status.mode) && (lcd_bits_.coordinate_y == lcd_bits_.compare_y))
+        {
+            lcd_bits_.status.lyc_ly = true;
+            interrupts.lcd_stat |= lcd_bits_.status.lyc_ly_interrupt;
+        }
         return interrupts;
     }
 
@@ -61,7 +62,6 @@ namespace emulator::video
         switch (lcd_bits_.status.mode)
         {
             case MODE_2_SEARCH_OAM:
-                start_frame_ = false;
                 lcd_bits_.status.mode = MODE_3_TRANSFER;
                 break;
             case MODE_3_TRANSFER:
@@ -88,6 +88,7 @@ namespace emulator::video
             case MODE_2_SEARCH_OAM:
             {
                 lcd_bits_.coordinate_y = start_frame_ ? 0 : (1 + lcd_bits_.coordinate_y);
+                start_frame_ = false;
                 next_action_clock_ = MODE_2_TICKS;
                 break;
             }

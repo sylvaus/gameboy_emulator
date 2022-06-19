@@ -37,17 +37,17 @@ namespace emulator::video
 
     struct LcdAllControlAndStatus
     {
-        LcdControl control;
-        LcdStatus status;
-        uint8_t scroll_y;
-        uint8_t scroll_x;
-        uint8_t coordinate_y;
-        uint8_t compare_y;
-        uint8_t window_position_y;
-        uint8_t window_position_x;
-        uint8_t bg_palette_data;
-        uint8_t obj_palette_data_0;
-        uint8_t obj_palette_data_1;
+        LcdControl control{};
+        LcdStatus status{};
+        uint8_t scroll_y{};
+        uint8_t scroll_x{};
+        uint8_t coordinate_y{};
+        uint8_t compare_y{};
+        uint8_t window_position_y{};
+        uint8_t window_position_x{};
+        uint8_t bg_palette_data{};
+        uint8_t obj_palette_data_0{};
+        uint8_t obj_palette_data_1{};
     };
 
     constexpr uint8_t MODE_0_HBLANK = 0;

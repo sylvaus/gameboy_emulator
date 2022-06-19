@@ -12,6 +12,9 @@ using namespace emulator::video;
 
 namespace
 {
+    constexpr emulator::cpu::Interrupts NO_INTERRUPTS{};
+    constexpr emulator::cpu::Interrupts VBLANK_INTERRUPTS{.vblank = true};
+    constexpr emulator::cpu::Interrupts LCD_STAT_INTERRUPTS{.lcd_stat = true};
 
     class VideoControllerFixture: public testing::Test
     {
@@ -20,11 +23,11 @@ namespace
         {
             renderer = std::make_shared<MockRenderer>();
             controller = std::make_shared<VideoControllerImpl>(renderer);
-
         }
         void TearDown() override
         {
-
+            controller.reset();
+            renderer.reset();
         }
 
         std::shared_ptr<MockRenderer> renderer;
@@ -241,5 +244,63 @@ namespace
 
         ASSERT_EQ(MODE_2_SEARCH_OAM, LcdStatus{.value = controller->get_lcd_status()}.mode);
         ASSERT_EQ(0, controller->get_lcd_coordinate_y());
+    }
+
+    TEST_F(VideoControllerFixture, Mode0Interrupt)
+    {
+        // https://gbdev.io/pandocs/Interrupt_Sources.html?highlight=vblank#int-48---stat-interrupt
+        LcdControl control{};
+        control.enable_lcd = true;
+        controller->set_lcd_control(control.value);
+
+        LcdStatus status{};
+        status.mode0_interrupt = true;
+        controller->set_lcd_status(status.value);
+
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(1));
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(MODE_2_TICKS));
+        ASSERT_EQ(LCD_STAT_INTERRUPTS, controller->tick(MODE_3_TICKS));
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(1));
+    }
+
+    TEST_F(VideoControllerFixture, Mode1Interrupt)
+    {
+        // https://gbdev.io/pandocs/Interrupt_Sources.html?highlight=vblank#int-48---stat-interrupt
+        LcdControl control{};
+        control.enable_lcd = true;
+        controller->set_lcd_control(control.value);
+
+        LcdStatus status{};
+        status.mode1_interrupt = true;
+        controller->set_lcd_status(status.value);
+
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(1));
+
+        emulator::utils::for_range<int>(0, 143, [this](const int) {
+            ASSERT_EQ(NO_INTERRUPTS, controller->tick(MODE_2_TICKS));
+            ASSERT_EQ(NO_INTERRUPTS, controller->tick(MODE_3_TICKS));
+            ASSERT_EQ(NO_INTERRUPTS, controller->tick(MODE_0_TICKS));
+        });
+
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(MODE_2_TICKS));
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(MODE_3_TICKS));
+        ASSERT_EQ(LCD_STAT_INTERRUPTS | VBLANK_INTERRUPTS, controller->tick(MODE_0_TICKS));
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(1));
+    }
+
+    TEST_F(VideoControllerFixture, Mode2Interrupt)
+    {
+        renderer = std::make_shared<MockRenderer>();
+        controller = std::make_shared<VideoControllerImpl>(renderer);
+        // https://gbdev.io/pandocs/Interrupt_Sources.html?highlight=vblank#int-48---stat-interrupt
+        LcdControl control{};
+        control.enable_lcd = true;
+        controller->set_lcd_control(control.value);
+
+        LcdStatus status{};
+        status.mode2_interrupt = true;
+        controller->set_lcd_status(status.value);
+        ASSERT_EQ(LCD_STAT_INTERRUPTS, controller->tick(1));
+        ASSERT_EQ(NO_INTERRUPTS, controller->tick(1));
     }
 }
