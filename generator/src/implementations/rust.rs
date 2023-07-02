@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use crate::interface::{
     ArgumentGetters, Code, Expression, Flags, FlagsRegister, Function, FunctionTableCall,
     IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type,
+    Variable,
 };
+use crate::interface::Type::Void;
 
 const REGISTER_VAR_NAME: &str = "registers";
 const MEMORY_VAR_NAME: &str = "memory";
@@ -273,17 +275,22 @@ impl Statements for StatementsImpl {
         Expression::new(text, type_)
     }
 
-    fn variable(&self, name: &str, code: &Expression) -> Code {
-        match code.type_ {
-            Type::Registers | Type::Memory | Type::Void => {
+    fn variable(&self, name: &str, code: &Expression) -> Variable {
+        let variable = match code.type_ {
+            Type::Registers | Type::Memory | Void => {
                 panic!("Cannot create variable of type {:?}", code.type_)
             }
             _ => Code::from_str(&format!(
                 "let {}: {} = {};",
                 name,
-                get_type_str(&code.type_),
+                get_type_str(code.type_),
                 code.text
             )),
+        };
+
+        Variable {
+            code: variable,
+            name: Expression::from(&name, code.type_),
         }
     }
 
@@ -311,7 +318,7 @@ impl Statements for StatementsImpl {
         parameters: &[Parameter],
         code: &Code,
         doc: &str,
-        return_value: &Expression,
+        return_value: Option<&Expression>,
     ) -> Function {
         let parameters = parameters
             .iter()
@@ -319,22 +326,30 @@ impl Statements for StatementsImpl {
             .collect::<Vec<String>>()
             .join(", ");
 
+        let return_type = if let Some(value) = return_value {
+            value.type_
+        } else {
+            Void
+        };
         let signature = format!(
             "pub fn {}({}) -> {}",
             name,
             parameters,
-            get_type_str(&return_value.type_)
+            get_type_str(return_type)
         );
 
-        let definition = Code::from_lines(
+        let mut definition = Code::from_lines(
             doc.split('\n')
                 .map(|line| format!("/// {}", line))
                 .collect::<Vec<String>>(),
         )
         .append_line(format!("{} {{", signature))
-        .append(code.clone().indent(INDENT))
-        .append_line(format!("{}return {};", INDENT, return_value.text))
-        .append_line("}\n".to_string());
+        .append(code.clone().indent(INDENT));
+
+        if let Some(value) = return_value {
+            definition.iappend_line(format!("{}return {};", INDENT, value.text))
+        }
+        definition.iappend_line("}\n".to_string());
 
         Function::new(String::from(name), signature, definition)
     }
@@ -350,11 +365,11 @@ fn make_parameter(parameter: &Parameter) -> String {
         "{}{}: {}",
         prefix,
         parameter.name,
-        get_type_str(&parameter.type_)
+        get_type_str(parameter.type_)
     )
 }
 
-fn get_type_str(type_: &Type) -> &'static str {
+fn get_type_str(type_: Type) -> &'static str {
     match type_ {
         Type::Uint8 => "u8",
         Type::Int8 => "i8",
@@ -366,23 +381,107 @@ fn get_type_str(type_: &Type) -> &'static str {
         Type::Int64 => "i64",
         Type::Registers => "&mut Registers",
         Type::Memory => "&mut dyn Memory",
+        Type::Void => "()",
         _ => panic!(""),
     }
 }
 
 struct OperationsImpl {}
 
-impl Operations for OperationsImpl {
-    fn add(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        assert_eq!(lhs.type_, rhs.type_, "Cannot add values of different types");
-        Expression::new(format!("{} + {}", lhs.text, rhs.text), lhs.type_)
+fn generic_operation(lhs: &Expression, rhs: &Expression, symbol: &str, name: &str) -> Expression {
+    assert_eq!(
+        lhs.type_, rhs.type_,
+        "{} can only happens between same types",
+        name
+    );
+    Expression::new(
+        format!("{} {} {}", lhs.op_safe_text(), symbol, rhs.op_safe_text()),
+        Type::Bool,
+    )
+}
+
+fn generic_operations(values: &[Expression], symbol: &str, name: &str) -> Expression {
+    assert!(!values.is_empty(), "Values cannot be empty");
+    let type_ = values[0].type_;
+    let all_same_type = values.into_iter().all(|expr| expr.type_ == type_);
+    assert!(
+        all_same_type,
+        "Cannot {:?} values of different types, values {:?}",
+        name, values
+    );
+
+    if values.len() == 1 {
+        return values[0].clone();
     }
-    fn sub(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        assert_eq!(
-            lhs.type_, rhs.type_,
-            "Cannot subtract values of different types"
-        );
-        Expression::new(format!("{} - {}", lhs.text, rhs.text), lhs.type_)
+
+    let text = values
+        .into_iter()
+        .map(|expr| expr.op_safe_text())
+        .collect::<Vec<String>>()
+        .join(&format!(" {} ", symbol));
+    Expression::new(text, values[0].type_)
+}
+
+impl Operations for OperationsImpl {
+    fn equals(&self, lhs: &Expression, rhs: &Expression) -> Expression {
+        generic_operation(lhs, rhs, "==", "equality")
+    }
+
+    fn greater_than(&self, lhs: &Expression, rhs: &Expression) -> Expression {
+        generic_operation(lhs, rhs, ">", "greater than")
+    }
+
+    fn greater_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression {
+        generic_operation(lhs, rhs, ">=", "greater equal")
+    }
+
+    fn lesser_than(&self, lhs: &Expression, rhs: &Expression) -> Expression {
+        generic_operation(lhs, rhs, "<", "lesser than")
+    }
+
+    fn lesser_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression {
+        generic_operation(lhs, rhs, "<=", "lesser equal")
+    }
+
+    fn add(&self, values: &[Expression]) -> Expression {
+        generic_operations(values, "+", "add")
+    }
+
+    fn sub(&self, values: &[Expression]) -> Expression {
+        generic_operations(values, "-", "sub")
+    }
+
+    fn cast(&self, value: &Expression, type_: Type) -> Expression {
+        if value.type_ == type_ {
+            value.clone()
+        } else {
+            Expression::new(
+                format!("{} as {}", value.op_safe_text(), get_type_str(type_)),
+                type_.clone(),
+            )
+        }
+    }
+
+    fn shift_left(&self, value: &Expression, shift: &Expression) -> Expression {
+        Expression::new(
+            format!("{} << {}", value.op_safe_text(), shift.op_safe_text()),
+            value.type_.clone(),
+        )
+    }
+
+    fn shift_right(&self, value: &Expression, shift: &Expression) -> Expression {
+        Expression::new(
+            format!("{} >> {}", value.op_safe_text(), shift.op_safe_text()),
+            value.type_.clone(),
+        )
+    }
+
+    fn bitwise_and(&self, values: &[Expression]) -> Expression {
+        generic_operations(values, "&", "bitwise and")
+    }
+
+    fn bitwise_or(&self, values: &[Expression]) -> Expression {
+        generic_operations(values, "|", "bitwise or")
     }
 }
 
@@ -458,5 +557,24 @@ pub fn get_rust_language() -> Language {
         memory: Box::new(MemoryImpl {}),
         statements: Box::new(StatementsImpl {}),
         operations: Box::new(OperationsImpl {}),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn cast_u8_to_i8() {
+        let u8value = 0xFFu8;
+        assert_eq!(u8value as i8, -1i8);
+        let u8value = 0xFEu8;
+        assert_eq!(u8value as i8, -2i8);
+    }
+
+    #[test]
+    fn cast_i8_to_u8() {
+        let i8value = -1i8;
+        assert_eq!(i8value as u8, 0xFFu8);
+        let i8value = -2i8;
+        assert_eq!(i8value as u8, 0xFEu8);
     }
 }

@@ -2,6 +2,11 @@ use macros_derive::AddEnumName;
 use serde::Deserialize;
 use serde::Serialize;
 
+const OFFSET_CARRY_FLAG_VALUE: u8 = 4;
+const OFFSET_HALF_CARRY_FLAG_VALUE: u8 = 5;
+const OFFSET_ADD_SUB_FLAG_VALUE: u8 = 6;
+const OFFSET_ZERO_FLAG_VALUE: u8 = 7;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Instruction {
     pub value: i64,
@@ -30,6 +35,42 @@ impl Instruction {
 
         representation
     }
+
+    pub fn get_flags(&self) -> Vec<Flag> {
+        vec![
+            Flag {
+                action: self.zero_flag.clone(),
+                offset: OFFSET_ZERO_FLAG_VALUE,
+            },
+            Flag {
+                action: self.add_sub_flag.clone(),
+                offset: OFFSET_ADD_SUB_FLAG_VALUE,
+            },
+            Flag {
+                action: self.half_carry_flag.clone(),
+                offset: OFFSET_HALF_CARRY_FLAG_VALUE,
+            },
+            Flag {
+                action: self.carry_flag.clone(),
+                offset: OFFSET_CARRY_FLAG_VALUE,
+            },
+        ]
+    }
+
+    pub fn is_two_bytes_op(&self) -> bool {
+        self.first_argument
+            .as_ref()
+            .map_or(false, |arg| arg.get_value_nb_bytes() > 1)
+            || self
+                .second_argument
+                .as_ref()
+                .map_or(false, |arg| arg.get_value_nb_bytes() > 1)
+    }
+}
+
+pub struct Flag {
+    pub action: FlagAction,
+    pub offset: u8,
 }
 
 #[allow(clippy::upper_case_acronyms)]
@@ -94,6 +135,21 @@ pub enum FlagAction {
     SET,
     RESET,
     NONE,
+}
+
+impl FlagAction {
+    pub fn set_as_u8(&self) -> u8 {
+        match self {
+            FlagAction::SET => 1,
+            _ => 0,
+        }
+    }
+    pub fn none_as_u8(&self) -> u8 {
+        match self {
+            FlagAction::NONE => 1,
+            _ => 0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

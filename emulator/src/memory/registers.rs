@@ -5,7 +5,7 @@ const OFFSET_ZERO_FLAG: u8 = 0x7;
 
 #[derive(Debug)]
 pub struct Registers {
-    pub f: u8,
+    pub flags: u8,
     pub a: u8,
     pub c: u8,
     pub b: u8,

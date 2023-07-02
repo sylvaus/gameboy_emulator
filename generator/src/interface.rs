@@ -42,6 +42,14 @@ impl Expression {
             type_,
         }
     }
+
+    pub fn op_safe_text(&self) -> String {
+        if self.text.contains("\n") || self.text.contains(" ") {
+            format!("({})", self.text)
+        } else {
+            self.text.clone()
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -73,21 +81,33 @@ impl Code {
     }
 
     pub fn prepend(mut self, code: Self) -> Self {
+        self.iprepend(code);
+        self
+    }
+
+    pub fn iprepend(&mut self, code: Self) {
         code.lines
             .into_iter()
             .rev()
             .for_each(|line| self.lines.insert(0, line));
-        self
     }
 
     pub fn append_line(mut self, line: String) -> Self {
-        self.lines.push(line);
+        self.iappend_line(line);
         self
     }
 
-    pub fn append(mut self, mut code: Self) -> Self {
-        self.lines.append(&mut code.lines);
+    pub fn iappend_line(&mut self, line: String) {
+        self.lines.push(line);
+    }
+
+    pub fn append(mut self, code: Self) -> Self {
+        self.iappend(code);
         self
+    }
+
+    pub fn iappend(&mut self, mut code: Self) {
+        self.lines.append(&mut code.lines);
     }
 
     pub fn from_str(lines: &str) -> Self {
@@ -202,6 +222,11 @@ pub enum IntFormat {
     Decimal,
 }
 
+pub struct Variable {
+    pub code: Code,
+    pub name: Expression,
+}
+
 pub trait Statements {
     fn header(&self) -> Option<Code>;
     fn footer(&self) -> Option<Code>;
@@ -209,7 +234,7 @@ pub trait Statements {
     fn log_trace(&self, text: &str) -> Code;
     fn log_trace_registers(&self) -> Code;
     fn int_literal(&self, value: i64, type_: Type, format: IntFormat) -> Expression;
-    fn variable(&self, name: &str, code: &Expression) -> Code;
+    fn variable(&self, name: &str, code: &Expression) -> Variable;
     fn single_if(&self, condition: &Expression, code: &Code) -> Code;
     fn if_else(&self, condition: &Expression, true_code: &Code, false_code: &Code) -> Code;
     fn stop_with_message(&self, message: &str) -> Code;
@@ -219,14 +244,25 @@ pub trait Statements {
         parameters: &[Parameter],
         code: &Code,
         doc: &str,
-        return_value: &Expression,
+        return_value: Option<&Expression>,
     ) -> Function;
     fn function_table_call(&self, id_function_map: &HashMap<u16, &Function>) -> FunctionTableCall;
 }
 
 pub trait Operations {
-    fn add(&self, lhs: &Expression, rhs: &Expression) -> Expression;
-    fn sub(&self, lhs: &Expression, rhs: &Expression) -> Expression;
+    fn equals(&self, lhs: &Expression, rhs: &Expression) -> Expression;
+    /// Returns expression lhs > rhs
+    fn greater_than(&self, lhs: &Expression, rhs: &Expression) -> Expression;
+    fn greater_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression;
+    fn lesser_than(&self, lhs: &Expression, rhs: &Expression) -> Expression;
+    fn lesser_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression;
+    fn add(&self, values: &[Expression]) -> Expression;
+    fn sub(&self, values: &[Expression]) -> Expression;
+    fn cast(&self, value: &Expression, type_: Type) -> Expression;
+    fn shift_left(&self, value: &Expression, shift: &Expression) -> Expression;
+    fn shift_right(&self, value: &Expression, shift: &Expression) -> Expression;
+    fn bitwise_and(&self, values: &[Expression]) -> Expression;
+    fn bitwise_or(&self, values: &[Expression]) -> Expression;
 }
 
 pub struct Language {
@@ -235,4 +271,121 @@ pub struct Language {
     pub memory: Box<dyn Memory>,
     pub statements: Box<dyn Statements>,
     pub operations: Box<dyn Operations>,
+}
+
+impl Language {
+    pub fn equals_int(&self, lhs: &Expression, rhs: i64, int_format: IntFormat) -> Expression {
+        self.operations.equals(
+            lhs,
+            &self.statements.int_literal(rhs, lhs.type_, int_format),
+        )
+    }
+    pub fn greater_than_int(
+        &self,
+        lhs: &Expression,
+        rhs: i64,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.greater_than(
+            lhs,
+            &self.statements.int_literal(rhs, lhs.type_, int_format),
+        )
+    }
+    pub fn int_greater_than(
+        &self,
+        lhs: i64,
+        rhs: &Expression,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.greater_than(
+            &self.statements.int_literal(lhs, rhs.type_, int_format),
+            rhs,
+        )
+    }
+    pub fn greater_equal_int(
+        &self,
+        lhs: &Expression,
+        rhs: i64,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.greater_equal(
+            lhs,
+            &self.statements.int_literal(rhs, lhs.type_, int_format),
+        )
+    }
+    pub fn int_greater_equal(
+        &self,
+        lhs: i64,
+        rhs: &Expression,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.greater_equal(
+            &self.statements.int_literal(lhs, rhs.type_, int_format),
+            rhs,
+        )
+    }
+    pub fn lesser_than_int(&self, lhs: &Expression, rhs: i64, int_format: IntFormat) -> Expression {
+        self.operations.lesser_than(
+            lhs,
+            &self.statements.int_literal(rhs, lhs.type_, int_format),
+        )
+    }
+    pub fn int_lesser_than(&self, lhs: i64, rhs: &Expression, int_format: IntFormat) -> Expression {
+        self.operations.lesser_than(
+            &self.statements.int_literal(lhs, rhs.type_, int_format),
+            rhs,
+        )
+    }
+    pub fn lesser_equal_int(
+        &self,
+        lhs: &Expression,
+        rhs: i64,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.lesser_equal(
+            lhs,
+            &self.statements.int_literal(rhs, lhs.type_, int_format),
+        )
+    }
+    pub fn int_lesser_equal(
+        &self,
+        lhs: i64,
+        rhs: &Expression,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.lesser_equal(
+            &self.statements.int_literal(lhs, rhs.type_, int_format),
+            rhs,
+        )
+    }
+    pub fn shift_left_int(
+        &self,
+        value: &Expression,
+        shift: i64,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.shift_left(
+            value,
+            &self.statements.int_literal(shift, value.type_, int_format),
+        )
+    }
+    pub fn shift_right_int(
+        &self,
+        value: &Expression,
+        shift: i64,
+        int_format: IntFormat,
+    ) -> Expression {
+        self.operations.shift_right(
+            value,
+            &self.statements.int_literal(shift, value.type_, int_format),
+        )
+    }
+    pub fn bitwise_and_int(&self, lhs: &Expression, rhs: i64, int_format: IntFormat) -> Expression {
+        let literal = self.statements.int_literal(rhs, lhs.type_, int_format);
+        self.operations.bitwise_and(&[lhs.clone(), literal])
+    }
+    pub fn bitwise_or_int(&self, lhs: &Expression, rhs: i64, int_format: IntFormat) -> Expression {
+        let literal = self.statements.int_literal(rhs, lhs.type_, int_format);
+        self.operations.bitwise_or(&[lhs.clone(), literal])
+    }
 }
