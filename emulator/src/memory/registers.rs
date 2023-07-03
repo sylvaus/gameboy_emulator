@@ -23,16 +23,16 @@ pub struct Registers {
 
 impl Registers {
     pub fn get_carry_flag(&self) -> bool {
-        ((self.f >> OFFSET_CARRY_FLAG) & 0x1) == 0x1
+        ((self.flags >> OFFSET_CARRY_FLAG) & 0x1) == 0x1
     }
     pub fn get_half_carry_flag(&self) -> bool {
-        ((self.f >> OFFSET_HALF_CARRY_FLAG) & 0x1) == 0x1
+        ((self.flags >> OFFSET_HALF_CARRY_FLAG) & 0x1) == 0x1
     }
     pub fn get_add_sub_flag(&self) -> bool {
-        ((self.f >> OFFSET_ADD_SUB_FLAG) & 0x1) == 0x1
+        ((self.flags >> OFFSET_ADD_SUB_FLAG) & 0x1) == 0x1
     }
     pub fn get_zero_flag(&self) -> bool {
-        ((self.f >> OFFSET_ZERO_FLAG) & 0x1) == 0x1
+        ((self.flags >> OFFSET_ZERO_FLAG) & 0x1) == 0x1
     }
 
     pub fn get_af(&self) -> u16 {

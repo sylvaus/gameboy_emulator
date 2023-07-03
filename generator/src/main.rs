@@ -8,6 +8,7 @@ use crate::generator::create_instruction_function;
 
 mod generator;
 mod implementations;
+mod instruction;
 mod interface;
 mod parser;
 

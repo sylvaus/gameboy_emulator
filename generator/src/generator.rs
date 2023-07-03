@@ -1,7 +1,9 @@
+use crate::instruction;
+use crate::instruction::{Argument, ArgumentType, FlagAction, Instruction, InstructionType};
+use crate::interface;
 use crate::interface::{
     Code, Expression, Function, IntFormat, Language, Parameter, Register, Type, Variable,
 };
-use crate::parser::{Argument, ArgumentType, FlagAction, Instruction, InstructionType};
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
 const OFFSET_HALF_CARRY_FLAG_VALUE: i64 = 5;
@@ -53,14 +55,14 @@ fn create_ldh_special(instruction: &Instruction, language: &Language) -> Functio
     let get_code = &create_get_code_with_offset(
         language,
         &instruction.second_argument.as_ref().unwrap(),
-        Some(&offset)
+        Some(&offset),
     );
 
     let code = create_set_code_with_offset(
         language,
         instruction.first_argument.as_ref().unwrap(),
         &get_code,
-        Some(&offset)
+        Some(&offset),
     );
 
     create_function(
@@ -112,7 +114,11 @@ fn create_ld_used_params(instruction: &Instruction) -> UsedFnParams {
 
 fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
     let operation = create_op_with_flag_code(language, instruction, Operation::Add);
-    let code = language.registers.hl.set(&operation.result).prepend(operation.code);
+    let code = language
+        .registers
+        .hl
+        .set(&operation.result)
+        .prepend(operation.code);
 
     create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
 }
@@ -125,18 +131,21 @@ fn create_inc_dec(instruction: &Instruction, language: &Language) -> Function {
     let operation = create_op_with_flag_code_3_custom_values(
         language,
         instruction,
-        if instruction.type_field == InstructionType::INC {Operation::Add} else {Operation::Sub},
-
+        if instruction.type_field == InstructionType::INC {
+            Operation::Add
+        } else {
+            Operation::Sub
+        },
         &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
         &one,
-        None
-
+        None,
     );
     let code = create_set_code(
         language,
         instruction.first_argument.as_ref().unwrap(),
         &operation.result,
-    ).prepend(operation.code);
+    )
+    .prepend(operation.code);
 
     let used_params = if instruction.first_argument.as_ref().unwrap().is_address {
         USE_REGISTER_AND_MEMORY
@@ -146,27 +155,152 @@ fn create_inc_dec(instruction: &Instruction, language: &Language) -> Function {
     create_function(instruction, language, used_params, code)
 }
 
-
-
 fn create_add_sub(instruction: &Instruction, language: &Language) -> Function {
     let operation = create_op_with_flag_code(
         language,
         instruction,
-        if instruction.type_field == InstructionType::ADD {Operation::Add} else {Operation::Sub},
+        if instruction.type_field == InstructionType::ADD {
+            Operation::Add
+        } else {
+            Operation::Sub
+        },
     );
     let code = create_set_code(
         language,
         instruction.first_argument.as_ref().unwrap(),
         &operation.result,
-    ).prepend(operation.code);
+    )
+    .prepend(operation.code);
 
     let argument = instruction.second_argument.as_ref().unwrap();
-    let used_params = if argument.is_address  || argument.is_immediate() {
+    let used_params = if argument.is_address || argument.is_immediate() {
         USE_REGISTER_AND_MEMORY
     } else {
         ONLY_USE_REGISTER
     };
     create_function(instruction, language, used_params, code)
+}
+
+fn create_rotate(instruction: &Instruction, language: &Language) -> Function {
+    let argument = instruction
+        .first_argument
+        .clone()
+        .unwrap_or(Argument::new_register(instruction::REGISTER_NAME_A));
+
+    let value_u8 = language.statements.variable(
+        "value_u8", &create_get_code(language, &argument),
+    );
+    let value = language.statements.variable(
+        "value",
+        &language.operations.cast(&value_u8.name, Type::Uint16),
+    );
+
+    let left_rotation = is_left_rotation(instruction);
+    let carry_value = if left_rotation {
+        language.bitwise_and_int(
+            &language.shift_right_int(&value_u8.name, 7, IntFormat::Decimal),
+            1,
+            IntFormat::Bin,
+        )
+    } else {
+        language.bitwise_and_int(&value_u8.name, 1, IntFormat::Bin)
+    };
+    let carry_value = language.statements.variable("carried_value", &carry_value);
+
+    let bit_carried = if is_carry_rotation(instruction) {
+        carry_value.name.clone()
+    } else {
+        language.registers.flags.get_carry_flag()
+    };
+    let bit_carried = language.operations.cast(&bit_carried, Type::Uint16);
+
+    let result = if left_rotation {
+        language.operations.add(&[
+            language.shift_left_int(&value.name, 1, IntFormat::Decimal),
+            bit_carried,
+        ])
+    } else {
+        language.operations.add(&[
+            language.shift_right_int(&value.name, 1, IntFormat::Decimal),
+            language.shift_left_int(&bit_carried, 7, IntFormat::Decimal),
+        ])
+    };
+    let result = language.statements.variable(
+        "result",
+        &language.operations.cast(
+            &language.bitwise_and_int(&result, 0xFF, IntFormat::Hex),
+            Type::Uint8
+        )
+    );
+
+    let mut custom_flags = Vec::new();
+    custom_flags.push(language.shift_left_int(
+        &carry_value.name,
+        OFFSET_CARRY_FLAG_VALUE,
+        IntFormat::Decimal,
+    ));
+    let mut custom_flag_code = Code::create_empty();
+    if instruction.zero_flag == FlagAction::CUSTOM {
+        let zero_flag = language.statements.variable(
+            "zero_flag",
+            &language.operations.cast(&language.equals_int(
+                &language.bitwise_and_int(&result.name, 0xFF, IntFormat::Hex),
+                0,
+                IntFormat::Decimal,
+            ), Type::Uint8),
+        );
+
+        custom_flag_code.iappend(zero_flag.code);
+        custom_flags.push(language.shift_left_int(
+            &zero_flag.name,
+            OFFSET_ZERO_FLAG_VALUE,
+            IntFormat::Decimal,
+        ));
+    }
+
+    let code = Code::create_empty()
+        .append(value_u8.code)
+        .append(carry_value.code)
+        .append(value.code)
+        .append(result.code)
+        .append(custom_flag_code)
+        .append(create_set_flags(language, instruction, &custom_flags))
+        .append(create_set_code(language, &argument, &result.name));
+
+    let used_params = if argument.is_address {
+        USE_REGISTER_AND_MEMORY
+    } else {
+        ONLY_USE_REGISTER
+    };
+    create_function(instruction, language, used_params, code)
+}
+
+fn is_left_rotation(instruction: &Instruction) -> bool {
+    match instruction.type_field {
+        InstructionType::RLCA
+        | InstructionType::RLA
+        | InstructionType::RLC
+        | InstructionType::RL => true,
+        InstructionType::RRCA
+        | InstructionType::RRA
+        | InstructionType::RRC
+        | InstructionType::RR => false,
+        _ => panic!("Only handle rotation"),
+    }
+}
+
+// Is the rotation reusing the carried value in the rotation
+fn is_carry_rotation(instruction: &Instruction) -> bool {
+    match instruction.type_field {
+        InstructionType::RLCA
+        | InstructionType::RRCA
+        | InstructionType::RLC
+        | InstructionType::RRC => true,
+        InstructionType::RLA | InstructionType::RRA | InstructionType::RL | InstructionType::RR => {
+            false
+        }
+        _ => panic!("Only handle rotation"),
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -284,7 +418,7 @@ fn create_set_code_with_offset(
     if argument.is_address {
         let mut address = language.operations.cast(
             &create_get_code_no_address(language, argument),
-            Type::Uint16
+            Type::Uint16,
         );
         if let Some(offset) = address_offset {
             address = language.operations.add(&[address, offset.clone()])
@@ -317,7 +451,11 @@ fn create_get_code(language: &Language, argument: &Argument) -> Expression {
     create_get_code_with_offset(language, argument, None)
 }
 
-fn create_get_code_with_offset(language: &Language, argument: &Argument, address_offset: Option<&Expression>) -> Expression {
+fn create_get_code_with_offset(
+    language: &Language,
+    argument: &Argument,
+    address_offset: Option<&Expression>,
+) -> Expression {
     let mut code = create_get_code_no_address(language, argument);
 
     if !argument.is_address {
@@ -350,19 +488,19 @@ fn create_get_code_no_address(language: &Language, argument: &Argument) -> Expre
 
 fn get_register_from_name<'a>(language: &'a Language, name: &str) -> &'a Box<dyn Register> {
     match name.to_lowercase().as_str() {
-        "a" => &language.registers.a,
-        "b" => &language.registers.b,
-        "c" => &language.registers.c,
-        "d" => &language.registers.d,
-        "e" => &language.registers.e,
-        "h" => &language.registers.h,
-        "l" => &language.registers.l,
-        "af" => &language.registers.af,
-        "bc" => &language.registers.bc,
-        "de" => &language.registers.de,
-        "hl" => &language.registers.hl,
-        "sp" => &language.registers.stack_pointer,
-        "pc" => &language.registers.program_counter,
+        instruction::REGISTER_NAME_A => &language.registers.a,
+        instruction::REGISTER_NAME_B => &language.registers.b,
+        instruction::REGISTER_NAME_C => &language.registers.c,
+        instruction::REGISTER_NAME_D => &language.registers.d,
+        instruction::REGISTER_NAME_E => &language.registers.e,
+        instruction::REGISTER_NAME_H => &language.registers.h,
+        instruction::REGISTER_NAME_L => &language.registers.l,
+        instruction::REGISTER_NAME_AF => &language.registers.af,
+        instruction::REGISTER_NAME_BC => &language.registers.bc,
+        instruction::REGISTER_NAME_DE => &language.registers.de,
+        instruction::REGISTER_NAME_HL => &language.registers.hl,
+        instruction::REGISTER_NAME_SP => &language.registers.stack_pointer,
+        instruction::REGISTER_NAME_PC => &language.registers.program_counter,
 
         _ => panic!("No register for name {}", name),
     }
@@ -459,7 +597,11 @@ fn create_op_with_flag_code_3_custom_values(
 
     let result_value = language.operations.cast(
         &language.bitwise_and_int(&result.name, carry_max_value, IntFormat::Hex),
-        if instruction.is_two_bytes_op() {Type::Uint16} else {Type::Uint8}
+        if instruction.is_two_bytes_op() {
+            Type::Uint16
+        } else {
+            Type::Uint8
+        },
     );
 
     result
@@ -490,7 +632,8 @@ pub fn get_half_carry_max_value(instruction: &Instruction) -> i64 {
 fn create_zero_flag(language: &Language, result: &Expression, carry_max_value: i64) -> Variable {
     let equals = language.equals_int(
         &language.bitwise_and_int(result, carry_max_value, IntFormat::Hex),
-        0, IntFormat::Decimal
+        0,
+        IntFormat::Decimal,
     );
 
     language
@@ -606,14 +749,20 @@ pub fn create_instruction_function(
         InstructionType::NOP => Some(create_nop(instruction, language)),
         InstructionType::LD => Some(create_ld(instruction, language)),
         InstructionType::LDI | InstructionType::LDD => Some(create_ldid(instruction, language)),
-        InstructionType::LDH | InstructionType::LDSpecial => Some(create_ldh_special(instruction, language)),
+        InstructionType::LDH | InstructionType::LDSpecial => {
+            Some(create_ldh_special(instruction, language))
+        }
         InstructionType::LDHL => Some(create_ldhl(instruction, language)),
         InstructionType::INC | InstructionType::DEC => Some(create_inc_dec(instruction, language)),
         InstructionType::ADD | InstructionType::SUB => Some(create_add_sub(instruction, language)),
-        // InstructionType::RLCA => {}
-        // InstructionType::RRCA => {}
-        // InstructionType::RLA => {}
-        // InstructionType::RRA => {}
+        InstructionType::RLCA
+        | InstructionType::RRCA
+        | InstructionType::RLA
+        | InstructionType::RRA
+        | InstructionType::RLC
+        | InstructionType::RRC
+        | InstructionType::RL
+        | InstructionType::RR => Some(create_rotate(instruction, language)),
         // InstructionType::JR => {}
         // InstructionType::DAA => {}
         // InstructionType::CPL => {}
@@ -634,10 +783,6 @@ pub fn create_instruction_function(
         // InstructionType::PREFIX => {}
         // InstructionType::DI => {}
         // InstructionType::EI => {}
-        // InstructionType::RLC => {}
-        // InstructionType::RRC => {}
-        // InstructionType::RL => {}
-        // InstructionType::RR => {}
         // InstructionType::SLA => {}
         // InstructionType::SRA => {}
         // InstructionType::SWAP => {}

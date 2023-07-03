@@ -119,19 +119,19 @@ impl Register for FlagsRegisterImpl {
 
 impl Flags for FlagsRegisterImpl {
     fn get_carry_flag(&self) -> Expression {
-        Expression::from_str("registers.flags.get_carry_flag()", Type::Uint8)
+        Expression::from_str("registers.get_carry_flag()", Type::Uint8)
     }
 
     fn get_half_carry_flag(&self) -> Expression {
-        Expression::from_str("registers.flags.get_half_carry_flag()", Type::Uint8)
+        Expression::from_str("registers.get_half_carry_flag()", Type::Uint8)
     }
 
     fn get_add_sub_flag(&self) -> Expression {
-        Expression::from_str("registers.flags.get_add_sub_flag()", Type::Uint8)
+        Expression::from_str("registers.get_add_sub_flag()", Type::Uint8)
     }
 
     fn get_zero_flag(&self) -> Expression {
-        Expression::from_str("registers.flags.get_zero_flag()", Type::Uint8)
+        Expression::from_str("registers.get_zero_flag()", Type::Uint8)
     }
 }
 

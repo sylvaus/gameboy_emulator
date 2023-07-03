@@ -67,6 +67,18 @@ pub fn ld_006(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0x7 RLCA
+pub fn rlca_007(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    registers.flags = carried_value << 4u8;
+    registers.a = result;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x8 LD (a16) SP
 pub fn ld_008(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     memory.set_16_bits(memory.get_16_bits(registers.pc + 1), registers.sp);
@@ -140,6 +152,18 @@ pub fn ld_00e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0xf RRCA
+pub fn rrca_00f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    registers.flags = carried_value << 4u8;
+    registers.a = result;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x11 LD DE d16
 pub fn ld_011(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.set_de(memory.get_16_bits(registers.pc + 1));
@@ -197,6 +221,18 @@ pub fn ld_016(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.d = memory.get(registers.pc + 1);
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0x17 RLA
+pub fn rla_017(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    registers.flags = carried_value << 4u8;
+    registers.a = result;
+    registers.pc = registers.pc + 1;
+    return 4;
 }
 
 /// 0x19 ADD HL DE
@@ -263,6 +299,18 @@ pub fn ld_01e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.e = memory.get(registers.pc + 1);
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0x1f RRA
+pub fn rra_01f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    registers.flags = carried_value << 4u8;
+    registers.a = result;
+    registers.pc = registers.pc + 1;
+    return 4;
 }
 
 /// 0x21 LD HL d16
@@ -1360,5 +1408,421 @@ pub fn unknown_0fc(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
 /// 0xfd UNKNOWN
 pub fn unknown_0fd(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
     panic!("Unknown opcode 0xFD");
+}
+
+/// 0x100 RLC B
+pub fn rlc_100(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.b;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x101 RLC C
+pub fn rlc_101(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.c;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x102 RLC D
+pub fn rlc_102(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.d;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x103 RLC E
+pub fn rlc_103(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.e;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x104 RLC H
+pub fn rlc_104(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.h;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x105 RLC L
+pub fn rlc_105(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.l;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x106 RLC (HL)
+pub fn rlc_106(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = memory.get(registers.get_hl());
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x107 RLC A
+pub fn rlc_107(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x108 RRC B
+pub fn rrc_108(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.b;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x109 RRC C
+pub fn rrc_109(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.c;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x10a RRC D
+pub fn rrc_10a(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.d;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x10b RRC E
+pub fn rrc_10b(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.e;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x10c RRC H
+pub fn rrc_10c(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.h;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x10d RRC L
+pub fn rrc_10d(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.l;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x10e RRC (HL)
+pub fn rrc_10e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = memory.get(registers.get_hl());
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x10f RRC A
+pub fn rrc_10f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x110 RL B
+pub fn rl_110(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.b;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x111 RL C
+pub fn rl_111(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.c;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x112 RL D
+pub fn rl_112(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.d;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x113 RL E
+pub fn rl_113(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.e;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x114 RL H
+pub fn rl_114(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.h;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x115 RL L
+pub fn rl_115(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.l;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x116 RL (HL)
+pub fn rl_116(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = memory.get(registers.get_hl());
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x117 RL A
+pub fn rl_117(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x118 RR B
+pub fn rr_118(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.b;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x119 RR C
+pub fn rr_119(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.c;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x11a RR D
+pub fn rr_11a(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.d;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x11b RR E
+pub fn rr_11b(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.e;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x11c RR H
+pub fn rr_11c(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.h;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x11d RR L
+pub fn rr_11d(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.l;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x11e RR (HL)
+pub fn rr_11e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = memory.get(registers.get_hl());
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x11f RR A
+pub fn rr_11f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let value_u8: u8 = registers.a;
+    let carried_value: u8 = value_u8 & 0b1u8;
+    let value: u16 = value_u8 as u16;
+    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
+    registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
 }
 
