@@ -117,7 +117,7 @@ fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
     create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
 }
 
-fn create_inc(instruction: &Instruction, language: &Language) -> Function {
+fn create_inc_dec(instruction: &Instruction, language: &Language) -> Function {
     let one = language
         .statements
         .int_literal(1, Type::Int32, IntFormat::Decimal);
@@ -125,7 +125,7 @@ fn create_inc(instruction: &Instruction, language: &Language) -> Function {
     let operation = create_op_with_flag_code_3_custom_values(
         language,
         instruction,
-        Operation::Add,
+        if instruction.type_field == InstructionType::INC {Operation::Add} else {Operation::Sub},
 
         &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
         &one,
@@ -138,7 +138,12 @@ fn create_inc(instruction: &Instruction, language: &Language) -> Function {
         &operation.result,
     ).prepend(operation.code);
 
-    create_function(instruction, language, ONLY_USE_REGISTER, code)
+    let used_params = if instruction.first_argument.as_ref().unwrap().is_address {
+        USE_REGISTER_AND_MEMORY
+    } else {
+        ONLY_USE_REGISTER
+    };
+    create_function(instruction, language, used_params, code)
 }
 
 #[derive(Debug, Clone)]
@@ -580,8 +585,7 @@ pub fn create_instruction_function(
         InstructionType::LDI | InstructionType::LDD => Some(create_ldid(instruction, language)),
         InstructionType::LDH | InstructionType::LDSpecial => Some(create_ldh_special(instruction, language)),
         InstructionType::LDHL => Some(create_ldhl(instruction, language)),
-        InstructionType::INC => Some(create_inc(instruction, language)),
-        // InstructionType::DEC => {}
+        InstructionType::INC | InstructionType::DEC => Some(create_inc_dec(instruction, language)),
         // InstructionType::ADD => {}
         // InstructionType::RLCA => {}
         // InstructionType::RRCA => {}
