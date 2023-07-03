@@ -113,8 +113,7 @@ fn create_ld_used_params(instruction: &Instruction) -> UsedFnParams {
 
 fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
     let operation = create_op_with_flag_code(language, instruction, Operation::Add);
-    let value = language.operations.cast(&operation.result, Type::Uint16);
-    let code = language.registers.hl.set(&value).prepend(operation.code);
+    let code = language.registers.hl.set(&operation.result).prepend(operation.code);
 
     create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
 }
@@ -334,7 +333,7 @@ fn create_op_with_flag_code(
     instruction: &Instruction,
     operation: Operation,
 ) -> OperationWithFlag {
-    create_op_with_flag_code_custom_3_values(
+    create_op_with_flag_code_3_custom_values(
         language,
         instruction,
         operation,
@@ -344,7 +343,7 @@ fn create_op_with_flag_code(
     )
 }
 
-fn create_op_with_flag_code_custom_3_values(
+fn create_op_with_flag_code_3_custom_values(
     language: &Language,
     instruction: &Instruction,
     operation: Operation,
@@ -372,6 +371,7 @@ fn create_op_with_flag_code_custom_3_values(
     );
     values
         .iter()
+        .rev()
         .for_each(|value| result.code.iprepend(value.code.clone()));
 
     let mut custom_flag_values = Vec::new();
@@ -406,11 +406,16 @@ fn create_op_with_flag_code_custom_3_values(
         result.code.iappend(variable.code);
     }
 
+    let result_value = language.operations.cast(
+        &language.bitwise_and_int(&result.name, carry_max_value, IntFormat::Hex),
+        if instruction.is_two_bytes_op() {Type::Uint16} else {Type::Uint8}
+    );
+
     result
         .code
         .iappend(create_set_flags(language, instruction, &custom_flag_values));
     OperationWithFlag {
-        result: language.bitwise_and_int(&result.name, carry_max_value, IntFormat::Hex),
+        result: result_value,
         code: result.code,
     }
 }
