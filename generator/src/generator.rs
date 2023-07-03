@@ -1,7 +1,6 @@
 use crate::interface::{
     Code, Expression, Function, IntFormat, Language, Parameter, Register, Type, Variable,
 };
-use crate::interface::Type::Uint16;
 use crate::parser::{Argument, ArgumentType, FlagAction, Instruction, InstructionType};
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
@@ -116,6 +115,30 @@ fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
     let code = language.registers.hl.set(&operation.result).prepend(operation.code);
 
     create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
+}
+
+fn create_inc(instruction: &Instruction, language: &Language) -> Function {
+    let one = language
+        .statements
+        .int_literal(1, Type::Int32, IntFormat::Decimal);
+
+    let operation = create_op_with_flag_code_3_custom_values(
+        language,
+        instruction,
+        Operation::Add,
+
+        &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
+        &one,
+        None
+
+    );
+    let code = create_set_code(
+        language,
+        instruction.first_argument.as_ref().unwrap(),
+        &operation.result,
+    ).prepend(operation.code);
+
+    create_function(instruction, language, ONLY_USE_REGISTER, code)
 }
 
 #[derive(Debug, Clone)]
@@ -557,7 +580,7 @@ pub fn create_instruction_function(
         InstructionType::LDI | InstructionType::LDD => Some(create_ldid(instruction, language)),
         InstructionType::LDH | InstructionType::LDSpecial => Some(create_ldh_special(instruction, language)),
         InstructionType::LDHL => Some(create_ldhl(instruction, language)),
-        // InstructionType::INC => {}
+        InstructionType::INC => Some(create_inc(instruction, language)),
         // InstructionType::DEC => {}
         // InstructionType::ADD => {}
         // InstructionType::RLCA => {}
