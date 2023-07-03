@@ -432,11 +432,9 @@ pub fn get_half_carry_max_value(instruction: &Instruction) -> i64 {
 }
 
 fn create_zero_flag(language: &Language, result: &Expression, carry_max_value: i64) -> Variable {
-    let equals = language.operations.equals(
-        result,
-        &language
-            .statements
-            .int_literal(carry_max_value, result.type_, IntFormat::Hex),
+    let equals = language.equals_int(
+        &language.bitwise_and_int(result, carry_max_value, IntFormat::Hex),
+        0, IntFormat::Decimal
     );
 
     language
