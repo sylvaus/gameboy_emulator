@@ -146,6 +146,29 @@ fn create_inc_dec(instruction: &Instruction, language: &Language) -> Function {
     create_function(instruction, language, used_params, code)
 }
 
+
+
+fn create_add_sub(instruction: &Instruction, language: &Language) -> Function {
+    let operation = create_op_with_flag_code(
+        language,
+        instruction,
+        if instruction.type_field == InstructionType::ADD {Operation::Add} else {Operation::Sub},
+    );
+    let code = create_set_code(
+        language,
+        instruction.first_argument.as_ref().unwrap(),
+        &operation.result,
+    ).prepend(operation.code);
+
+    let argument = instruction.second_argument.as_ref().unwrap();
+    let used_params = if argument.is_address  || argument.is_immediate() {
+        USE_REGISTER_AND_MEMORY
+    } else {
+        ONLY_USE_REGISTER
+    };
+    create_function(instruction, language, used_params, code)
+}
+
 #[derive(Debug, Clone)]
 struct UsedFnParams {
     pub register: bool,
@@ -586,7 +609,7 @@ pub fn create_instruction_function(
         InstructionType::LDH | InstructionType::LDSpecial => Some(create_ldh_special(instruction, language)),
         InstructionType::LDHL => Some(create_ldhl(instruction, language)),
         InstructionType::INC | InstructionType::DEC => Some(create_inc_dec(instruction, language)),
-        // InstructionType::ADD => {}
+        InstructionType::ADD | InstructionType::SUB => Some(create_add_sub(instruction, language)),
         // InstructionType::RLCA => {}
         // InstructionType::RRCA => {}
         // InstructionType::RLA => {}
@@ -598,7 +621,6 @@ pub fn create_instruction_function(
         // InstructionType::CCF => {}
         // InstructionType::HALT => {}
         // InstructionType::ADC => {}
-        // InstructionType::SUB => {}
         // InstructionType::SBC => {}
         // InstructionType::XOR => {}
         // InstructionType::OR => {}
