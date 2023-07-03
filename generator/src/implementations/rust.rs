@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
+use crate::interface::Type::Void;
 use crate::interface::{
     ArgumentGetters, Code, Expression, Flags, FlagsRegister, Function, FunctionTableCall,
     IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type,
     Variable,
 };
-use crate::interface::Type::Void;
 
 const REGISTER_VAR_NAME: &str = "registers";
 const MEMORY_VAR_NAME: &str = "memory";
@@ -205,7 +205,7 @@ impl Memory for MemoryImpl {
             address.type_,
             Type::Uint16,
             "Address type should be uint16 and not: {:?}",
-            value.type_
+            address.type_
         );
         assert_eq!(
             value.type_,

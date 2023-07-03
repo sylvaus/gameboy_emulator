@@ -92,10 +92,26 @@ pub fn ld_021(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 12;
 }
 
+/// 0x22 LDI (HL) A
+pub fn ldi_022(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    memory.set(registers.get_hl(), registers.a);
+    registers.set_hl(registers.get_hl() + 1u16);
+    registers.pc = registers.pc + 1;
+    return 8;
+}
+
 /// 0x26 LD H d8
 pub fn ld_026(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.h = memory.get(registers.pc + 1);
     registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x2a LDI A (HL)
+pub fn ldi_02a(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = memory.get(registers.get_hl());
+    registers.set_hl(registers.get_hl() + 1u16);
+    registers.pc = registers.pc + 1;
     return 8;
 }
 
@@ -113,11 +129,27 @@ pub fn ld_031(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 12;
 }
 
+/// 0x32 LDD (HL) A
+pub fn ldd_032(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    memory.set(registers.get_hl(), registers.a);
+    registers.set_hl(registers.get_hl() - 1u16);
+    registers.pc = registers.pc + 1;
+    return 8;
+}
+
 /// 0x36 LD (HL) d8
 pub fn ld_036(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     memory.set(registers.get_hl(), memory.get(registers.pc + 1));
     registers.pc = registers.pc + 2;
     return 12;
+}
+
+/// 0x3a LDD A (HL)
+pub fn ldd_03a(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = memory.get(registers.get_hl());
+    registers.set_hl(registers.get_hl() - 1u16);
+    registers.pc = registers.pc + 1;
+    return 8;
 }
 
 /// 0x3e LD A d8
@@ -583,6 +615,20 @@ pub fn unknown_0dd(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
     panic!("Unknown opcode 0xDD");
 }
 
+/// 0xe0 LDH (a8) A
+pub fn ldh_0e0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    memory.set(((memory.get(registers.pc + 1)) as u16) + 0xFF00u16, registers.a);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0xe2 LDSpecial (C) A
+pub fn ldspecial_0e2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    memory.set((registers.c as u16) + 0xFF00u16, registers.a);
+    registers.pc = registers.pc + 1;
+    return 8;
+}
+
 /// 0xe3 UNKNOWN
 pub fn unknown_0e3(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
     panic!("Unknown opcode 0xE3");
@@ -613,6 +659,20 @@ pub fn unknown_0ec(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
 /// 0xed UNKNOWN
 pub fn unknown_0ed(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
     panic!("Unknown opcode 0xED");
+}
+
+/// 0xf0 LDH A (a8)
+pub fn ldh_0f0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = memory.get(((memory.get(registers.pc + 1)) as u16) + 0xFF00u16);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0xf2 LDSpecial A (C)
+pub fn ldspecial_0f2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = memory.get((registers.c as u16) + 0xFF00u16);
+    registers.pc = registers.pc + 1;
+    return 8;
 }
 
 /// 0xf4 UNKNOWN

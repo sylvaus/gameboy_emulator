@@ -1,6 +1,7 @@
 use crate::interface::{
     Code, Expression, Function, IntFormat, Language, Parameter, Register, Type, Variable,
 };
+use crate::interface::Type::Uint16;
 use crate::parser::{Argument, ArgumentType, FlagAction, Instruction, InstructionType};
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
@@ -30,17 +31,49 @@ fn create_unknown(instruction: &Instruction, language: &Language) -> Function {
 }
 
 fn create_ld(instruction: &Instruction, language: &Language) -> Function {
+    let get_code = create_get_code(language, &instruction.second_argument.as_ref().unwrap());
+
+    let code = create_set_code(
+        language,
+        instruction.first_argument.as_ref().unwrap(),
+        &get_code,
+    );
+
+    create_function(
+        &instruction,
+        &language,
+        create_ld_used_params(instruction),
+        code,
+    )
+}
+
+fn create_ldh_special(instruction: &Instruction, language: &Language) -> Function {
     let offset = language
         .statements
-        .int_literal(0xFF00, Type::Uint16, IntFormat::Decimal);
-    let get_code = match instruction.type_field {
-        InstructionType::LDH | InstructionType::LDSpecial => create_get_code_with_offset(
-            language,
-            &instruction.second_argument.as_ref().unwrap(),
-            Some(&offset),
-        ),
-        _ => create_get_code(language, &instruction.second_argument.as_ref().unwrap()),
-    };
+        .int_literal(0xFF00, Type::Uint16, IntFormat::Hex);
+    let get_code = &create_get_code_with_offset(
+        language,
+        &instruction.second_argument.as_ref().unwrap(),
+        Some(&offset)
+    );
+
+    let code = create_set_code_with_offset(
+        language,
+        instruction.first_argument.as_ref().unwrap(),
+        &get_code,
+        Some(&offset)
+    );
+
+    create_function(
+        &instruction,
+        &language,
+        create_ld_used_params(instruction),
+        code,
+    )
+}
+
+fn create_ldid(instruction: &Instruction, language: &Language) -> Function {
+    let get_code = create_get_code(language, &instruction.second_argument.as_ref().unwrap());
 
     let mut code = create_set_code(
         language,
@@ -60,19 +93,22 @@ fn create_ld(instruction: &Instruction, language: &Language) -> Function {
     } else if instruction.type_field == InstructionType::LDD {
         code = code.append(hl.set(&language.operations.sub(&hl_one)));
     }
-    let use_memory = instruction.first_argument.as_ref().unwrap().is_address
-        || instruction.second_argument.as_ref().unwrap().is_address
-        || instruction.second_argument.as_ref().unwrap().is_immediate();
 
     create_function(
         &instruction,
         &language,
-        UsedFnParams {
-            register: true,
-            memory: use_memory,
-        },
+        create_ld_used_params(instruction),
         code,
     )
+}
+
+fn create_ld_used_params(instruction: &Instruction) -> UsedFnParams {
+    UsedFnParams {
+        register: true,
+        memory: instruction.first_argument.as_ref().unwrap().is_address
+            || instruction.second_argument.as_ref().unwrap().is_address
+            || instruction.second_argument.as_ref().unwrap().is_immediate(),
+    }
 }
 
 fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
@@ -196,7 +232,10 @@ fn create_set_code_with_offset(
     address_offset: Option<&Expression>,
 ) -> Code {
     if argument.is_address {
-        let mut address = create_get_code_no_address(language, argument);
+        let mut address = language.operations.cast(
+            &create_get_code_no_address(language, argument),
+            Type::Uint16
+        );
         if let Some(offset) = address_offset {
             address = language.operations.add(&[address, offset.clone()])
         }
@@ -228,20 +267,18 @@ fn create_get_code(language: &Language, argument: &Argument) -> Expression {
     create_get_code_with_offset(language, argument, None)
 }
 
-fn create_get_code_with_offset(
-    language: &Language,
-    argument: &Argument,
-    offset: Option<&Expression>,
-) -> Expression {
-    let code = create_get_code_no_address(language, argument);
+fn create_get_code_with_offset(language: &Language, argument: &Argument, address_offset: Option<&Expression>) -> Expression {
+    let mut code = create_get_code_no_address(language, argument);
+
     if !argument.is_address {
         return code;
     }
-    if let Some(address) = offset {
-        return language
-            .memory
-            .get(&language.operations.add(&[address.clone(), code]));
+
+    code = language.operations.cast(&code, Type::Uint16);
+    if let Some(offset) = address_offset {
+        code = language.operations.add(&[code, offset.clone()])
     }
+
     language.memory.get(&code)
 }
 
@@ -514,10 +551,8 @@ pub fn create_instruction_function(
         InstructionType::UNKNOWN => Some(create_unknown(instruction, language)),
         InstructionType::NOP => Some(create_nop(instruction, language)),
         InstructionType::LD => Some(create_ld(instruction, language)),
-        // InstructionType::LD => {}
-        // InstructionType::LDI => {}
-        // InstructionType::LDD => {}
-        // InstructionType::LDH => {}
+        InstructionType::LDI | InstructionType::LDD => Some(create_ldid(instruction, language)),
+        InstructionType::LDH | InstructionType::LDSpecial => Some(create_ldh_special(instruction, language)),
         InstructionType::LDHL => Some(create_ldhl(instruction, language)),
         // InstructionType::INC => {}
         // InstructionType::DEC => {}
@@ -561,7 +596,6 @@ pub fn create_instruction_function(
         // InstructionType::STOP => {}
         // InstructionType::AND => {}
         // InstructionType::RETI => {}
-        // InstructionType::LDSpecial => {}
         _ => None,
     }
 }
