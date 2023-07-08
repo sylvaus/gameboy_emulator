@@ -166,6 +166,11 @@ pub const REGISTER_NAME_HL: &str = "hl";
 pub const REGISTER_NAME_SP: &str = "sp";
 pub const REGISTER_NAME_PC: &str = "pc";
 
+pub const FLAG_NAME_CARRY: &str = "c";
+pub const FLAG_NAME_ZERO: &str = "z";
+pub const FLAG_NAME_NON_CARRY: &str = "nc";
+pub const FLAG_NAME_NON_ZERO: &str = "nz";
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Argument {
     #[serde(rename = "type")]

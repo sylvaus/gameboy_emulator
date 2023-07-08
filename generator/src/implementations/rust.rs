@@ -119,19 +119,26 @@ impl Register for FlagsRegisterImpl {
 
 impl Flags for FlagsRegisterImpl {
     fn get_carry_flag(&self) -> Expression {
-        Expression::from_str("registers.get_carry_flag()", Type::Uint8)
+        Expression::from_str("registers.get_carry_flag()", Type::Bool)
     }
 
     fn get_half_carry_flag(&self) -> Expression {
-        Expression::from_str("registers.get_half_carry_flag()", Type::Uint8)
+        Expression::from_str("registers.get_half_carry_flag()", Type::Bool)
     }
 
     fn get_add_sub_flag(&self) -> Expression {
-        Expression::from_str("registers.get_add_sub_flag()", Type::Uint8)
+        Expression::from_str("registers.get_add_sub_flag()", Type::Bool)
     }
 
     fn get_zero_flag(&self) -> Expression {
-        Expression::from_str("registers.get_zero_flag()", Type::Uint8)
+        Expression::from_str("registers.get_zero_flag()", Type::Bool)
+    }
+    fn get_non_carry_flag(&self) -> Expression {
+        Expression::from_str("registers.get_non_carry_flag()", Type::Bool)
+    }
+
+    fn get_non_zero_flag(&self) -> Expression {
+        Expression::from_str("registers.get_non_zero_flag()", Type::Bool)
     }
 }
 
@@ -312,13 +319,17 @@ impl Statements for StatementsImpl {
         Code::from_str(&format!("panic!(\"{}\");", message))
     }
 
+    fn return_value(&self, value: &Expression) -> Code {
+        Code::from_str(&format!("return {};", value.text))
+    }
+
     fn function(
         &self,
         name: &str,
         parameters: &[Parameter],
         code: &Code,
         doc: &str,
-        return_value: Option<&Expression>,
+        return_type: Type
     ) -> Function {
         let parameters = parameters
             .iter()
@@ -326,11 +337,6 @@ impl Statements for StatementsImpl {
             .collect::<Vec<String>>()
             .join(", ");
 
-        let return_type = if let Some(value) = return_value {
-            value.type_
-        } else {
-            Void
-        };
         let signature = format!(
             "pub fn {}({}) -> {}",
             name,
@@ -346,9 +352,6 @@ impl Statements for StatementsImpl {
         .append_line(format!("{} {{", signature))
         .append(code.clone().indent(INDENT));
 
-        if let Some(value) = return_value {
-            definition.iappend_line(format!("{}return {};", INDENT, value.text))
-        }
         definition.iappend_line("}\n".to_string());
 
         Function::new(String::from(name), signature, definition)

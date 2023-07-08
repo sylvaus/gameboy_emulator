@@ -1,6 +1,5 @@
 use crate::instruction;
 use crate::instruction::{Argument, ArgumentType, FlagAction, Instruction, InstructionType};
-use crate::interface;
 use crate::interface::{
     Code, Expression, Function, IntFormat, Language, Parameter, Register, Type, Variable,
 };
@@ -187,9 +186,9 @@ fn create_rotate(instruction: &Instruction, language: &Language) -> Function {
         .clone()
         .unwrap_or(Argument::new_register(instruction::REGISTER_NAME_A));
 
-    let value_u8 = language.statements.variable(
-        "value_u8", &create_get_code(language, &argument),
-    );
+    let value_u8 = language
+        .statements
+        .variable("value_u8", &create_get_code(language, &argument));
     let value = language.statements.variable(
         "value",
         &language.operations.cast(&value_u8.name, Type::Uint16),
@@ -229,8 +228,8 @@ fn create_rotate(instruction: &Instruction, language: &Language) -> Function {
         "result",
         &language.operations.cast(
             &language.bitwise_and_int(&result, 0xFF, IntFormat::Hex),
-            Type::Uint8
-        )
+            Type::Uint8,
+        ),
     );
 
     let mut custom_flags = Vec::new();
@@ -243,11 +242,14 @@ fn create_rotate(instruction: &Instruction, language: &Language) -> Function {
     if instruction.zero_flag == FlagAction::CUSTOM {
         let zero_flag = language.statements.variable(
             "zero_flag",
-            &language.operations.cast(&language.equals_int(
-                &language.bitwise_and_int(&result.name, 0xFF, IntFormat::Hex),
-                0,
-                IntFormat::Decimal,
-            ), Type::Uint8),
+            &language.operations.cast(
+                &language.equals_int(
+                    &language.bitwise_and_int(&result.name, 0xFF, IntFormat::Hex),
+                    0,
+                    IntFormat::Decimal,
+                ),
+                Type::Uint8,
+            ),
         );
 
         custom_flag_code.iappend(zero_flag.code);
@@ -301,6 +303,72 @@ fn is_carry_rotation(instruction: &Instruction) -> bool {
         }
         _ => panic!("Only handle rotation"),
     }
+}
+
+fn create_jr(instruction: &Instruction, language: &Language) -> Function {
+    let program_counter = &language.registers.program_counter;
+    let program_counter_value = language
+        .operations
+        .cast(&program_counter.get(), Type::Int32);
+
+    let increment = instruction.second_argument.as_ref()
+        .unwrap_or(&instruction.first_argument.as_ref().unwrap());
+    let increment = language.operations.cast(
+        &create_get_code_no_address(&language, &increment),
+        Type::Int32,
+    );
+    let instruction_length = language.operations.cast(
+        &language
+            .statements
+            .int_literal(instruction.length, Type::Uint16, IntFormat::Decimal),
+        Type::Int32,
+    );
+    let no_jump_pc = language.statements.variable(
+        &"no_jump_pc",
+        &language
+            .operations
+            .add(&[program_counter_value.clone(), instruction_length.clone()]),
+    );
+    let jump_pc = language.statements.variable(
+        &"no_jump_pc",
+        &language
+            .operations
+            .add(&[program_counter_value, instruction_length, increment]),
+    );
+
+    let no_jump = program_counter
+        .set(&language.operations.cast(&no_jump_pc.name, Type::Uint16))
+        .prepend(no_jump_pc.code)
+        .append(language.return_int(
+            instruction.duration_no_action,
+            Type::Uint16,
+            IntFormat::Decimal,
+        ));
+    let jump = program_counter
+        .set(&language.operations.cast(&jump_pc.name, Type::Uint16))
+        .prepend(jump_pc.code)
+        .append(language.return_int(instruction.duration, Type::Uint16, IntFormat::Decimal));
+
+    let code = if instruction.second_argument.is_none() {
+        jump
+    } else {
+        language.statements.if_else(
+            &get_flag_from_name(language, &instruction.first_argument.as_ref().unwrap().name),
+            &jump,
+            &no_jump,
+        )
+    };
+    return create_function_custom(
+        instruction,
+        language,
+        USE_REGISTER_AND_MEMORY,
+        code,
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: None,
+        },
+    );
 }
 
 #[derive(Debug, Clone)]
@@ -386,13 +454,9 @@ fn create_function_custom(
         code.iappend(language.statements.return_value(value));
     }
 
-    language.statements.function(
-        &name,
-        &parameters,
-        &code,
-        &complete_doc,
-        Type::Uint16
-    )
+    language
+        .statements
+        .function(&name, &parameters, &code, &complete_doc, Type::Uint16)
 }
 
 fn increment_pc(increment: i64, language: &Language) -> Code {
@@ -506,6 +570,17 @@ fn get_register_from_name<'a>(language: &'a Language, name: &str) -> &'a Box<dyn
         instruction::REGISTER_NAME_PC => &language.registers.program_counter,
 
         _ => panic!("No register for name {}", name),
+    }
+}
+
+fn get_flag_from_name(language: &Language, name: &str) -> Expression {
+    match name.to_lowercase().as_str() {
+        instruction::FLAG_NAME_CARRY => language.registers.flags.get_carry_flag(),
+        instruction::FLAG_NAME_ZERO => language.registers.flags.get_zero_flag(),
+        instruction::FLAG_NAME_NON_CARRY => language.registers.flags.get_non_carry_flag(),
+        instruction::FLAG_NAME_NON_ZERO => language.registers.flags.get_non_zero_flag(),
+
+        _ => panic!("No flag for name {}", name),
     }
 }
 
@@ -766,7 +841,7 @@ pub fn create_instruction_function(
         | InstructionType::RRC
         | InstructionType::RL
         | InstructionType::RR => Some(create_rotate(instruction, language)),
-        // InstructionType::JR => {}
+        InstructionType::JR => Some(create_jr(instruction, language)),
         // InstructionType::DAA => {}
         // InstructionType::CPL => {}
         // InstructionType::SCF => {}

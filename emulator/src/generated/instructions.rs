@@ -235,6 +235,13 @@ pub fn rla_017(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     return 4;
 }
 
+/// 0x18 JR r8
+pub fn jr_018(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + ((memory.get_signed(registers.pc + 1)) as i32);
+    registers.pc = no_jump_pc as u16;
+    return 12u16;
+}
+
 /// 0x19 ADD HL DE
 pub fn add_019(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     let lhs: u16 = registers.get_hl();
@@ -313,6 +320,19 @@ pub fn rra_01f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     return 4;
 }
 
+/// 0x20 JR NZ r8
+pub fn jr_020(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_non_zero_flag()) {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + ((memory.get_signed(registers.pc + 1)) as i32);
+        registers.pc = no_jump_pc as u16;
+        return 12u16;
+    } else {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32);
+        registers.pc = no_jump_pc as u16;
+        return 8u16;
+    }
+}
+
 /// 0x21 LD HL d16
 pub fn ld_021(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.set_hl(memory.get_16_bits(registers.pc + 1));
@@ -371,6 +391,19 @@ pub fn ld_026(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.h = memory.get(registers.pc + 1);
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0x28 JR Z r8
+pub fn jr_028(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_zero_flag()) {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + ((memory.get_signed(registers.pc + 1)) as i32);
+        registers.pc = no_jump_pc as u16;
+        return 12u16;
+    } else {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32);
+        registers.pc = no_jump_pc as u16;
+        return 8u16;
+    }
 }
 
 /// 0x29 ADD HL HL
@@ -440,6 +473,19 @@ pub fn ld_02e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0x30 JR NC r8
+pub fn jr_030(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_non_carry_flag()) {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + ((memory.get_signed(registers.pc + 1)) as i32);
+        registers.pc = no_jump_pc as u16;
+        return 12u16;
+    } else {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32);
+        registers.pc = no_jump_pc as u16;
+        return 8u16;
+    }
+}
+
 /// 0x31 LD SP d16
 pub fn ld_031(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.sp = memory.get_16_bits(registers.pc + 1);
@@ -498,6 +544,19 @@ pub fn ld_036(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     memory.set(registers.get_hl(), memory.get(registers.pc + 1));
     registers.pc = registers.pc + 2;
     return 12;
+}
+
+/// 0x38 JR C r8
+pub fn jr_038(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_carry_flag()) {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + ((memory.get_signed(registers.pc + 1)) as i32);
+        registers.pc = no_jump_pc as u16;
+        return 12u16;
+    } else {
+        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32);
+        registers.pc = no_jump_pc as u16;
+        return 8u16;
+    }
 }
 
 /// 0x39 ADD HL SP

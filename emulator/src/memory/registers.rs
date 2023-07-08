@@ -34,13 +34,19 @@ impl Registers {
     pub fn get_zero_flag(&self) -> bool {
         ((self.flags >> OFFSET_ZERO_FLAG) & 0x1) == 0x1
     }
+    pub fn get_non_carry_flag(&self) -> bool {
+        !self.get_carry_flag()
+    }
+    pub fn get_non_zero_flag(&self) -> bool {
+            !self.get_zero_flag()
+    }
 
     pub fn get_af(&self) -> u16 {
-        Registers::get_composite_register(self.a, self.f)
+        Registers::get_composite_register(self.a, self.flags)
     }
 
     pub fn set_af(&mut self, value: u16) {
-        Registers::set_composite_register(&mut self.a, &mut self.f, value)
+        Registers::set_composite_register(&mut self.a, &mut self.flags, value)
     }
 
     pub fn get_bc(&self) -> u16 {

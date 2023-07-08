@@ -137,6 +137,8 @@ pub trait Flags {
     fn get_half_carry_flag(&self) -> Expression;
     fn get_add_sub_flag(&self) -> Expression;
     fn get_zero_flag(&self) -> Expression;
+    fn get_non_carry_flag(&self) -> Expression;
+    fn get_non_zero_flag(&self) -> Expression;
 }
 
 pub trait FlagsRegister: Register + Flags {}
@@ -388,5 +390,9 @@ impl Language {
     pub fn bitwise_or_int(&self, lhs: &Expression, rhs: i64, int_format: IntFormat) -> Expression {
         let literal = self.statements.int_literal(rhs, lhs.type_, int_format);
         self.operations.bitwise_or(&[lhs.clone(), literal])
+    }
+
+    pub fn return_int(&self, value: i64, type_: Type, format: IntFormat) -> Code {
+        self.statements.return_value(&self.statements.int_literal(value, type_, format))
     }
 }
