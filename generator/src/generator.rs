@@ -380,7 +380,10 @@ fn create_function_custom(
     ];
 
     if let Some(increment) = details.pc_increment {
-        code.iappend(increment_pc(increment, language))
+        code.iappend(increment_pc(increment, language));
+    }
+    if let Some(value) = &details.return_value {
+        code.iappend(language.statements.return_value(value));
     }
 
     language.statements.function(
@@ -388,7 +391,7 @@ fn create_function_custom(
         &parameters,
         &code,
         &complete_doc,
-        details.return_value.as_ref(),
+        Type::Uint16
     )
 }
 

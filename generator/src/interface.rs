@@ -238,13 +238,14 @@ pub trait Statements {
     fn single_if(&self, condition: &Expression, code: &Code) -> Code;
     fn if_else(&self, condition: &Expression, true_code: &Code, false_code: &Code) -> Code;
     fn stop_with_message(&self, message: &str) -> Code;
+    fn return_value(&self, value: &Expression) -> Code;
     fn function(
         &self,
         name: &str,
         parameters: &[Parameter],
         code: &Code,
         doc: &str,
-        return_value: Option<&Expression>,
+        return_type: Type
     ) -> Function;
     fn function_table_call(&self, id_function_map: &HashMap<u16, &Function>) -> FunctionTableCall;
 }

@@ -1264,7 +1264,7 @@ pub fn add_0c6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
 }
 
 /// 0xd3 UNKNOWN
-pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xD3");
 }
 
@@ -1284,12 +1284,12 @@ pub fn sub_0d6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
 }
 
 /// 0xdb UNKNOWN
-pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xDB");
 }
 
 /// 0xdd UNKNOWN
-pub fn unknown_0dd(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0dd(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xDD");
 }
 
@@ -1308,12 +1308,12 @@ pub fn ldspecial_0e2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 
 }
 
 /// 0xe3 UNKNOWN
-pub fn unknown_0e3(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0e3(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xE3");
 }
 
 /// 0xe4 UNKNOWN
-pub fn unknown_0e4(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0e4(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xE4");
 }
 
@@ -1339,17 +1339,17 @@ pub fn ld_0ea(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
 }
 
 /// 0xeb UNKNOWN
-pub fn unknown_0eb(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0eb(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xEB");
 }
 
 /// 0xec UNKNOWN
-pub fn unknown_0ec(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0ec(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xEC");
 }
 
 /// 0xed UNKNOWN
-pub fn unknown_0ed(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0ed(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xED");
 }
 
@@ -1368,7 +1368,7 @@ pub fn ldspecial_0f2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 
 }
 
 /// 0xf4 UNKNOWN
-pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xF4");
 }
 
@@ -1401,12 +1401,12 @@ pub fn ld_0fa(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
 }
 
 /// 0xfc UNKNOWN
-pub fn unknown_0fc(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0fc(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xFC");
 }
 
 /// 0xfd UNKNOWN
-pub fn unknown_0fd(_registers: &mut Registers, _memory: &mut dyn Memory) -> () {
+pub fn unknown_0fd(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xFD");
 }
 
