@@ -393,6 +393,23 @@ pub fn ld_026(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0x27 DAA
+pub fn daa_027(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    if (registers.get_add_sub_flag()) {
+        let carry_flag: u8 = ((registers.a > 0x99u8) || registers.get_carry_flag()) as u8;
+        registers.a = registers.a + ((0x60u8 * carry_flag) + (0x6u8 * ((((registers.a | 0xFu8) > 0xAu8) || registers.get_half_carry_flag()) as u8)));
+        let zero_flag: u8 = (registers.a == 0x0u8) as u8;
+        registers.flags = (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
+    } else {
+        let carry_flag: u8 = registers.get_carry_flag() as u8;
+        registers.a = registers.a - ((0x60u8 * carry_flag) + (0x6u8 * (registers.get_half_carry_flag() as u8)));
+        let zero_flag: u8 = (registers.a == 0x0u8) as u8;
+        registers.flags = (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
+    }
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x28 JR Z r8
 pub fn jr_028(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     if (registers.get_zero_flag()) {

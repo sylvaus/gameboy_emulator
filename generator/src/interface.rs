@@ -247,7 +247,7 @@ pub trait Statements {
         parameters: &[Parameter],
         code: &Code,
         doc: &str,
-        return_type: Type
+        return_type: Type,
     ) -> Function;
     fn function_table_call(&self, id_function_map: &HashMap<u16, &Function>) -> FunctionTableCall;
 }
@@ -261,11 +261,13 @@ pub trait Operations {
     fn lesser_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression;
     fn add(&self, values: &[Expression]) -> Expression;
     fn sub(&self, values: &[Expression]) -> Expression;
+    fn multiply(&self, values: &[Expression]) -> Expression;
     fn cast(&self, value: &Expression, type_: Type) -> Expression;
     fn shift_left(&self, value: &Expression, shift: &Expression) -> Expression;
     fn shift_right(&self, value: &Expression, shift: &Expression) -> Expression;
     fn bitwise_and(&self, values: &[Expression]) -> Expression;
     fn bitwise_or(&self, values: &[Expression]) -> Expression;
+    fn or(&self, values: &[Expression]) -> Expression;
 }
 
 pub struct Language {
@@ -393,6 +395,25 @@ impl Language {
     }
 
     pub fn return_int(&self, value: i64, type_: Type, format: IntFormat) -> Code {
-        self.statements.return_value(&self.statements.int_literal(value, type_, format))
+        self.statements
+            .return_value(&self.statements.int_literal(value, type_, format))
+    }
+
+    pub fn variable_with_type(&self, name: &str, value: &Expression, type_: Type) -> Variable {
+        self.statements
+            .variable(name, &self.operations.cast(value, type_))
+    }
+
+    pub fn binary_literal(&self, value: i64, type_: Type) -> Expression {
+        self.statements.int_literal(value, type_, IntFormat::Bin)
+    }
+
+    pub fn decimal_literal(&self, value: i64, type_: Type) -> Expression {
+        self.statements
+            .int_literal(value, type_, IntFormat::Decimal)
+    }
+
+    pub fn hex_literal(&self, value: i64, type_: Type) -> Expression {
+        self.statements.int_literal(value, type_, IntFormat::Hex)
     }
 }

@@ -329,7 +329,7 @@ impl Statements for StatementsImpl {
         parameters: &[Parameter],
         code: &Code,
         doc: &str,
-        return_type: Type
+        return_type: Type,
     ) -> Function {
         let parameters = parameters
             .iter()
@@ -391,7 +391,7 @@ fn get_type_str(type_: Type) -> &'static str {
 
 struct OperationsImpl {}
 
-fn generic_operation(lhs: &Expression, rhs: &Expression, symbol: &str, name: &str) -> Expression {
+fn generic_bool_operation(lhs: &Expression, rhs: &Expression, symbol: &str, name: &str) -> Expression {
     assert_eq!(
         lhs.type_, rhs.type_,
         "{} can only happens between same types",
@@ -427,23 +427,23 @@ fn generic_operations(values: &[Expression], symbol: &str, name: &str) -> Expres
 
 impl Operations for OperationsImpl {
     fn equals(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        generic_operation(lhs, rhs, "==", "equality")
+        generic_bool_operation(lhs, rhs, "==", "equality")
     }
 
     fn greater_than(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        generic_operation(lhs, rhs, ">", "greater than")
+        generic_bool_operation(lhs, rhs, ">", "greater than")
     }
 
     fn greater_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        generic_operation(lhs, rhs, ">=", "greater equal")
+        generic_bool_operation(lhs, rhs, ">=", "greater equal")
     }
 
     fn lesser_than(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        generic_operation(lhs, rhs, "<", "lesser than")
+        generic_bool_operation(lhs, rhs, "<", "lesser than")
     }
 
     fn lesser_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        generic_operation(lhs, rhs, "<=", "lesser equal")
+        generic_bool_operation(lhs, rhs, "<=", "lesser equal")
     }
 
     fn add(&self, values: &[Expression]) -> Expression {
@@ -452,6 +452,10 @@ impl Operations for OperationsImpl {
 
     fn sub(&self, values: &[Expression]) -> Expression {
         generic_operations(values, "-", "sub")
+    }
+
+    fn multiply(&self, values: &[Expression]) -> Expression {
+        generic_operations(values, "*", "multiply")
     }
 
     fn cast(&self, value: &Expression, type_: Type) -> Expression {
@@ -485,6 +489,12 @@ impl Operations for OperationsImpl {
 
     fn bitwise_or(&self, values: &[Expression]) -> Expression {
         generic_operations(values, "|", "bitwise or")
+    }
+
+    fn or(&self, values: &[Expression]) -> Expression {
+        let mut result = generic_operations(values, "||", "or");
+        result.type_ = Type::Bool;
+        result
     }
 }
 

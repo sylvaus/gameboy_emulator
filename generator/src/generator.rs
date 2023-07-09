@@ -48,9 +48,7 @@ fn create_ld(instruction: &Instruction, language: &Language) -> Function {
 }
 
 fn create_ldh_special(instruction: &Instruction, language: &Language) -> Function {
-    let offset = language
-        .statements
-        .int_literal(0xFF00, Type::Uint16, IntFormat::Hex);
+    let offset = language.hex_literal(0xFF00, Type::Uint16);
     let get_code = &create_get_code_with_offset(
         language,
         &instruction.second_argument.as_ref().unwrap(),
@@ -82,12 +80,7 @@ fn create_ldid(instruction: &Instruction, language: &Language) -> Function {
     );
 
     let hl = &language.registers.hl;
-    let hl_one = [
-        hl.get(),
-        language
-            .statements
-            .int_literal(1, Type::Uint16, IntFormat::Decimal),
-    ];
+    let hl_one = [hl.get(), language.decimal_literal(1, Type::Uint16)];
     if instruction.type_field == InstructionType::LDI {
         code = code.append(hl.set(&language.operations.add(&hl_one)));
     } else if instruction.type_field == InstructionType::LDD {
@@ -123,9 +116,7 @@ fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
 }
 
 fn create_inc_dec(instruction: &Instruction, language: &Language) -> Function {
-    let one = language
-        .statements
-        .int_literal(1, Type::Int32, IntFormat::Decimal);
+    let one = language.decimal_literal(1, Type::Int32);
 
     let operation = create_op_with_flag_code_3_custom_values(
         language,
@@ -311,7 +302,9 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
         .operations
         .cast(&program_counter.get(), Type::Int32);
 
-    let increment = instruction.second_argument.as_ref()
+    let increment = instruction
+        .second_argument
+        .as_ref()
         .unwrap_or(&instruction.first_argument.as_ref().unwrap());
     let increment = language.operations.cast(
         &create_get_code_no_address(&language, &increment),
@@ -369,6 +362,106 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
             return_value: None,
         },
     );
+}
+
+fn create_daa(instruction: &Instruction, language: &Language) -> Function {
+    return create_function(
+        instruction,
+        language,
+        ONLY_USE_REGISTER,
+        language.statements.if_else(
+            &language.registers.flags.get_add_sub_flag(),
+            &create_daa_add(instruction, language),
+            &create_daa_sub(instruction, language),
+        ),
+    );
+}
+
+fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
+    let carry_flag = language.operations.or(&[
+        language.greater_than_int(&language.registers.a.get(), 0x99, IntFormat::Hex),
+        language.registers.flags.get_carry_flag(),
+    ]);
+    let carry_flag = language.variable_with_type("carry_flag", &carry_flag, Type::Uint8);
+    let carry_part = language.operations.multiply(&[
+        language.hex_literal(0x60, Type::Uint8),
+        carry_flag.name.clone(),
+    ]);
+    let lower_bits_a = language.greater_than_int(
+        &language.bitwise_or_int(&language.registers.a.get(), 0xF, IntFormat::Hex),
+        0xA, IntFormat::Hex
+    );
+    let half_carry_part = language.operations.or(&[
+        lower_bits_a,
+        language.registers.flags.get_half_carry_flag(),
+    ]);
+    let half_carry_part = language.operations.multiply(&[
+        language.hex_literal(0x6, Type::Uint8),
+        language.operations.cast(&half_carry_part, Type::Uint8),
+    ]);
+
+    let zero_flag = language.variable_with_type(
+        "zero_flag",
+        &language.equals_int(&language.registers.a.get(), 0, IntFormat::Hex),
+        Type::Uint8,
+    );
+    let flags = [
+        create_carry_flag_value(language, &carry_flag.name),
+        create_zero_flag_value(language, &zero_flag.name),
+    ];
+
+    increment_register(
+        language,
+        language.registers.a.as_ref(),
+        language.operations.add(&[carry_part, half_carry_part]),
+    )
+    .prepend(carry_flag.code)
+    .append(zero_flag.code)
+    .append(create_set_flags(language, instruction, &flags))
+}
+
+fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
+    let carry_flag = language.variable_with_type(
+        "carry_flag",
+        &language.registers.flags.get_carry_flag(),
+        Type::Uint8,
+    );
+    let carry_part = language.operations.multiply(&[
+        language.hex_literal(0x60, Type::Uint8),
+        carry_flag.name.clone(),
+    ]);
+    let half_carry_part = language.operations.multiply(&[
+        language.hex_literal(0x6, Type::Uint8),
+        language.operations.cast(
+            &language.registers.flags.get_half_carry_flag(), Type::Uint8)
+    ]);
+
+    let zero_flag = language.variable_with_type(
+        "zero_flag",
+        &language.equals_int(&language.registers.a.get(), 0, IntFormat::Hex),
+        Type::Uint8,
+    );
+    let flags = [
+        create_carry_flag_value(language, &carry_flag.name),
+        create_zero_flag_value(language, &zero_flag.name),
+    ];
+
+    decrement_register(
+        language,
+        language.registers.a.as_ref(),
+        language.operations.add(&[carry_part, half_carry_part]),
+    )
+    .prepend(carry_flag.code)
+    .append(zero_flag.code)
+    .append(create_set_flags(language, instruction, &flags))
+}
+
+pub fn increment_register(language: &Language, register: &dyn Register, value: Expression) -> Code {
+    register.set(&language.operations.add(&[register.get(), value]))
+}
+
+pub fn decrement_register(language: &Language, register: &dyn Register, value: Expression) -> Code {
+    register.set(&language.operations.sub(&[register.get(), value]))
 }
 
 #[derive(Debug, Clone)]
@@ -645,31 +738,19 @@ fn create_op_with_flag_code_3_custom_values(
     let carry_max_value: i64 = get_carry_max_value(instruction);
     let half_carry_max_value: i64 = get_half_carry_max_value(instruction);
     if instruction.zero_flag == FlagAction::CUSTOM {
-        let variable = create_zero_flag(language, &result.name, carry_max_value);
-        custom_flag_values.push(language.shift_left_int(
-            &variable.name,
-            OFFSET_ZERO_FLAG_VALUE,
-            IntFormat::Decimal,
-        ));
+        let variable = compute_zero_flag(language, &result.name, carry_max_value);
+        custom_flag_values.push(create_zero_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }
     if instruction.half_carry_flag == FlagAction::CUSTOM {
         let variable =
-            create_half_carry_flag(language, &variable_names, half_carry_max_value, operation);
-        custom_flag_values.push(language.shift_left_int(
-            &variable.name,
-            OFFSET_HALF_CARRY_FLAG_VALUE,
-            IntFormat::Decimal,
-        ));
+            compute_half_carry_flag(language, &variable_names, half_carry_max_value, operation);
+        custom_flag_values.push(create_half_carry_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }
     if instruction.carry_flag == FlagAction::CUSTOM {
-        let variable = create_carry_flag(language, &result.name, carry_max_value, operation);
-        custom_flag_values.push(language.shift_left_int(
-            &variable.name,
-            OFFSET_CARRY_FLAG_VALUE,
-            IntFormat::Decimal,
-        ));
+        let variable = compute_carry_flag(language, &result.name, carry_max_value, operation);
+        custom_flag_values.push(create_carry_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }
 
@@ -707,7 +788,7 @@ pub fn get_half_carry_max_value(instruction: &Instruction) -> i64 {
     }
 }
 
-fn create_zero_flag(language: &Language, result: &Expression, carry_max_value: i64) -> Variable {
+fn compute_zero_flag(language: &Language, result: &Expression, carry_max_value: i64) -> Variable {
     let equals = language.equals_int(
         &language.bitwise_and_int(result, carry_max_value, IntFormat::Hex),
         0,
@@ -719,7 +800,7 @@ fn create_zero_flag(language: &Language, result: &Expression, carry_max_value: i
         .variable("zero_flag", &language.operations.cast(&equals, Type::Uint8))
 }
 
-fn create_half_carry_flag(
+fn compute_half_carry_flag(
     language: &Language,
     values: &[Expression],
     half_carry_max_value: i64,
@@ -752,7 +833,7 @@ fn create_half_carry_flag(
     half_flag
 }
 
-fn create_carry_flag(
+fn compute_carry_flag(
     language: &Language,
     result: &Expression,
     carry_max_value: i64,
@@ -767,6 +848,18 @@ fn create_carry_flag(
         "carry_flag",
         &language.operations.cast(&carry_flag_expr, Type::Uint8),
     )
+}
+
+pub fn create_zero_flag_value(language: &Language, name: &Expression) -> Expression {
+    language.shift_left_int(name, OFFSET_ZERO_FLAG_VALUE, IntFormat::Decimal)
+}
+
+pub fn create_half_carry_flag_value(language: &Language, name: &Expression) -> Expression {
+    language.shift_left_int(name, OFFSET_HALF_CARRY_FLAG_VALUE, IntFormat::Decimal)
+}
+
+pub fn create_carry_flag_value(language: &Language, name: &Expression) -> Expression {
+    language.shift_left_int(name, OFFSET_CARRY_FLAG_VALUE, IntFormat::Decimal)
 }
 
 /// Create the code to set the flags values
@@ -787,11 +880,7 @@ fn create_set_flags(
         .map(|flag| flag.action.set_as_u8() << flag.offset)
         .sum::<u8>() as i64;
     if initial_flag > 0 {
-        values.push(
-            language
-                .statements
-                .int_literal(initial_flag, Type::Uint8, IntFormat::Bin),
-        );
+        values.push(language.binary_literal(initial_flag, Type::Uint8));
     }
 
     // Keep the flag values that do not need to change.
@@ -842,7 +931,7 @@ pub fn create_instruction_function(
         | InstructionType::RL
         | InstructionType::RR => Some(create_rotate(instruction, language)),
         InstructionType::JR => Some(create_jr(instruction, language)),
-        // InstructionType::DAA => {}
+        InstructionType::DAA => Some(create_daa(instruction, language)),
         // InstructionType::CPL => {}
         // InstructionType::SCF => {}
         // InstructionType::CCF => {}

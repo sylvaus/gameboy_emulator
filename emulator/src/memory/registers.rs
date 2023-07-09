@@ -38,7 +38,7 @@ impl Registers {
         !self.get_carry_flag()
     }
     pub fn get_non_zero_flag(&self) -> bool {
-            !self.get_zero_flag()
+        !self.get_zero_flag()
     }
 
     pub fn get_af(&self) -> u16 {
