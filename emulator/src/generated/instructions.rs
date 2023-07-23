@@ -658,6 +658,14 @@ pub fn ld_03e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0x3f CCF
+pub fn ccf_03f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    let carry_flag: u8 = (!registers.get_carry_flag() as u8) << 4u8;
+    registers.flags = carry_flag + (registers.flags & 0b10000000u8);
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x40 LD B B
 pub fn ld_040(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     registers.b = registers.b;

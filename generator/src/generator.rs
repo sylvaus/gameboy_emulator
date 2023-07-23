@@ -483,12 +483,34 @@ fn create_scf(instruction: &Instruction, language: &Language) -> Function {
     );
 }
 
+fn create_ccf(instruction: &Instruction, language: &Language) -> Function {
+    let carry = &language.operations.cast(
+        &language
+            .operations
+            .bitwise_not(&language.registers.flags.get_carry_flag()),
+        Type::Uint8,
+    );
+    let carry = language
+        .statements
+        .variable("carry_flag", &create_carry_flag_value(language, carry));
+
+    return create_function(
+        instruction,
+        language,
+        ONLY_USE_REGISTER,
+        create_set_flags(instruction, language, &[carry.name]).prepend(carry.code),
+    );
+}
+
 fn create_halt(instruction: &Instruction, language: &Language) -> Function {
     return create_function(
         instruction,
         language,
         ONLY_USE_REGISTER,
-        language.registers.halted.set(&language.statements.bool_literal(true)),
+        language
+            .registers
+            .halted
+            .set(&language.statements.bool_literal(true)),
     );
 }
 
@@ -961,9 +983,9 @@ pub fn create_instruction_function(
         InstructionType::JR => Some(create_jr(instruction, language)),
         InstructionType::DAA => Some(create_daa(instruction, language)),
         InstructionType::CPL => Some(create_cpl(instruction, language)),
-        InstructionType::SCF => {Some(create_scf(instruction, language))},
-        // InstructionType::CCF => {}
-        InstructionType::HALT => { Some(create_halt(instruction, language)) }
+        InstructionType::SCF => Some(create_scf(instruction, language)),
+        InstructionType::CCF => Some(create_ccf(instruction, language)),
+        InstructionType::HALT => Some(create_halt(instruction, language)),
         // InstructionType::ADC => {}
         // InstructionType::SBC => {}
         // InstructionType::XOR => {}
