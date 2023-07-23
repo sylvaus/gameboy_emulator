@@ -1036,6 +1036,13 @@ pub fn ld_075(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0x76 HALT
+pub fn halt_076(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.halted = true;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x77 LD (HL) A
 pub fn ld_077(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     memory.set(registers.get_hl(), registers.a);

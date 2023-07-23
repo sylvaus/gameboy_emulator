@@ -483,6 +483,15 @@ fn create_scf(instruction: &Instruction, language: &Language) -> Function {
     );
 }
 
+fn create_halt(instruction: &Instruction, language: &Language) -> Function {
+    return create_function(
+        instruction,
+        language,
+        ONLY_USE_REGISTER,
+        language.registers.halted.set(&language.statements.bool_literal(true)),
+    );
+}
+
 #[derive(Debug, Clone)]
 struct UsedFnParams {
     pub register: bool,
@@ -954,7 +963,7 @@ pub fn create_instruction_function(
         InstructionType::CPL => Some(create_cpl(instruction, language)),
         InstructionType::SCF => {Some(create_scf(instruction, language))},
         // InstructionType::CCF => {}
-        // InstructionType::HALT => {}
+        InstructionType::HALT => { Some(create_halt(instruction, language)) }
         // InstructionType::ADC => {}
         // InstructionType::SBC => {}
         // InstructionType::XOR => {}

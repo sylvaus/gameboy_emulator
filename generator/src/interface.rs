@@ -236,6 +236,7 @@ pub trait Statements {
     fn log_trace(&self, text: &str) -> Code;
     fn log_trace_registers(&self) -> Code;
     fn int_literal(&self, value: i64, type_: Type, format: IntFormat) -> Expression;
+    fn bool_literal(&self, value: bool) -> Expression;
     fn variable(&self, name: &str, code: &Expression) -> Variable;
     fn single_if(&self, condition: &Expression, code: &Code) -> Code;
     fn if_else(&self, condition: &Expression, true_code: &Code, false_code: &Code) -> Code;

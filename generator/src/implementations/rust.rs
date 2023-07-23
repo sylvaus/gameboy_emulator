@@ -281,6 +281,10 @@ impl Statements for StatementsImpl {
         Expression::new(text, type_)
     }
 
+    fn bool_literal(&self, value: bool) -> Expression {
+        Expression::new(String::from(if value {"true"} else {"false"}), Type::Bool)
+    }
+
     fn variable(&self, name: &str, code: &Expression) -> Variable {
         let variable = match code.type_ {
             Type::Registers | Type::Memory | Type::Void => {
