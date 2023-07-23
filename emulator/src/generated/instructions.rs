@@ -571,6 +571,13 @@ pub fn ld_036(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 12;
 }
 
+/// 0x37 SCF
+pub fn scf_037(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.flags = 0b10000u8 + (registers.flags & 0b10000000u8);
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x38 JR C r8
 pub fn jr_038(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     if (registers.get_carry_flag()) {

@@ -474,6 +474,15 @@ fn create_cpl(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, ONLY_USE_REGISTER, code);
 }
 
+fn create_scf(instruction: &Instruction, language: &Language) -> Function {
+    return create_function(
+        instruction,
+        language,
+        ONLY_USE_REGISTER,
+        create_set_flags(instruction, language, &[]),
+    );
+}
+
 #[derive(Debug, Clone)]
 struct UsedFnParams {
     pub register: bool,
@@ -943,7 +952,7 @@ pub fn create_instruction_function(
         InstructionType::JR => Some(create_jr(instruction, language)),
         InstructionType::DAA => Some(create_daa(instruction, language)),
         InstructionType::CPL => Some(create_cpl(instruction, language)),
-        // InstructionType::SCF => {}
+        InstructionType::SCF => {Some(create_scf(instruction, language))},
         // InstructionType::CCF => {}
         // InstructionType::HALT => {}
         // InstructionType::ADC => {}
