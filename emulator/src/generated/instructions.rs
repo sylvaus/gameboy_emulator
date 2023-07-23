@@ -490,6 +490,14 @@ pub fn ld_02e(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 8;
 }
 
+/// 0x2f CPL
+pub fn cpl_02f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = !registers.a;
+    registers.flags = 0b1100000u8 + (registers.flags & 0b10010000u8);
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0x30 JR NC r8
 pub fn jr_030(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     if (registers.get_non_carry_flag()) {

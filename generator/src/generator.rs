@@ -257,7 +257,7 @@ fn create_rotate(instruction: &Instruction, language: &Language) -> Function {
         .append(value.code)
         .append(result.code)
         .append(custom_flag_code)
-        .append(create_set_flags(language, instruction, &custom_flags))
+        .append(create_set_flags(instruction, language, &custom_flags))
         .append(create_set_code(language, &argument, &result.name));
 
     let used_params = if argument.is_address {
@@ -389,12 +389,12 @@ fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
     ]);
     let lower_bits_a = language.greater_than_int(
         &language.bitwise_or_int(&language.registers.a.get(), 0xF, IntFormat::Hex),
-        0xA, IntFormat::Hex
+        0xA,
+        IntFormat::Hex,
     );
-    let half_carry_part = language.operations.or(&[
-        lower_bits_a,
-        language.registers.flags.get_half_carry_flag(),
-    ]);
+    let half_carry_part = language
+        .operations
+        .or(&[lower_bits_a, language.registers.flags.get_half_carry_flag()]);
     let half_carry_part = language.operations.multiply(&[
         language.hex_literal(0x6, Type::Uint8),
         language.operations.cast(&half_carry_part, Type::Uint8),
@@ -417,7 +417,7 @@ fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
     )
     .prepend(carry_flag.code)
     .append(zero_flag.code)
-    .append(create_set_flags(language, instruction, &flags))
+    .append(create_set_flags(instruction, language, &flags))
 }
 
 fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
@@ -432,8 +432,9 @@ fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
     ]);
     let half_carry_part = language.operations.multiply(&[
         language.hex_literal(0x6, Type::Uint8),
-        language.operations.cast(
-            &language.registers.flags.get_half_carry_flag(), Type::Uint8)
+        language
+            .operations
+            .cast(&language.registers.flags.get_half_carry_flag(), Type::Uint8),
     ]);
 
     let zero_flag = language.variable_with_type(
@@ -453,7 +454,7 @@ fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
     )
     .prepend(carry_flag.code)
     .append(zero_flag.code)
-    .append(create_set_flags(language, instruction, &flags))
+    .append(create_set_flags(instruction, language, &flags))
 }
 
 pub fn increment_register(language: &Language, register: &dyn Register, value: Expression) -> Code {
@@ -462,6 +463,15 @@ pub fn increment_register(language: &Language, register: &dyn Register, value: E
 
 pub fn decrement_register(language: &Language, register: &dyn Register, value: Expression) -> Code {
     register.set(&language.operations.sub(&[register.get(), value]))
+}
+
+fn create_cpl(instruction: &Instruction, language: &Language) -> Function {
+    let a = &language.registers.a;
+    let code = a
+        .set(&language.operations.bitwise_not(&a.get()))
+        .append(create_set_flags(instruction, language, &[]));
+
+    return create_function(instruction, language, ONLY_USE_REGISTER, code);
 }
 
 #[derive(Debug, Clone)]
@@ -765,7 +775,7 @@ fn create_op_with_flag_code_3_custom_values(
 
     result
         .code
-        .iappend(create_set_flags(language, instruction, &custom_flag_values));
+        .iappend(create_set_flags(instruction, language, &custom_flag_values));
     OperationWithFlag {
         result: result_value,
         code: result.code,
@@ -864,8 +874,8 @@ pub fn create_carry_flag_value(language: &Language, name: &Expression) -> Expres
 
 /// Create the code to set the flags values
 fn create_set_flags(
-    language: &Language,
     instruction: &Instruction,
+    language: &Language,
     custom_flags: &[Expression],
 ) -> Code {
     let flags = instruction.get_flags();
@@ -932,7 +942,7 @@ pub fn create_instruction_function(
         | InstructionType::RR => Some(create_rotate(instruction, language)),
         InstructionType::JR => Some(create_jr(instruction, language)),
         InstructionType::DAA => Some(create_daa(instruction, language)),
-        // InstructionType::CPL => {}
+        InstructionType::CPL => Some(create_cpl(instruction, language)),
         // InstructionType::SCF => {}
         // InstructionType::CCF => {}
         // InstructionType::HALT => {}

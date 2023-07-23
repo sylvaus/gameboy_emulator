@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use crate::interface::Type::Void;
 use crate::interface::{
     ArgumentGetters, Code, Expression, Flags, FlagsRegister, Function, FunctionTableCall,
     IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type,
@@ -284,7 +283,7 @@ impl Statements for StatementsImpl {
 
     fn variable(&self, name: &str, code: &Expression) -> Variable {
         let variable = match code.type_ {
-            Type::Registers | Type::Memory | Void => {
+            Type::Registers | Type::Memory | Type::Void => {
                 panic!("Cannot create variable of type {:?}", code.type_)
             }
             _ => Code::from_str(&format!(
@@ -391,7 +390,12 @@ fn get_type_str(type_: Type) -> &'static str {
 
 struct OperationsImpl {}
 
-fn generic_bool_operation(lhs: &Expression, rhs: &Expression, symbol: &str, name: &str) -> Expression {
+fn generic_bool_operation(
+    lhs: &Expression,
+    rhs: &Expression,
+    symbol: &str,
+    name: &str,
+) -> Expression {
     assert_eq!(
         lhs.type_, rhs.type_,
         "{} can only happens between same types",
@@ -489,6 +493,10 @@ impl Operations for OperationsImpl {
 
     fn bitwise_or(&self, values: &[Expression]) -> Expression {
         generic_operations(values, "|", "bitwise or")
+    }
+
+    fn bitwise_not(&self, value: &Expression) -> Expression {
+        Expression::new(format!("!{}", value.op_safe_text()), value.type_)
     }
 
     fn or(&self, values: &[Expression]) -> Expression {
