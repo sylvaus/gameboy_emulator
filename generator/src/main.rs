@@ -11,6 +11,7 @@ mod implementations;
 mod instruction;
 mod interface;
 mod parser;
+mod common;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
