@@ -500,6 +500,10 @@ impl Operations for OperationsImpl {
         generic_operations(values, "|", "bitwise or")
     }
 
+    fn bitwise_xor(&self, values: &[Expression]) -> Expression {
+        generic_operations(values, "^", "bitwise or")
+    }
+
     fn bitwise_not(&self, value: &Expression) -> Expression {
         Expression::new(format!("!{}", value.op_safe_text()), value.type_)
     }

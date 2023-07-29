@@ -545,6 +545,33 @@ fn create_add_sub_with_carry(instruction: &Instruction, language: &Language) -> 
     return create_function(instruction, language, used_params, code);
 }
 
+fn create_bitwise_operation(instruction: &Instruction, language: &Language) -> Function {
+    let register = &language.registers.a;
+    let input = create_get_code(language, instruction.first_argument.as_ref().unwrap());
+
+    let operation = match instruction.type_field {
+        InstructionType::XOR => language.operations.bitwise_xor(&[register.get(), input]),
+        InstructionType::OR => language.operations.bitwise_or(&[register.get(), input]),
+        InstructionType::AND => language.operations.bitwise_and(&[register.get(), input]),
+        _ => panic!(
+            "Instruction type {:?} is not supported for bitwise operation: ",
+            instruction.type_field
+        ),
+    };
+    let operation = register.set(&operation);
+
+    let zero_flag = language.equals_int(&register.get(), 0, IntFormat::Decimal);
+    let zero_flag =
+        create_zero_flag_value(language, &language.operations.cast(&zero_flag, Type::Uint8));
+
+    return create_function(
+        instruction,
+        language,
+        get_used_params(instruction),
+        operation.append(create_set_flags(instruction, language, &[zero_flag])),
+    );
+}
+
 #[derive(Debug, Clone)]
 struct UsedFnParams {
     pub register: bool,
@@ -988,6 +1015,22 @@ fn create_set_flags(
     }
 }
 
+fn get_used_params(instruction: &Instruction) -> UsedFnParams {
+    if does_param_use_memory(&instruction.first_argument) || does_param_use_memory(&instruction.second_argument) {
+        USE_REGISTER_AND_MEMORY
+    } else {
+        ONLY_USE_REGISTER
+    }
+}
+
+fn does_param_use_memory(argument: &Option<Argument>) -> bool {
+    if let Some(argument) = argument {
+        argument.is_address || argument.is_immediate()
+    } else {
+        false
+    }
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -1020,8 +1063,9 @@ pub fn create_instruction_function(
         InstructionType::ADC | InstructionType::SBC => {
             Some(create_add_sub_with_carry(instruction, language))
         }
-        // InstructionType::XOR => {}
-        // InstructionType::OR => {}
+        InstructionType::XOR | InstructionType::OR | InstructionType::AND => {
+            Some(create_bitwise_operation(instruction, language))
+        }
         // InstructionType::CP => {}
         // InstructionType::RET => {}
         // InstructionType::POP => {}
@@ -1040,7 +1084,6 @@ pub fn create_instruction_function(
         // InstructionType::RES => {}
         // InstructionType::SET => {}
         // InstructionType::STOP => {}
-        // InstructionType::AND => {}
         // InstructionType::RETI => {}
         _ => None,
     }

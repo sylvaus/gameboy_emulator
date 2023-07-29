@@ -268,6 +268,7 @@ pub trait Operations {
     fn shift_right(&self, value: &Expression, shift: &Expression) -> Expression;
     fn bitwise_and(&self, values: &[Expression]) -> Expression;
     fn bitwise_or(&self, values: &[Expression]) -> Expression;
+    fn bitwise_xor(&self, values: &[Expression]) -> Expression;
     fn bitwise_not(&self, value: &Expression) -> Expression;
     fn or(&self, values: &[Expression]) -> Expression;
 }

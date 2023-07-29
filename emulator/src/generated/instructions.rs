@@ -1610,6 +1610,198 @@ pub fn sbc_09f(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     return 4;
 }
 
+/// 0xa0 AND B
+pub fn and_0a0(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.b;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa1 AND C
+pub fn and_0a1(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.c;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa2 AND D
+pub fn and_0a2(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.d;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa3 AND E
+pub fn and_0a3(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.e;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa4 AND H
+pub fn and_0a4(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.h;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa5 AND L
+pub fn and_0a5(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.l;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa6 AND (HL)
+pub fn and_0a6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & memory.get(registers.get_hl());
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 8;
+}
+
+/// 0xa7 AND A
+pub fn and_0a7(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & registers.a;
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa8 XOR B
+pub fn xor_0a8(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.b;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xa9 XOR C
+pub fn xor_0a9(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.c;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xaa XOR D
+pub fn xor_0aa(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.d;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xab XOR E
+pub fn xor_0ab(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.e;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xac XOR H
+pub fn xor_0ac(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.h;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xad XOR L
+pub fn xor_0ad(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.l;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xae XOR (HL)
+pub fn xor_0ae(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ memory.get(registers.get_hl());
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 8;
+}
+
+/// 0xaf XOR A
+pub fn xor_0af(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ registers.a;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb0 OR B
+pub fn or_0b0(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.b;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb1 OR C
+pub fn or_0b1(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.c;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb2 OR D
+pub fn or_0b2(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.d;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb3 OR E
+pub fn or_0b3(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.e;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb4 OR H
+pub fn or_0b4(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.h;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb5 OR L
+pub fn or_0b5(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.l;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
+/// 0xb6 OR (HL)
+pub fn or_0b6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | memory.get(registers.get_hl());
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 8;
+}
+
+/// 0xb7 OR A
+pub fn or_0b7(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | registers.a;
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0xc6 ADD A d8
 pub fn add_0c6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     let lhs: u8 = registers.a;
@@ -1711,6 +1903,14 @@ pub fn unknown_0e4(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 
     panic!("Unknown opcode 0xE4");
 }
 
+/// 0xe6 AND d8
+pub fn and_0e6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a & (memory.get(registers.pc + 1));
+    registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
 /// 0xe8 ADD SP r8
 pub fn add_0e8(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     let lhs: u16 = registers.sp;
@@ -1747,6 +1947,14 @@ pub fn unknown_0ed(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 
     panic!("Unknown opcode 0xED");
 }
 
+/// 0xee XOR d8
+pub fn xor_0ee(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a ^ (memory.get(registers.pc + 1));
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
 /// 0xf0 LDH A (a8)
 pub fn ldh_0f0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.a = memory.get(((memory.get(registers.pc + 1)) as u16) + 0xFF00u16);
@@ -1764,6 +1972,14 @@ pub fn ldspecial_0f2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 
 /// 0xf4 UNKNOWN
 pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xF4");
+}
+
+/// 0xf6 OR d8
+pub fn or_0f6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.a = registers.a | (memory.get(registers.pc + 1));
+    registers.flags = ((registers.a == 0u8) as u8) << 7u8;
+    registers.pc = registers.pc + 2;
+    return 8;
 }
 
 /// 0xf8 LDHL SP r8
