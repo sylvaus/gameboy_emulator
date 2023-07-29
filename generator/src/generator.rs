@@ -536,13 +536,7 @@ fn create_add_sub_with_carry(instruction: &Instruction, language: &Language) -> 
     )
     .prepend(operation.code);
 
-    let argument = instruction.second_argument.as_ref().unwrap();
-    let used_params = if argument.is_address || argument.is_immediate() {
-        USE_REGISTER_AND_MEMORY
-    } else {
-        ONLY_USE_REGISTER
-    };
-    return create_function(instruction, language, used_params, code);
+    return create_function(instruction, language, get_used_params(instruction), code);
 }
 
 fn create_bitwise_operation(instruction: &Instruction, language: &Language) -> Function {
