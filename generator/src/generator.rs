@@ -3,6 +3,7 @@ use crate::instruction::{Argument, ArgumentType, FlagAction, Instruction, Instru
 use crate::interface::{
     Code, Expression, Function, IntFormat, Language, Parameter, Register, Type, Variable,
 };
+use syn::token::In;
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
 const OFFSET_HALF_CARRY_FLAG_VALUE: i64 = 5;
@@ -514,6 +515,36 @@ fn create_halt(instruction: &Instruction, language: &Language) -> Function {
     );
 }
 
+fn create_add_sub_with_carry(instruction: &Instruction, language: &Language) -> Function {
+    let operation = create_op_with_flag_code_3_custom_values(
+        language,
+        instruction,
+        if instruction.type_field == InstructionType::ADC {
+            Operation::Add
+        } else {
+            Operation::Sub
+        },
+        &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
+        &create_get_code(language, instruction.second_argument.as_ref().unwrap()),
+        Some(&language.registers.flags.get_half_carry_flag()),
+    );
+
+    let code = create_set_code(
+        language,
+        instruction.first_argument.as_ref().unwrap(),
+        &operation.result,
+    )
+    .prepend(operation.code);
+
+    let argument = instruction.second_argument.as_ref().unwrap();
+    let used_params = if argument.is_address || argument.is_immediate() {
+        USE_REGISTER_AND_MEMORY
+    } else {
+        ONLY_USE_REGISTER
+    };
+    return create_function(instruction, language, used_params, code);
+}
+
 #[derive(Debug, Clone)]
 struct UsedFnParams {
     pub register: bool,
@@ -766,7 +797,7 @@ fn create_op_with_flag_code_3_custom_values(
         language.statements.variable("rhs", second),
     ];
     if let Some(value) = third {
-        values.push(language.statements.variable("rhs", value));
+        values.push(language.statements.variable("rrhs", value));
     }
     let variable_names = values
         .iter()
@@ -986,8 +1017,9 @@ pub fn create_instruction_function(
         InstructionType::SCF => Some(create_scf(instruction, language)),
         InstructionType::CCF => Some(create_ccf(instruction, language)),
         InstructionType::HALT => Some(create_halt(instruction, language)),
-        // InstructionType::ADC => {}
-        // InstructionType::SBC => {}
+        InstructionType::ADC | InstructionType::SBC => {
+            Some(create_add_sub_with_carry(instruction, language))
+        }
         // InstructionType::XOR => {}
         // InstructionType::OR => {}
         // InstructionType::CP => {}

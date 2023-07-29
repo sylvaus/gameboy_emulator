@@ -377,6 +377,7 @@ fn make_parameter(parameter: &Parameter) -> String {
 
 fn get_type_str(type_: Type) -> &'static str {
     match type_ {
+        Type::Bool => "bool",
         Type::Uint8 => "u8",
         Type::Int8 => "i8",
         Type::Uint16 => "u16",
@@ -388,7 +389,7 @@ fn get_type_str(type_: Type) -> &'static str {
         Type::Registers => "&mut Registers",
         Type::Memory => "&mut dyn Memory",
         Type::Void => "()",
-        _ => panic!(""),
+        _ => panic!("Cannot get type for {:?}", type_),
     }
 }
 
