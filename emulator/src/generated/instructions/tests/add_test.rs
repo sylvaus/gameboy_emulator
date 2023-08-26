@@ -14,7 +14,7 @@ const ADD_16_BITS_BASE_OPCODE: u16 = 0b1001;
 #[test]
 fn test_add_16bits() {
     for register_info in REGISTERS_16_BITS {
-        let opcode = ((register_info.index as u16) << 4) + ADD_16_BITS_BASE_OPCODE;
+        let opcode = (register_info.index << 4) + ADD_16_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -45,7 +45,7 @@ fn test_add_16bits() {
 #[test]
 fn test_add_16bits_half_carry() {
     for register_info in REGISTERS_16_BITS {
-        let opcode = ((register_info.index as u16) << 4) + ADD_16_BITS_BASE_OPCODE;
+        let opcode = (register_info.index << 4) + ADD_16_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -77,7 +77,7 @@ fn test_add_16bits_half_carry() {
 #[test]
 fn test_add_16bits_carry() {
     for register_info in REGISTERS_16_BITS {
-        let opcode = ((register_info.index as u16) << 4) + ADD_16_BITS_BASE_OPCODE;
+        let opcode = (register_info.index << 4) + ADD_16_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -108,7 +108,7 @@ fn test_add_16bits_carry() {
 #[test]
 fn test_add_8bits() {
     for register_info in REGISTERS_8_BITS {
-        let opcode = (register_info.index as u16) + ADD_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + ADD_8_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -138,7 +138,7 @@ fn test_add_8bits() {
 #[test]
 fn test_add_8bits_half_carry() {
     for register_info in REGISTERS_8_BITS {
-        let opcode = (register_info.index as u16) + ADD_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + ADD_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -169,7 +169,7 @@ fn test_add_8bits_half_carry() {
 #[test]
 fn test_add_8bits_carry() {
     for register_info in REGISTERS_8_BITS {
-        let opcode = (register_info.index as u16) + ADD_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + ADD_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -200,7 +200,7 @@ fn test_add_8bits_carry() {
 #[test]
 fn test_add_8bits_zero() {
     for register_info in REGISTERS_8_BITS {
-        let opcode = (register_info.index as u16) + ADD_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + ADD_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();

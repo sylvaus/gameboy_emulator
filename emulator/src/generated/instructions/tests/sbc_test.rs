@@ -60,7 +60,7 @@ fn test_sdc_8bits_register_a_carry_flag() {
 #[test]
 fn test_sdc_8bits() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -84,7 +84,7 @@ fn test_sdc_8bits() {
 #[test]
 fn test_sbc_8bits_half_carry() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -109,7 +109,7 @@ fn test_sbc_8bits_half_carry() {
 #[test]
 fn test_sbc_8bits_carry() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -134,7 +134,7 @@ fn test_sbc_8bits_carry() {
 #[test]
 fn test_sbc_8bits_zero() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -158,7 +158,7 @@ fn test_sbc_8bits_zero() {
 #[test]
 fn test_sbc_8bits_half_carry_with_carry() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -185,7 +185,7 @@ fn test_sbc_8bits_half_carry_with_carry() {
 #[test]
 fn test_sbc_8bits_carry_with_carry() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -212,7 +212,7 @@ fn test_sbc_8bits_carry_with_carry() {
 fn test_sbc_8bits_zero_with_carry() {
     // Zero flag cannot be achieved for register a when carry flag is set since it doubles the value.
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SDC_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SDC_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();

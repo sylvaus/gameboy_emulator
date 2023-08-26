@@ -39,7 +39,7 @@ impl Memory for FakeMemory {
 
 pub struct Register8BitsInfo {
     pub name: &'static str,
-    pub index: u8,
+    pub index: u16,
     pub getter: fn(&Registers) -> u8,
     pub setter: fn(&mut Registers, u8),
 }
@@ -116,7 +116,7 @@ pub const REGISTERS_8_BITS_WITHOUT_A: &[Register8BitsInfo] = &[
 
 pub struct Register16BitsInfo {
     pub name: &'static str,
-    pub index: u8,
+    pub index: u16,
     pub getter: fn(&Registers) -> u16,
     pub setter: fn(&mut Registers, u16),
 }

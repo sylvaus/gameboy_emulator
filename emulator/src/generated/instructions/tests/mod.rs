@@ -6,3 +6,4 @@ mod sbc_test;
 mod sub_test;
 mod or_tests;
 mod xor_tests;
+mod bit_operations_test;

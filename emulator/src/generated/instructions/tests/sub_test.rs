@@ -34,7 +34,7 @@ fn test_sub_8bits_register_a() {
 #[test]
 fn test_sub_8bits() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SUB_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SUB_8_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -58,7 +58,7 @@ fn test_sub_8bits() {
 #[test]
 fn test_sub_8bits_half_carry() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SUB_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SUB_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -83,7 +83,7 @@ fn test_sub_8bits_half_carry() {
 #[test]
 fn test_sub_8bits_carry() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SUB_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SUB_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -108,7 +108,7 @@ fn test_sub_8bits_carry() {
 #[test]
 fn test_sub_8bits_zero() {
     for register_info in REGISTERS_8_BITS_WITHOUT_A {
-        let opcode = (register_info.index as u16) + SUB_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + SUB_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();

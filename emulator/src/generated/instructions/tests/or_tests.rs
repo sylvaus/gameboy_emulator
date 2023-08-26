@@ -13,7 +13,7 @@ const OR_8_BITS_BASE_OPCODE: u16 = 0b10110000;
 #[test]
 fn test_or_8bits() {
     for register_info in REGISTERS_8_BITS {
-        let opcode = (register_info.index as u16) + OR_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + OR_8_BITS_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -42,7 +42,7 @@ fn test_or_8bits() {
 #[test]
 fn test_or_8bits_zero() {
     for register_info in REGISTERS_8_BITS {
-        let opcode = (register_info.index as u16) + OR_8_BITS_BASE_OPCODE;
+        let opcode = register_info.index + OR_8_BITS_BASE_OPCODE;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
