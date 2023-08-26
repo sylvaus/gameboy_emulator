@@ -932,6 +932,29 @@ pub fn create_res(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, get_used_params(instruction), code);
 }
 
+pub fn create_set(instruction: &Instruction, language: &Language) -> Function {
+    let argument_value = instruction.first_argument.as_ref().unwrap().value.unwrap();
+
+    let argument = instruction.second_argument.as_ref().unwrap();
+    let value = language.bitwise_or_int(
+        &create_get_code(language, argument),
+        1 << argument_value,
+        IntFormat::Bin,
+    );
+    let code = create_set_code(language, argument, &value);
+
+    return create_function(instruction, language, get_used_params(instruction), code);
+}
+
+pub fn create_stop(instruction: &Instruction, language: &Language) -> Function {
+    let code = language
+        .registers
+        .stopped
+        .set(&language.statements.bool_literal(true));
+
+    return create_function(instruction, language, get_used_params(instruction), code);
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -984,8 +1007,8 @@ pub fn create_instruction_function(
         InstructionType::SWAP => Some(create_swap(instruction, language)),
         InstructionType::BIT => Some(create_bit(instruction, language)),
         InstructionType::RES => Some(create_res(instruction, language)),
-        // InstructionType::SET => {}
-        // InstructionType::STOP => {}
+        InstructionType::SET => Some(create_set(instruction, language)),
+        InstructionType::STOP => Some(create_stop(instruction, language)),
         // InstructionType::RETI => {}
         _ => None,
     }

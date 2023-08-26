@@ -165,6 +165,13 @@ pub fn rrca_00f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
     return 4;
 }
 
+/// 0x10 STOP 0
+pub fn stop_010(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.stopped = true;
+    registers.pc = registers.pc + 2;
+    return 4;
+}
+
 /// 0x11 LD DE d16
 pub fn ld_011(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     registers.set_de(argument.get_16_bits());
@@ -4225,6 +4232,454 @@ pub fn res_1be(registers: &mut Registers, memory: &mut dyn Memory, _argument: &m
 /// 0x1bf RES 7 A
 pub fn res_1bf(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     registers.a = registers.a & 0b1111111u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c0 SET 0 B
+pub fn set_1c0(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c1 SET 0 C
+pub fn set_1c1(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c2 SET 0 D
+pub fn set_1c2(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c3 SET 0 E
+pub fn set_1c3(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c4 SET 0 H
+pub fn set_1c4(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c5 SET 0 L
+pub fn set_1c5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c6 SET 0 (HL)
+pub fn set_1c6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b1u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1c7 SET 0 A
+pub fn set_1c7(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b1u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c8 SET 1 B
+pub fn set_1c8(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1c9 SET 1 C
+pub fn set_1c9(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1ca SET 1 D
+pub fn set_1ca(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1cb SET 1 E
+pub fn set_1cb(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1cc SET 1 H
+pub fn set_1cc(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1cd SET 1 L
+pub fn set_1cd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1ce SET 1 (HL)
+pub fn set_1ce(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b10u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1cf SET 1 A
+pub fn set_1cf(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b10u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d0 SET 2 B
+pub fn set_1d0(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d1 SET 2 C
+pub fn set_1d1(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d2 SET 2 D
+pub fn set_1d2(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d3 SET 2 E
+pub fn set_1d3(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d4 SET 2 H
+pub fn set_1d4(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d5 SET 2 L
+pub fn set_1d5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d6 SET 2 (HL)
+pub fn set_1d6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b100u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1d7 SET 2 A
+pub fn set_1d7(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b100u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d8 SET 3 B
+pub fn set_1d8(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1d9 SET 3 C
+pub fn set_1d9(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1da SET 3 D
+pub fn set_1da(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1db SET 3 E
+pub fn set_1db(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1dc SET 3 H
+pub fn set_1dc(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1dd SET 3 L
+pub fn set_1dd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1de SET 3 (HL)
+pub fn set_1de(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b1000u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1df SET 3 A
+pub fn set_1df(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b1000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e0 SET 4 B
+pub fn set_1e0(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e1 SET 4 C
+pub fn set_1e1(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e2 SET 4 D
+pub fn set_1e2(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e3 SET 4 E
+pub fn set_1e3(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e4 SET 4 H
+pub fn set_1e4(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e5 SET 4 L
+pub fn set_1e5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e6 SET 4 (HL)
+pub fn set_1e6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1e7 SET 4 A
+pub fn set_1e7(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b10000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e8 SET 5 B
+pub fn set_1e8(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1e9 SET 5 C
+pub fn set_1e9(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1ea SET 5 D
+pub fn set_1ea(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1eb SET 5 E
+pub fn set_1eb(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1ec SET 5 H
+pub fn set_1ec(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1ed SET 5 L
+pub fn set_1ed(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1ee SET 5 (HL)
+pub fn set_1ee(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b100000u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1ef SET 5 A
+pub fn set_1ef(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b100000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f0 SET 6 B
+pub fn set_1f0(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f1 SET 6 C
+pub fn set_1f1(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f2 SET 6 D
+pub fn set_1f2(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f3 SET 6 E
+pub fn set_1f3(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f4 SET 6 H
+pub fn set_1f4(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f5 SET 6 L
+pub fn set_1f5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f6 SET 6 (HL)
+pub fn set_1f6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b1000000u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1f7 SET 6 A
+pub fn set_1f7(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b1000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f8 SET 7 B
+pub fn set_1f8(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = registers.b | 0b10000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1f9 SET 7 C
+pub fn set_1f9(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.c = registers.c | 0b10000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1fa SET 7 D
+pub fn set_1fa(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = registers.d | 0b10000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1fb SET 7 E
+pub fn set_1fb(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.e = registers.e | 0b10000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1fc SET 7 H
+pub fn set_1fc(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = registers.h | 0b10000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1fd SET 7 L
+pub fn set_1fd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.l = registers.l | 0b10000000u8;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x1fe SET 7 (HL)
+pub fn set_1fe(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b10000000u8);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x1ff SET 7 A
+pub fn set_1ff(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = registers.a | 0b10000000u8;
     registers.pc = registers.pc + 2;
     return 8;
 }
