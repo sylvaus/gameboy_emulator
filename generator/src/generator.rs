@@ -337,15 +337,17 @@ fn create_daa(instruction: &Instruction, language: &Language) -> Function {
         ONLY_USE_REGISTER,
         language.statements.if_else(
             &language.registers.flags.get_add_sub_flag(),
-            &create_daa_add(instruction, language),
             &create_daa_sub(instruction, language),
+            &create_daa_add(instruction, language),
         ),
     );
 }
 
 fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
+    let register_a = &language.registers.a;
+    let register_a_value = register_a.get();
     let carry_flag = language.operations.or(&[
-        language.greater_than_int(&language.registers.a.get(), 0x99, IntFormat::Hex),
+        language.greater_than_int(&register_a_value, 0x99, IntFormat::Hex),
         language.registers.flags.get_carry_flag(),
     ]);
     let carry_flag = language.variable_with_type("carry_flag", &carry_flag, Type::Uint8);
@@ -354,7 +356,7 @@ fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
         carry_flag.name.clone(),
     ]);
     let lower_bits_a = language.greater_than_int(
-        &language.bitwise_or_int(&language.registers.a.get(), 0xF, IntFormat::Hex),
+        &language.bitwise_and_int(&register_a_value, 0xF, IntFormat::Hex),
         0xA,
         IntFormat::Hex,
     );
@@ -376,28 +378,30 @@ fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
         create_zero_flag_value(language, &zero_flag.name),
     ];
 
-    increment_register(
-        language,
-        language.registers.a.as_ref(),
-        language.operations.add(&[carry_part, half_carry_part]),
-    )
-    .prepend(carry_flag.code)
-    .append(zero_flag.code)
-    .append(create_set_flags(instruction, language, &flags))
+    register_a
+        .set(&language.operations.wrapping_add(
+            &register_a_value,
+            &language.operations.add(&[carry_part, half_carry_part]),
+        ))
+        .prepend(carry_flag.code)
+        .append(zero_flag.code)
+        .append(create_set_flags(instruction, language, &flags))
 }
 
 fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
+    let register_a = &language.registers.a;
+    let register_a_value = register_a.get();
     let carry_flag = language.variable_with_type(
         "carry_flag",
         &language.registers.flags.get_carry_flag(),
         Type::Uint8,
     );
     let carry_part = language.operations.multiply(&[
-        language.hex_literal(0x60, Type::Uint8),
+        language.hex_literal(0xA0, Type::Uint8),
         carry_flag.name.clone(),
     ]);
     let half_carry_part = language.operations.multiply(&[
-        language.hex_literal(0x6, Type::Uint8),
+        language.hex_literal(0xFA, Type::Uint8),
         language
             .operations
             .cast(&language.registers.flags.get_half_carry_flag(), Type::Uint8),
@@ -405,7 +409,7 @@ fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
 
     let zero_flag = language.variable_with_type(
         "zero_flag",
-        &language.equals_int(&language.registers.a.get(), 0, IntFormat::Hex),
+        &language.equals_int(&register_a_value, 0, IntFormat::Hex),
         Type::Uint8,
     );
     let flags = [
@@ -413,14 +417,19 @@ fn create_daa_sub(instruction: &Instruction, language: &Language) -> Code {
         create_zero_flag_value(language, &zero_flag.name),
     ];
 
-    decrement_register(
-        language,
-        language.registers.a.as_ref(),
-        language.operations.add(&[carry_part, half_carry_part]),
-    )
-    .prepend(carry_flag.code)
-    .append(zero_flag.code)
-    .append(create_set_flags(instruction, language, &flags))
+    let added_value = language
+        .operations
+        .wrapping_add(&carry_part, &half_carry_part);
+
+    register_a
+        .set(
+            &language
+                .operations
+                .wrapping_add(&register_a_value, &added_value),
+        )
+        .prepend(carry_flag.code)
+        .append(zero_flag.code)
+        .append(create_set_flags(instruction, language, &flags))
 }
 
 fn create_cpl(instruction: &Instruction, language: &Language) -> Function {
@@ -779,7 +788,7 @@ pub fn create_rst(instruction: &Instruction, language: &Language) -> Function {
     return create_function_custom(
         instruction,
         language,
-        USE_ALL_PARAMETERS,
+        USE_REGISTER_AND_MEMORY,
         code,
         FunctionDetails {
             doc: None,

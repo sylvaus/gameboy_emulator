@@ -206,7 +206,7 @@ pub enum ImmediateArgumentType {
     Unsigned16Bits,
 }
 
-type InstructionFn = (fn(&mut Registers, &mut dyn Memory, &Argument) -> u16);
+type InstructionFn = fn(&mut Registers, &mut dyn Memory, &Argument) -> u16;
 
 ";
 
@@ -290,13 +290,13 @@ impl Statements for StatementsImpl {
     }
 
     fn single_if(&self, condition: &Expression, code: &Code) -> Code {
-        Code::from_str(&format!("if ({}) {{", condition.text))
+        Code::from_str(&format!("if {} {{", condition.text))
             .append(code.clone().indent(INDENT))
             .append_line("}}".to_string())
     }
 
     fn if_else(&self, condition: &Expression, true_code: &Code, false_code: &Code) -> Code {
-        Code::from_str(&format!("if ({}) {{", condition.text))
+        Code::from_str(&format!("if {} {{", condition.text))
             .append(true_code.clone().indent(INDENT))
             .append_line("} else {".to_string())
             .append(false_code.clone().indent(INDENT))
@@ -433,7 +433,6 @@ fn get_type_str(type_: Type) -> &'static str {
         Type::Registers => "&mut Registers",
         Type::Memory => "&mut dyn Memory",
         Type::Void => "()",
-        _ => panic!("Cannot get type for {:?}", type_),
     }
 }
 
@@ -501,6 +500,17 @@ impl Operations for OperationsImpl {
 
     fn add(&self, values: &[Expression]) -> Expression {
         generic_operations(values, "+", "add")
+    }
+
+    fn wrapping_add(&self, lhs: &Expression, rhs: &Expression) -> Expression {
+        assert_eq!(
+            lhs.type_, rhs.type_,
+            "wrapping aff can only happens between same types",
+        );
+        Expression::new(
+            format!("{}.wrapping_add({})", lhs.op_safe_text(), rhs.text),
+            lhs.type_,
+        )
     }
 
     fn sub(&self, values: &[Expression]) -> Expression {

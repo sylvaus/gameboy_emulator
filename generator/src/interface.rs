@@ -248,6 +248,7 @@ pub trait Operations {
     fn lesser_than(&self, lhs: &Expression, rhs: &Expression) -> Expression;
     fn lesser_equal(&self, lhs: &Expression, rhs: &Expression) -> Expression;
     fn add(&self, values: &[Expression]) -> Expression;
+    fn wrapping_add(&self, lhs: &Expression, rhs: &Expression) -> Expression;
     fn sub(&self, values: &[Expression]) -> Expression;
     fn multiply(&self, values: &[Expression]) -> Expression;
     fn cast(&self, value: &Expression, type_: Type) -> Expression;

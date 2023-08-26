@@ -11,7 +11,7 @@ pub enum ImmediateArgumentType {
     Unsigned16Bits,
 }
 
-type InstructionFn = (fn(&mut Registers, &mut dyn Memory, &Argument) -> u16);
+type InstructionFn = fn(&mut Registers, &mut dyn Memory, &Argument) -> u16;
 
 
 
@@ -342,7 +342,7 @@ pub fn rra_01f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x20 JR NZ r8
 pub fn jr_020(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_non_zero_flag()) {
+    if registers.get_non_zero_flag() {
         let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
@@ -415,14 +415,14 @@ pub fn ld_026(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 
 /// 0x27 DAA
 pub fn daa_027(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    if (registers.get_add_sub_flag()) {
-        let carry_flag: u8 = ((registers.a > 0x99u8) || registers.get_carry_flag()) as u8;
-        registers.a = registers.a + ((0x60u8 * carry_flag) + (0x6u8 * ((((registers.a | 0xFu8) > 0xAu8) || registers.get_half_carry_flag()) as u8)));
+    if registers.get_add_sub_flag() {
+        let carry_flag: u8 = registers.get_carry_flag() as u8;
+        registers.a = registers.a.wrapping_add((0xA0u8 * carry_flag).wrapping_add(0xFAu8 * (registers.get_half_carry_flag() as u8)));
         let zero_flag: u8 = (registers.a == 0x0u8) as u8;
         registers.flags = (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
     } else {
-        let carry_flag: u8 = registers.get_carry_flag() as u8;
-        registers.a = registers.a - ((0x60u8 * carry_flag) + (0x6u8 * (registers.get_half_carry_flag() as u8)));
+        let carry_flag: u8 = ((registers.a > 0x99u8) || registers.get_carry_flag()) as u8;
+        registers.a = registers.a.wrapping_add((0x60u8 * carry_flag) + (0x6u8 * ((((registers.a & 0xFu8) > 0xAu8) || registers.get_half_carry_flag()) as u8)));
         let zero_flag: u8 = (registers.a == 0x0u8) as u8;
         registers.flags = (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
     }
@@ -432,7 +432,7 @@ pub fn daa_027(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x28 JR Z r8
 pub fn jr_028(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_zero_flag()) {
+    if registers.get_zero_flag() {
         let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
@@ -520,7 +520,7 @@ pub fn cpl_02f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x30 JR NC r8
 pub fn jr_030(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_non_carry_flag()) {
+    if registers.get_non_carry_flag() {
         let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
@@ -600,7 +600,7 @@ pub fn scf_037(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x38 JR C r8
 pub fn jr_038(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_carry_flag()) {
+    if registers.get_carry_flag() {
         let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
@@ -1936,7 +1936,7 @@ pub fn cp_0bf(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0xc0 RET NZ
 pub fn ret_0c0(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    if (registers.get_non_zero_flag()) {
+    if registers.get_non_zero_flag() {
         let lower_pc: u16 = memory.get(registers.sp) as u16;
         let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
@@ -1959,7 +1959,7 @@ pub fn pop_0c1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xc2 JP NZ a16
 pub fn jp_0c2(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_non_zero_flag()) {
+    if registers.get_non_zero_flag() {
         registers.pc = argument.get_16_bits();
         return 16u16;
     } else {
@@ -1976,7 +1976,7 @@ pub fn jp_0c3(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 
 /// 0xc4 CALL NZ a16
 pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_non_zero_flag()) {
+    if registers.get_non_zero_flag() {
         registers.pc = registers.pc + 3u16;
         memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2014,7 +2014,7 @@ pub fn add_0c6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xc7 RST 00H
-pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2025,7 +2025,7 @@ pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, argument: &Ar
 
 /// 0xc8 RET Z
 pub fn ret_0c8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    if (registers.get_zero_flag()) {
+    if registers.get_zero_flag() {
         let lower_pc: u16 = memory.get(registers.sp) as u16;
         let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
@@ -2048,7 +2048,7 @@ pub fn ret_0c9(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xca JP Z a16
 pub fn jp_0ca(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_zero_flag()) {
+    if registers.get_zero_flag() {
         registers.pc = argument.get_16_bits();
         return 16u16;
     } else {
@@ -2064,7 +2064,7 @@ pub fn prefix_0cb(_registers: &mut Registers, _memory: &mut dyn Memory, _argumen
 
 /// 0xcc CALL Z a16
 pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_zero_flag()) {
+    if registers.get_zero_flag() {
         registers.pc = registers.pc + 3u16;
         memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2104,7 +2104,7 @@ pub fn adc_0ce(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xcf RST 08H
-pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2115,7 +2115,7 @@ pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, argument: &Ar
 
 /// 0xd0 RET NC
 pub fn ret_0d0(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    if (registers.get_non_carry_flag()) {
+    if registers.get_non_carry_flag() {
         let lower_pc: u16 = memory.get(registers.sp) as u16;
         let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
@@ -2138,7 +2138,7 @@ pub fn pop_0d1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xd2 JP NC a16
 pub fn jp_0d2(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_non_carry_flag()) {
+    if registers.get_non_carry_flag() {
         registers.pc = argument.get_16_bits();
         return 16u16;
     } else {
@@ -2154,7 +2154,7 @@ pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 
 /// 0xd4 CALL NC a16
 pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_non_carry_flag()) {
+    if registers.get_non_carry_flag() {
         registers.pc = registers.pc + 3u16;
         memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2192,7 +2192,7 @@ pub fn sub_0d6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xd7 RST 10H
-pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2203,7 +2203,7 @@ pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, argument: &Ar
 
 /// 0xd8 RET C
 pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    if (registers.get_carry_flag()) {
+    if registers.get_carry_flag() {
         let lower_pc: u16 = memory.get(registers.sp) as u16;
         let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
@@ -2226,7 +2226,7 @@ pub fn reti_0d9(registers: &mut Registers, memory: &mut dyn Memory, _argument: &
 
 /// 0xda JP C a16
 pub fn jp_0da(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_carry_flag()) {
+    if registers.get_carry_flag() {
         registers.pc = argument.get_16_bits();
         return 16u16;
     } else {
@@ -2242,7 +2242,7 @@ pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 
 /// 0xdc CALL C a16
 pub fn call_0dc(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    if (registers.get_carry_flag()) {
+    if registers.get_carry_flag() {
         registers.pc = registers.pc + 3u16;
         memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2277,7 +2277,7 @@ pub fn sbc_0de(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xdf RST 18H
-pub fn rst_0df(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0df(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2337,7 +2337,7 @@ pub fn and_0e6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xe7 RST 20H
-pub fn rst_0e7(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0e7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2397,7 +2397,7 @@ pub fn xor_0ee(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xef RST 28H
-pub fn rst_0ef(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0ef(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2459,7 +2459,7 @@ pub fn or_0f6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 }
 
 /// 0xf7 RST 30H
-pub fn rst_0f7(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0f7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
@@ -2528,7 +2528,7 @@ pub fn cp_0fe(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 }
 
 /// 0xff RST 38H
-pub fn rst_0ff(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
+pub fn rst_0ff(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
     memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
