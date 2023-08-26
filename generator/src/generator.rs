@@ -2,15 +2,8 @@ use crate::common::base::Operation;
 use crate::common::flags::{
     create_carry_flag_value, create_set_flags, create_zero_flag_value, get_flag_from_name,
 };
-use crate::common::function::{
-    create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS,
-    ONLY_USE_REGISTER, USE_REGISTER_AND_MEMORY,
-};
-use crate::common::getset::{
-    create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code,
-    create_set_code_with_offset,
-};
-use crate::common::operation;
+use crate::common::function::{create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS, ONLY_USE_REGISTER, USE_REGISTER_AND_MEMORY, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT};
+use crate::common::getset::{create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code, create_set_code_with_offset};
 use crate::common::operation::{
     create_op_with_flag_code, create_op_with_flag_code_3_custom_values,
 };
@@ -100,7 +93,7 @@ fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
         .set(&operation.result)
         .prepend(operation.code);
 
-    create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
+    create_function(instruction, language, USE_REGISTER_AND_ARGUMENT, code)
 }
 
 fn create_inc_dec(instruction: &Instruction, language: &Language) -> Function {
@@ -150,13 +143,7 @@ fn create_add_sub(instruction: &Instruction, language: &Language) -> Function {
     )
     .prepend(operation.code);
 
-    let argument = instruction.second_argument.as_ref().unwrap();
-    let used_params = if argument.is_address || argument.is_immediate() {
-        USE_REGISTER_AND_MEMORY
-    } else {
-        ONLY_USE_REGISTER
-    };
-    create_function(instruction, language, used_params, code)
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 fn create_rotate(instruction: &Instruction, language: &Language) -> Function {
@@ -325,7 +312,7 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
     return create_function_custom(
         instruction,
         language,
-        USE_REGISTER_AND_MEMORY,
+        USE_REGISTER_AND_ARGUMENT,
         code,
         FunctionDetails {
             doc: None,
@@ -576,7 +563,8 @@ pub fn create_return(instruction: &Instruction, language: &Language) -> Function
         .append(language.return_duration(instruction.duration));
 
     let code = if let Some(argument) = instruction.first_argument.as_ref() {
-        let no_return = language.increment_pc_with_int(instruction.length)
+        let no_return = language
+            .increment_pc_with_int(instruction.length)
             .append(language.return_duration(instruction.duration_no_action));
         language.statements.if_else(
             &get_flag_from_name(language, &argument.name),
@@ -626,14 +614,18 @@ pub fn create_pop(instruction: &Instruction, language: &Language) -> Function {
 pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
     let program_counter = language.registers.program_counter.as_ref();
 
-    let pc_argument = instruction.second_argument.as_ref()
+    let pc_argument = instruction
+        .second_argument
+        .as_ref()
         .unwrap_or(instruction.first_argument.as_ref().unwrap());
 
-    let code = program_counter.set(&create_get_code(language, &pc_argument))
+    let code = program_counter
+        .set(&create_get_code(language, &pc_argument))
         .append(language.return_duration(instruction.duration));
 
     let code = if instruction.second_argument.is_some() {
-        let no_jump = language.increment_pc_with_int(instruction.length)
+        let no_jump = language
+            .increment_pc_with_int(instruction.length)
             .append(language.return_duration(instruction.duration_no_action));
         language.statements.if_else(
             &get_flag_from_name(language, &instruction.first_argument.as_ref().unwrap().name),
@@ -647,7 +639,7 @@ pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
     return create_function_custom(
         instruction,
         language,
-        USE_REGISTER_AND_MEMORY,
+        get_used_params(instruction),
         code,
         FunctionDetails {
             doc: None,

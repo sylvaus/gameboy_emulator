@@ -6,6 +6,7 @@ use crate::interface::{
     Variable,
 };
 
+const ARGUMENT_VAR_NAME: &str = "argument";
 const REGISTER_VAR_NAME: &str = "registers";
 const MEMORY_VAR_NAME: &str = "memory";
 const INDENT: &str = "    ";
@@ -13,9 +14,13 @@ const INDENT: &str = "    ";
 struct ArgumentsImpl {}
 
 impl ArgumentGetters for ArgumentsImpl {
+    fn name(&self) -> String {
+        String::from(ARGUMENT_VAR_NAME)
+    }
+
     fn get_uint8(&self) -> Expression {
         Expression::new(
-            format!("{}.get({}.pc + 1)", MEMORY_VAR_NAME, REGISTER_VAR_NAME),
+            format!("{}.get()", ARGUMENT_VAR_NAME),
             Type::Uint8,
         )
     }
@@ -23,8 +28,7 @@ impl ArgumentGetters for ArgumentsImpl {
     fn get_int8(&self) -> Expression {
         Expression::new(
             format!(
-                "{}.get_signed({}.pc + 1)",
-                MEMORY_VAR_NAME, REGISTER_VAR_NAME
+                "{}.get_signed()", ARGUMENT_VAR_NAME
             ),
             Type::Int8,
         )
@@ -33,8 +37,7 @@ impl ArgumentGetters for ArgumentsImpl {
     fn get_uint16(&self) -> Expression {
         Expression::new(
             format!(
-                "{}.get_16_bits({}.pc + 1)",
-                MEMORY_VAR_NAME, REGISTER_VAR_NAME
+                "{}.get_16_bits()", ARGUMENT_VAR_NAME
             ),
             Type::Uint16,
         )
@@ -214,6 +217,7 @@ impl Statements for StatementsImpl {
     fn header(&self) -> Option<Code> {
         Some(Code::from_str(
             "use log::trace;\n\
+            use crate::memory::argument::Argument;\n\
             use crate::memory::Memory;\n\
             use crate::memory::registers::Registers;\n",
         ))
@@ -368,6 +372,7 @@ fn get_type_str(type_: Type) -> &'static str {
         Type::Int32 => "i32",
         Type::Uint64 => "u64",
         Type::Int64 => "i64",
+        Type::Argument => "&mut Argument",
         Type::Registers => "&mut Registers",
         Type::Memory => "&mut dyn Memory",
         Type::Void => "()",

@@ -1,3 +1,4 @@
+pub(crate) mod argument;
 pub(crate) mod registers;
 
 pub trait Memory {
@@ -12,3 +13,5 @@ pub trait Memory {
         self.set(address + 1, (value >> 8) as u8);
     }
 }
+
+

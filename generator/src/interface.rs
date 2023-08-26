@@ -12,6 +12,7 @@ pub enum Type {
     Int32,
     Uint64,
     Int64,
+    Argument,
     Registers,
     Memory,
     Void,
@@ -122,6 +123,7 @@ impl Code {
 }
 
 pub trait ArgumentGetters {
+    fn name(&self) -> String;
     fn get_uint8(&self) -> Expression;
     fn get_int8(&self) -> Expression;
     fn get_uint16(&self) -> Expression;
@@ -432,6 +434,12 @@ impl Language {
         let type_ = value.type_;
         self.operations
             .add(&[value, self.statements.int_literal(increment, type_, format)])
+    }
+
+    pub fn sub_int(&self, value: Expression, decrement: i64, format: IntFormat) -> Expression {
+        let type_ = value.type_;
+        self.operations
+            .sub(&[value, self.statements.int_literal(decrement, type_, format)])
     }
 
     pub fn get_from_address(&self, address: &Expression) -> Expression {

@@ -5,23 +5,38 @@ use crate::interface::{Code, Expression, Function, Language, Parameter, Type};
 pub struct UsedFnParams {
     pub register: bool,
     pub memory: bool,
+    pub argument: bool,
 }
 
 pub const NO_USED_PARAMS: UsedFnParams = UsedFnParams {
     register: false,
     memory: false,
+    argument: false,
 };
 pub const ONLY_USE_REGISTER: UsedFnParams = UsedFnParams {
     register: true,
     memory: false,
+    argument: false,
 };
 pub const ONLY_USE_MEMORY: UsedFnParams = UsedFnParams {
     register: false,
     memory: true,
+    argument: false,
 };
 pub const USE_REGISTER_AND_MEMORY: UsedFnParams = UsedFnParams {
     register: true,
     memory: true,
+    argument: false,
+};
+pub const USE_REGISTER_AND_ARGUMENT: UsedFnParams = UsedFnParams {
+    register: true,
+    memory: false,
+    argument: true,
+};
+pub const USE_ALL_PARAMETERS: UsedFnParams = UsedFnParams {
+    register: true,
+    memory: true,
+    argument: true,
 };
 
 #[derive(Debug, Default)]
@@ -75,6 +90,11 @@ pub fn create_function_custom(
             used_params.register,
         ),
         Parameter::new(Type::Memory, language.memory.name(), used_params.memory),
+        Parameter::new(
+            Type::Argument,
+            language.arguments.name(),
+            used_params.argument,
+        ),
     ];
 
     if let Some(increment) = details.pc_increment {
@@ -103,17 +123,22 @@ pub fn get_duration(instruction: &Instruction) -> Expression {
 }
 
 pub fn get_used_params(instruction: &Instruction) -> UsedFnParams {
-    if does_param_use_memory(&instruction.first_argument) || does_param_use_memory(&instruction.second_argument) {
-        USE_REGISTER_AND_MEMORY
-    } else {
-        ONLY_USE_REGISTER
+    UsedFnParams {
+        register: true,
+        memory: does_param_use_memory(&instruction.first_argument)
+            || does_param_use_memory(&instruction.second_argument),
+        argument: does_param_use_argument(&instruction.first_argument)
+            || does_param_use_argument(&instruction.second_argument),
     }
 }
 
 fn does_param_use_memory(argument: &Option<Argument>) -> bool {
-    if let Some(argument) = argument {
-        argument.is_address || argument.is_immediate()
-    } else {
-        false
-    }
+    argument.as_ref().map(|arg| arg.is_address).unwrap_or(false)
+}
+
+fn does_param_use_argument(argument: &Option<Argument>) -> bool {
+    argument
+        .as_ref()
+        .map(|arg| arg.is_immediate())
+        .unwrap_or(false)
 }
