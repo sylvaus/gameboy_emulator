@@ -4,8 +4,7 @@ use clap::Parser;
 mod cartridge;
 mod generated;
 mod memory;
-mod time;
-mod video;
+mod timer;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
