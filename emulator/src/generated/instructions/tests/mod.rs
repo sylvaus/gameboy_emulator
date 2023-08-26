@@ -16,3 +16,5 @@ mod dec_test;
 mod inc_test;
 mod jump_test;
 mod ld_test;
+mod pop_test;
+mod push_test;
