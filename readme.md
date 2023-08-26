@@ -1,5 +1,6 @@
 GameBoy Emulator
 ================
+[![Build and Test Multi OS](https://github.com/sylvaus/gameboy_emulator/actions/workflows/build_and_test_multi_os.yml/badge.svg)](https://github.com/sylvaus/gameboy_emulator/actions/workflows/build_and_test_multi_os.yml)
 
 Goal
 ----
