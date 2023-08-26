@@ -8,7 +8,6 @@ pub fn add_enum_names(input: TokenStream) -> TokenStream {
 
     let name = &ast.ident;
     if let Data::Enum(enum_data) = &ast.data {
-        // Yes, this is a struct
         let names: Vec<&Ident> = enum_data.variants.iter().map(|v| &v.ident).collect();
         let result = quote! {
             impl #name {
@@ -22,7 +21,6 @@ pub fn add_enum_names(input: TokenStream) -> TokenStream {
 
         TokenStream::from(result)
     } else {
-        //Nope. This is an Enum. We cannot handle these!
-        panic!("#[derive(HelloWorld)] is only defined for structs, not for enums!");
+        panic!("#[derive(AddEnumName)] is only defined for enums!");
     }
 }
