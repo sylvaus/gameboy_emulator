@@ -1959,8 +1959,8 @@ pub fn jp_0c3(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
 pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     if (registers.get_non_zero_flag()) {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
-        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2032,8 +2032,8 @@ pub fn jp_0ca(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
 pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     if (registers.get_zero_flag()) {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
-        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2046,8 +2046,8 @@ pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &m
 /// 0xcd CALL a16
 pub fn call_0cd(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     registers.pc = registers.pc + 3u16;
-    memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
-    memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = argument.get_16_bits();
     return 24u16;
@@ -2112,8 +2112,8 @@ pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     if (registers.get_non_carry_flag()) {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
-        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2181,8 +2181,8 @@ pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 pub fn call_0dc(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     if (registers.get_carry_flag()) {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
-        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;

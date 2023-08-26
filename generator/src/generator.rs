@@ -675,12 +675,12 @@ pub fn create_call(instruction: &Instruction, language: &Language) -> Function {
         .increment_pc_with_int(instruction.length)
         .append(create_set_memory_code(
             language,
-            &stack_pointer.get(),
+            &language.sub_int(stack_pointer.get(), 1, IntFormat::Decimal),
             &upper_pc_value,
         ))
         .append(create_set_memory_code(
             language,
-            &language.sub_int(stack_pointer.get(), 1, IntFormat::Decimal),
+            &language.sub_int(stack_pointer.get(), 2, IntFormat::Decimal),
             &lower_pc_value,
         ))
         .append(update_stack)
