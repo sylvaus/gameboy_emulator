@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fmt::Display;
 use crate::instruction::Instruction;
 

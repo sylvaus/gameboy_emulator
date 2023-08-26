@@ -1,5 +1,4 @@
 use crate::instruction::{ArgumentType, Instruction};
-use std::collections::HashMap;
 
 use crate::interface::{
     ArgumentGetters, Code, Expression, Flags, Function, IntFormat, Language, Memory, Operations,
@@ -56,12 +55,6 @@ impl Register for AttributeRegister {
 
 struct GetterSetterRegister {
     name: String,
-}
-
-impl GetterSetterRegister {
-    pub fn new(name: String) -> Self {
-        Self { name }
-    }
 }
 
 impl Register for GetterSetterRegister {
