@@ -4,7 +4,9 @@ pub(crate) mod registers;
 pub trait Memory {
     fn get(&self, address: u16) -> u8;
     fn get_signed(&self, address: u16) -> i8;
-    fn get_16_bits(&self, address: u16) -> u16;
+    fn get_16_bits(&self, address: u16) -> u16 {
+        (self.get(address) as u16) + ((self.get(address) as u16) << 8)
+    }
 
     fn set(&mut self, address: u16, value: u8);
 

@@ -483,7 +483,7 @@ fn create_add_sub_with_carry(instruction: &Instruction, language: &Language) -> 
         },
         &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
         &create_get_code(language, instruction.second_argument.as_ref().unwrap()),
-        Some(&language.registers.flags.get_half_carry_flag()),
+        Some(&language.registers.flags.get_carry_flag()),
     );
 
     let code = create_set_code(

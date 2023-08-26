@@ -1,9 +1,19 @@
-const OFFSET_CARRY_FLAG: u8 = 0x4;
-const OFFSET_HALF_CARRY_FLAG: u8 = 0x5;
-const OFFSET_ADD_SUB_FLAG: u8 = 0x6;
-const OFFSET_ZERO_FLAG: u8 = 0x7;
+pub const OFFSET_CARRY_FLAG: u8 = 0x4;
+pub const OFFSET_HALF_CARRY_FLAG: u8 = 0x5;
+pub const OFFSET_ADD_SUB_FLAG: u8 = 0x6;
+pub const OFFSET_ZERO_FLAG: u8 = 0x7;
 
-#[derive(Debug)]
+pub const CARRY_FLAG_MASK: u8 = 0b1 << OFFSET_CARRY_FLAG;
+pub const HALF_CARRY_FLAG_MASK: u8 = 0b1 << OFFSET_HALF_CARRY_FLAG;
+pub const ADD_SUB_FLAG_MASK: u8 = 0b1 << OFFSET_ADD_SUB_FLAG;
+pub const ZERO_FLAG_MASK: u8 = 0b1 << OFFSET_ZERO_FLAG;
+
+pub const CARRY_FLAG_INV_MASK: u8 = 0xFF - CARRY_FLAG_MASK;
+pub const HALF_CARRY_FLAG_INV_MASK: u8 = 0xFF - HALF_CARRY_FLAG_MASK;
+pub const ADD_SUB_FLAG_INV_MASK: u8 = 0xFF - ADD_SUB_FLAG_MASK;
+pub const ZERO_FLAG_INV_MASK: u8 = 0xFF -  ZERO_FLAG_MASK;
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Registers {
     pub flags: u8,
     pub a: u8,
@@ -22,6 +32,24 @@ pub struct Registers {
 }
 
 impl Registers {
+    pub fn new() -> Self {
+        Self {
+            flags: 0,
+            a: 0,
+            c: 0,
+            b: 0,
+            e: 0,
+            d: 0,
+            l: 0,
+            h: 0,
+            sp: 0,
+            pc: 0,
+            halted: false,
+            stopped: false,
+            ime_flag: false,
+        }
+    }
+
     pub fn get_carry_flag(&self) -> bool {
         ((self.flags >> OFFSET_CARRY_FLAG) & 0x1) == 0x1
     }
@@ -39,6 +67,35 @@ impl Registers {
     }
     pub fn get_non_zero_flag(&self) -> bool {
         !self.get_zero_flag()
+    }
+
+    pub fn set_carry_flag(&mut self, value: bool) {
+        if value {
+            self.flags |= CARRY_FLAG_MASK;
+        } else {
+            self.flags &= CARRY_FLAG_INV_MASK;
+        }
+    }
+    pub fn set_half_carry_flag(&mut self, value: bool) {
+        if value {
+            self.flags |= HALF_CARRY_FLAG_MASK;
+        } else {
+            self.flags &= HALF_CARRY_FLAG_INV_MASK;
+        }
+    }
+    pub fn set_add_sub_flag(&mut self, value: bool) {
+        if value {
+            self.flags |= ADD_SUB_FLAG_MASK;
+        } else {
+            self.flags &= ADD_SUB_FLAG_MASK;
+        }
+    }
+    pub fn set_zero_flag(&mut self, value: bool) {
+        if value {
+            self.flags |= ZERO_FLAG_MASK;
+        } else {
+            self.flags &= ZERO_FLAG_INV_MASK;
+        }
     }
 
     pub fn get_af(&self) -> u16 {

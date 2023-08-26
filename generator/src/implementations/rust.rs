@@ -206,19 +206,9 @@ pub enum ImmediateArgumentType {
     Unsigned16Bits,
 }
 
-pub struct Instruction {
-    pub function: fn(&mut Registers, &mut dyn Memory, &mut Argument) -> u16,
-    pub argument: ImmediateArgumentType,
-}
+type InstructionFn = (fn(&mut Registers, &mut dyn Memory, &Argument) -> u16);
 
-impl Instruction {
-    pub fn new(
-        function: fn(&mut Registers, &mut dyn Memory, &mut Argument) -> u16,
-        argument: ImmediateArgumentType,
-    ) -> Self {
-        Instruction { function, argument }
-    }
-}";
+";
 
 const FOOTER: &str = "
 #[cfg(test)]
@@ -360,14 +350,17 @@ impl Statements for StatementsImpl {
         instruction_functions: &[(Instruction, Function)],
     ) -> Function {
         let name = String::from("get_instruction");
-        let signature = format!("{}(opcode: u16) -> Instruction", name);
+        let signature = format!(
+            "{}(opcode: u16) -> (InstructionFn, ImmediateArgumentType)",
+            name
+        );
 
         let matches = instruction_functions
             .iter()
             .map(|(instruction, function)| make_function_match_case(instruction, function))
             .collect();
 
-        let code = Code::from_str(&format!("pub fn {}(opcode: u16) -> Instruction {{", name))
+        let code = Code::from_str(&format!("pub fn {} {{", signature))
             .append_line(format!("{}match opcode {{", INDENT))
             .append(Code::from_lines(matches).indent(INDENT).indent(INDENT))
             .append_line(format!(
@@ -383,7 +376,7 @@ impl Statements for StatementsImpl {
 
 fn make_function_match_case(instruction: &Instruction, function: &Function) -> String {
     String::from(format!(
-        "{} => Instruction::new({}, {}),",
+        "{} => ({}, {}),",
         instruction.value,
         function.name,
         get_immediate_argument(instruction)
@@ -436,7 +429,7 @@ fn get_type_str(type_: Type) -> &'static str {
         Type::Int32 => "i32",
         Type::Uint64 => "u64",
         Type::Int64 => "i64",
-        Type::Argument => "&mut Argument",
+        Type::Argument => "&Argument",
         Type::Registers => "&mut Registers",
         Type::Memory => "&mut dyn Memory",
         Type::Void => "()",
