@@ -817,6 +817,53 @@ pub fn create_ime_operation(instruction: &Instruction, language: &Language) -> F
     );
 }
 
+pub fn create_shift(instruction: &Instruction, language: &Language) -> Function {
+    let argument = instruction.first_argument.as_ref().unwrap();
+    let get_code = create_get_code(language, argument);
+    let value = language.statements.variable("value", &get_code);
+
+    let result = match instruction.type_field {
+        InstructionType::SLA => language.shift_left_int(&value.name, 1, IntFormat::Decimal),
+        InstructionType::SRA => language.operations.add(&[
+            language.shift_right_int(&value.name, 1, IntFormat::Decimal),
+            language.bitwise_and_int(&value.name, 0x80, IntFormat::Hex),
+        ]),
+        InstructionType::SRL => language.shift_right_int(&value.name, 1, IntFormat::Decimal),
+        _ => panic!(
+            "Instruction type {:?} is not supported for shift",
+            instruction.type_field
+        ),
+    };
+    let result = language.statements.variable("result", &result);
+
+    let carry_flag = if instruction.type_field == InstructionType::SLA {
+        language.bitwise_and_int(
+            &language.shift_right_int(&value.name, 7, IntFormat::Decimal),
+            1,
+            IntFormat::Bin,
+        )
+    } else {
+        language.bitwise_and_int(&value.name, 1, IntFormat::Bin)
+    };
+    let carry_flag = language.statements.variable("carry_flag", &carry_flag);
+
+    let zero_flag = language.equals_int(&result.name, 0, IntFormat::Decimal);
+    let zero_flag = language.operations.cast(&zero_flag, Type::Uint8);
+    let flags = [
+        create_carry_flag_value(language, &carry_flag.name),
+        create_zero_flag_value(language, &zero_flag),
+    ];
+
+    let code = Code::create_empty()
+        .append(value.code)
+        .append(result.code)
+        .append(carry_flag.code)
+        .append(create_set_flags(instruction, language, &flags))
+        .append(create_set_code(language, argument, &result.name));
+
+    return create_function(instruction, language, get_used_params(instruction), code);
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -863,10 +910,10 @@ pub fn create_instruction_function(
         InstructionType::DI | InstructionType::EI => {
             Some(create_ime_operation(instruction, language))
         }
-        // InstructionType::SLA => {}
-        // InstructionType::SRA => {}
+        InstructionType::SLA | InstructionType::SRA | InstructionType::SRL => {
+            Some(create_shift(instruction, language))
+        }
         // InstructionType::SWAP => {}
-        // InstructionType::SRL => {}
         // InstructionType::BIT => {}
         // InstructionType::RES => {}
         // InstructionType::SET => {}

@@ -2925,3 +2925,267 @@ pub fn rr_11f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &m
     return 8;
 }
 
+/// 0x120 SLA B
+pub fn sla_120(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.b;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x121 SLA C
+pub fn sla_121(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.c;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x122 SLA D
+pub fn sla_122(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.d;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x123 SLA E
+pub fn sla_123(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.e;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x124 SLA H
+pub fn sla_124(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.h;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x125 SLA L
+pub fn sla_125(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.l;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x126 SLA (HL)
+pub fn sla_126(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = memory.get(registers.get_hl());
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x127 SLA A
+pub fn sla_127(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.a;
+    let result: u8 = value << 1u8;
+    let carry_flag: u8 = (value >> 7u8) & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x128 SRA B
+pub fn sra_128(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.b;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x129 SRA C
+pub fn sra_129(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.c;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x12a SRA D
+pub fn sra_12a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.d;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x12b SRA E
+pub fn sra_12b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.e;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x12c SRA H
+pub fn sra_12c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.h;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x12d SRA L
+pub fn sra_12d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.l;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x12e SRA (HL)
+pub fn sra_12e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = memory.get(registers.get_hl());
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x12f SRA A
+pub fn sra_12f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.a;
+    let result: u8 = (value >> 1u8) + (value & 0x80u8);
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x138 SRL B
+pub fn srl_138(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.b;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x139 SRL C
+pub fn srl_139(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.c;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x13a SRL D
+pub fn srl_13a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.d;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x13b SRL E
+pub fn srl_13b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.e;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x13c SRL H
+pub fn srl_13c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.h;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x13d SRL L
+pub fn srl_13d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.l;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x13e SRL (HL)
+pub fn srl_13e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = memory.get(registers.get_hl());
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x13f SRL A
+pub fn srl_13f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.a;
+    let result: u8 = value >> 1u8;
+    let carry_flag: u8 = value & 0b1u8;
+    registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
