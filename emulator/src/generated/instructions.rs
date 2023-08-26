@@ -1970,6 +1970,15 @@ pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &m
     }
 }
 
+/// 0xc5 PUSH BC
+pub fn push_0c5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.b = memory.get(registers.sp - 1u16);
+    registers.c = memory.get(registers.sp - 2u16);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = registers.pc + 1;
+    return 16;
+}
+
 /// 0xc6 ADD A d8
 pub fn add_0c6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     let lhs: u8 = registers.a;
@@ -2114,6 +2123,15 @@ pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &m
     }
 }
 
+/// 0xd5 PUSH DE
+pub fn push_0d5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.d = memory.get(registers.sp - 1u16);
+    registers.e = memory.get(registers.sp - 2u16);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = registers.pc + 1;
+    return 16;
+}
+
 /// 0xd6 SUB A d8
 pub fn sub_0d6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     let lhs: u8 = registers.a;
@@ -2228,6 +2246,15 @@ pub fn unknown_0e4(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
     panic!("Unknown opcode 0xE4");
 }
 
+/// 0xe5 PUSH HL
+pub fn push_0e5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.h = memory.get(registers.sp - 1u16);
+    registers.l = memory.get(registers.sp - 2u16);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = registers.pc + 1;
+    return 16;
+}
+
 /// 0xe6 AND d8
 pub fn and_0e6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     registers.a = registers.a & argument.get();
@@ -2312,6 +2339,15 @@ pub fn ldspecial_0f2(registers: &mut Registers, memory: &mut dyn Memory, _argume
 /// 0xf4 UNKNOWN
 pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     panic!("Unknown opcode 0xF4");
+}
+
+/// 0xf5 PUSH AF
+pub fn push_0f5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.a = memory.get(registers.sp - 1u16);
+    registers.flags = memory.get(registers.sp - 2u16);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = registers.pc + 1;
+    return 16;
 }
 
 /// 0xf6 OR d8

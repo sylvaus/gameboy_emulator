@@ -713,6 +713,33 @@ pub fn create_call(instruction: &Instruction, language: &Language) -> Function {
     );
 }
 
+pub fn create_push(instruction: &Instruction, language: &Language) -> Function {
+    // Comparison is implemented by subtracting the input to the register a.
+    let stack = language.registers.stack_pointer.as_ref();
+    let (lower, upper) =
+        get_sub_registers_from_name(language, &instruction.first_argument.as_ref().unwrap().name);
+
+    let code = Code::create_empty()
+        .append(upper.set(&language.get_from_address(&language.sub_int(
+            stack.get(),
+            1,
+            IntFormat::Decimal,
+        ))))
+        .append(lower.set(&language.get_from_address(&language.sub_int(
+            stack.get(),
+            2,
+            IntFormat::Decimal,
+        ))))
+        .append(decrement_register_int(
+            language,
+            stack,
+            2,
+            IntFormat::Decimal,
+        ));
+
+    return create_function(instruction, language, USE_REGISTER_AND_MEMORY, code);
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -753,7 +780,7 @@ pub fn create_instruction_function(
         InstructionType::POP => Some(create_pop(instruction, language)),
         InstructionType::JP => Some(create_jump(instruction, language)),
         InstructionType::CALL => Some(create_call(instruction, language)),
-        // InstructionType::PUSH => {}
+        InstructionType::PUSH => Some(create_push(instruction, language)),
         // InstructionType::RST => {}
         // InstructionType::PREFIX => {}
         // InstructionType::DI => {}
