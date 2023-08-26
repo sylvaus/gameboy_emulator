@@ -11,6 +11,7 @@ use std::{error, fmt};
 const CARTRIDGE_HEADER_SIZE: usize = 0x14F + 1;
 const ADDRESS_TITLE: usize = 0x134;
 const SIZE_TITLE: usize = 0x10;
+const ADDRESS_CGB_FLAG: usize = 0x143;
 const ADDRESS_CARTRIDGE_TYPE: usize = 0x147;
 const ADDRESS_ROM_SIZE: usize = 0x148;
 const ADDRESS_RAM_SIZE: usize = 0x149;
@@ -24,6 +25,7 @@ pub fn load_cartridge(path: &Path) -> Result<Cartridge, Box<dyn error::Error>> {
     reader.read_exact(&mut cartridge_header)?;
 
     let title = get_title(&cartridge_header)?;
+    let cgb_flag = get_cgb_flag(&cartridge_header);
     let info = get_cartridge_info(&cartridge_header)?;
     let rom_info = get_rom_size(&cartridge_header)?;
     let ram_info = get_ram_size(&cartridge_header)?;
@@ -33,6 +35,7 @@ pub fn load_cartridge(path: &Path) -> Result<Cartridge, Box<dyn error::Error>> {
 
     Ok(Cartridge {
         title,
+        cgb_flag,
         info,
         rom_info,
         ram_info,
@@ -43,6 +46,7 @@ pub fn load_cartridge(path: &Path) -> Result<Cartridge, Box<dyn error::Error>> {
 
 pub struct Cartridge {
     pub title: String,
+    pub cgb_flag: CGBFlag,
     pub info: CartridgeInfo,
     pub rom_info: ROMSizeInfo,
     pub ram_info: RAMSizeInfo,
@@ -54,8 +58,8 @@ impl Display for Cartridge {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(
             f,
-            "Cartridge(title: {:?}, info: {:?}, rom: {:?}, ram: {:?}, valid checksum: {:?})",
-            self.title, self.info, self.rom_info, self.ram_info, self.valid_header_checksum
+            "Cartridge(title: {:?}, cgb_flag: {:?}, info: {:?}, rom: {:?}, ram: {:?}, valid checksum: {:?})",
+            self.title, self.cgb_flag, self.info, self.rom_info, self.ram_info, self.valid_header_checksum
         )
     }
 }
@@ -238,5 +242,21 @@ fn get_memory_controller(
     match &info.bank_type {
         MBCType::RomOnly => NoMemoryBankController::new(rom_reader, ram_info.num_banks),
         value => Err(format!("Unsupported bank type {:?}", value.get_name())),
+    }
+}
+
+/// Source: https://gbdev.io/pandocs/The_Cartridge_Header.html#0143--cgb-flag
+#[derive(Clone, Debug, PartialEq, AddEnumName)]
+pub enum CGBFlag {
+    NON_CGB_COMPATIBLE,
+    CGB_COMPATIBLE,
+    CGB_ONLY,
+}
+
+fn get_cgb_flag(rom: &[u8]) -> CGBFlag {
+    match rom[ADDRESS_CGB_FLAG] {
+        0x80 => CGBFlag::CGB_COMPATIBLE,
+        0xC0 => CGBFlag::CGB_ONLY,
+        _ => CGBFlag::NON_CGB_COMPATIBLE,
     }
 }
