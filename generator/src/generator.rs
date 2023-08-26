@@ -2,10 +2,7 @@ use crate::common::base::Operation;
 use crate::common::flags::{
     create_carry_flag_value, create_set_flags, create_zero_flag_value, get_flag_from_name,
 };
-use crate::common::function::{
-    create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS,
-    ONLY_USE_REGISTER, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT, USE_REGISTER_AND_MEMORY,
-};
+use crate::common::function::{create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS, ONLY_USE_REGISTER, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT, USE_REGISTER_AND_MEMORY, get_duration};
 use crate::common::getset::{
     create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code,
     create_set_code_with_offset, create_set_memory_code,
@@ -955,6 +952,48 @@ pub fn create_stop(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, get_used_params(instruction), code);
 }
 
+
+
+pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Function {
+    let stack = language.registers.stack_pointer.as_ref();
+    let program_counter = language.registers.program_counter.as_ref();
+
+    let lower_pc = language.variable_with_cast(
+        "lower_pc",
+        &language.get_from_address(&stack.get()),
+        Type::Uint16,
+    );
+    let upper_pc = language.variable_with_cast(
+        "upper_pc",
+        &language.get_from_address(&language.add_int(stack.get(), 1, IntFormat::Decimal)),
+        Type::Uint16,
+    );
+
+    let update_pc = program_counter.set(&language.operations.add(&[
+        lower_pc.name,
+        language.shift_left_int(&upper_pc.name, 8, IntFormat::Decimal),
+    ]));
+    let update_stack = increment_register_int(language, stack, 2, IntFormat::Decimal);
+
+    let code = Code::create_empty()
+        .append(lower_pc.code)
+        .append(upper_pc.code)
+        .append(update_pc)
+        .append(update_stack);
+
+    return create_function_custom(
+        instruction,
+        language,
+        USE_REGISTER_AND_MEMORY,
+        code,
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: Some(get_duration(&instruction)),
+        },
+    );
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -1009,7 +1048,7 @@ pub fn create_instruction_function(
         InstructionType::RES => Some(create_res(instruction, language)),
         InstructionType::SET => Some(create_set(instruction, language)),
         InstructionType::STOP => Some(create_stop(instruction, language)),
-        // InstructionType::RETI => {}
+        InstructionType::RETI => Some(create_return_ime(instruction, language)),
         _ => None,
     }
 }

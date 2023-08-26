@@ -2203,6 +2203,15 @@ pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &m
     }
 }
 
+/// 0xd9 RETI
+pub fn reti_0d9(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let lower_pc: u16 = memory.get(registers.sp) as u16;
+    let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+    registers.pc = lower_pc + (upper_pc << 8u16);
+    registers.sp = registers.sp + 2u16;
+    return 16;
+}
+
 /// 0xda JP C a16
 pub fn jp_0da(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     if (registers.get_carry_flag()) {
