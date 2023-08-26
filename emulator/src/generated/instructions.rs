@@ -1914,6 +1914,20 @@ pub fn cp_0bf(registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     return 4;
 }
 
+/// 0xc0 RET NZ
+pub fn ret_0c0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_non_zero_flag()) {
+        let lower_pc: u16 = memory.get(registers.sp) as u16;
+        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        registers.pc = lower_pc + (upper_pc << 8u16);
+        registers.sp = registers.sp + 2u16;
+        return 20u16;
+    } else {
+        registers.pc = registers.pc + 1u16;
+        return 8u16;
+    }
+}
+
 /// 0xc6 ADD A d8
 pub fn add_0c6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     let lhs: u8 = registers.a;
@@ -1927,6 +1941,29 @@ pub fn add_0c6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.a = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xc8 RET Z
+pub fn ret_0c8(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_zero_flag()) {
+        let lower_pc: u16 = memory.get(registers.sp) as u16;
+        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        registers.pc = lower_pc + (upper_pc << 8u16);
+        registers.sp = registers.sp + 2u16;
+        return 20u16;
+    } else {
+        registers.pc = registers.pc + 1u16;
+        return 8u16;
+    }
+}
+
+/// 0xc9 RET
+pub fn ret_0c9(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    let lower_pc: u16 = memory.get(registers.sp) as u16;
+    let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+    registers.pc = lower_pc + (upper_pc << 8u16);
+    registers.sp = registers.sp + 2u16;
+    return 16u16;
 }
 
 /// 0xce ADC A d8
@@ -1943,6 +1980,20 @@ pub fn adc_0ce(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.a = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xd0 RET NC
+pub fn ret_0d0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_non_carry_flag()) {
+        let lower_pc: u16 = memory.get(registers.sp) as u16;
+        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        registers.pc = lower_pc + (upper_pc << 8u16);
+        registers.sp = registers.sp + 2u16;
+        return 20u16;
+    } else {
+        registers.pc = registers.pc + 1u16;
+        return 8u16;
+    }
 }
 
 /// 0xd3 UNKNOWN
@@ -1963,6 +2014,20 @@ pub fn sub_0d6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.a = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xd8 RET C
+pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_carry_flag()) {
+        let lower_pc: u16 = memory.get(registers.sp) as u16;
+        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        registers.pc = lower_pc + (upper_pc << 8u16);
+        registers.sp = registers.sp + 2u16;
+        return 20u16;
+    } else {
+        registers.pc = registers.pc + 1u16;
+        return 8u16;
+    }
 }
 
 /// 0xdb UNKNOWN

@@ -397,6 +397,10 @@ impl Language {
         self.operations.bitwise_or(&[lhs.clone(), literal])
     }
 
+    pub fn return_duration(&self, value: i64) -> Code {
+        self.return_int(value, Type::Uint16, IntFormat::Decimal)
+    }
+
     pub fn return_int(&self, value: i64, type_: Type, format: IntFormat) -> Code {
         self.statements
             .return_value(&self.statements.int_literal(value, type_, format))
@@ -418,5 +422,20 @@ impl Language {
 
     pub fn hex_literal(&self, value: i64, type_: Type) -> Expression {
         self.statements.int_literal(value, type_, IntFormat::Hex)
+    }
+
+    pub fn variable_with_cast(&self, name: &str, code: &Expression, type_: Type) -> Variable {
+        self.statements.variable(name, &self.operations.cast(code, type_))
+    }
+
+    pub fn add_int(&self, value: Expression, increment: i64, format: IntFormat) -> Expression {
+        let type_ = value.type_;
+        self.operations.add(
+            &[value, self.statements.int_literal(increment, type_, format)]
+        )
+    }
+
+    pub fn get_from_address(&self, address: &Expression) -> Expression {
+        self.memory.get(&address)
     }
 }

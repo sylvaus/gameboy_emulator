@@ -1,18 +1,20 @@
 use crate::common::base::Operation;
-use crate::common::flags::{create_carry_flag_value, create_set_flags, create_zero_flag_value};
+use crate::common::flags::{
+    create_carry_flag_value, create_set_flags, create_zero_flag_value, get_flag_from_name,
+};
 use crate::common::function::{
     create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS,
     ONLY_USE_REGISTER, USE_REGISTER_AND_MEMORY,
 };
 use crate::common::getset::{
     create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code,
-    create_set_code_with_offset, get_flag_from_name,
+    create_set_code_with_offset,
 };
 use crate::common::operation;
 use crate::common::operation::{
     create_op_with_flag_code, create_op_with_flag_code_3_custom_values,
 };
-use crate::common::register::{decrement_register, increment_register};
+use crate::common::register::{decrement_register, increment_register, increment_register_int};
 use crate::instruction;
 use crate::instruction::{Argument, FlagAction, Instruction, InstructionType};
 use crate::interface::{Code, Function, IntFormat, Language, Register, Type};
@@ -303,15 +305,11 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
     let no_jump = program_counter
         .set(&language.operations.cast(&no_jump_pc.name, Type::Uint16))
         .prepend(no_jump_pc.code)
-        .append(language.return_int(
-            instruction.duration_no_action,
-            Type::Uint16,
-            IntFormat::Decimal,
-        ));
+        .append(language.return_duration(instruction.duration_no_action));
     let jump = program_counter
         .set(&language.operations.cast(&jump_pc.name, Type::Uint16))
         .prepend(jump_pc.code)
-        .append(language.return_int(instruction.duration, Type::Uint16, IntFormat::Decimal));
+        .append(language.return_duration(instruction.duration));
 
     let code = if instruction.second_argument.is_none() {
         jump
@@ -536,7 +534,7 @@ pub fn create_comparison(instruction: &Instruction, language: &Language) -> Func
         Operation::Sub,
         &language.registers.a.get(),
         &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
-        None
+        None,
     );
 
     return create_function(
@@ -544,6 +542,65 @@ pub fn create_comparison(instruction: &Instruction, language: &Language) -> Func
         language,
         get_used_params(instruction),
         operation.code,
+    );
+}
+
+pub fn create_return(instruction: &Instruction, language: &Language) -> Function {
+    let stack = language.registers.stack_pointer.as_ref();
+    let program_counter = language.registers.program_counter.as_ref();
+
+    let lower_pc = language.variable_with_cast(
+        "lower_pc",
+        &language.get_from_address(&stack.get()),
+        Type::Uint16,
+    );
+    let upper_pc = language.variable_with_cast(
+        "upper_pc",
+        &language.get_from_address(&language.add_int(stack.get(), 1, IntFormat::Decimal)),
+        Type::Uint16,
+    );
+
+    let update_pc = program_counter.set(&language.operations.add(&[
+        lower_pc.name,
+        language.shift_left_int(&upper_pc.name, 8, IntFormat::Decimal),
+    ]));
+    let update_stack = increment_register_int(language, stack, 2, IntFormat::Decimal);
+
+    let code = Code::create_empty()
+        .append(lower_pc.code)
+        .append(upper_pc.code)
+        .append(update_pc)
+        .append(update_stack)
+        .append(language.return_duration(instruction.duration));
+
+    let no_return = increment_register_int(
+        language,
+        program_counter,
+        instruction.length,
+        IntFormat::Decimal,
+    )
+    .append(language.return_duration(instruction.duration_no_action));
+
+    let code = if let Some(argument) = instruction.first_argument.as_ref() {
+        language.statements.if_else(
+            &get_flag_from_name(language, &argument.name),
+            &code,
+            &no_return,
+        )
+    } else {
+        code
+    };
+
+    return create_function_custom(
+        instruction,
+        language,
+        USE_REGISTER_AND_MEMORY,
+        code,
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: None,
+        },
     );
 }
 
@@ -583,7 +640,7 @@ pub fn create_instruction_function(
             Some(create_bitwise_operation(instruction, language))
         }
         InstructionType::CP => Some(create_comparison(instruction, language)),
-        // InstructionType::RET => {}
+        InstructionType::RET => Some(create_return(instruction, language)),
         // InstructionType::POP => {}
         // InstructionType::JP => {}
         // InstructionType::CALL => {}

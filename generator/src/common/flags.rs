@@ -1,6 +1,7 @@
 use crate::instruction::{FlagAction, Instruction};
 use crate::interface::{Code, Expression, IntFormat, Language, Type, Variable};
 use crate::common::base::Operation;
+use crate::instruction;
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
 const OFFSET_HALF_CARRY_FLAG_VALUE: i64 = 5;
@@ -139,5 +140,16 @@ pub fn create_set_flags(
             .registers
             .flags
             .set(&language.operations.add(&values))
+    }
+}
+
+pub fn get_flag_from_name(language: &Language, name: &str) -> Expression {
+    match name.to_lowercase().as_str() {
+        instruction::FLAG_NAME_CARRY => language.registers.flags.get_carry_flag(),
+        instruction::FLAG_NAME_ZERO => language.registers.flags.get_zero_flag(),
+        instruction::FLAG_NAME_NON_CARRY => language.registers.flags.get_non_carry_flag(),
+        instruction::FLAG_NAME_NON_ZERO => language.registers.flags.get_non_zero_flag(),
+
+        _ => panic!("No flag for name {}", name),
     }
 }
