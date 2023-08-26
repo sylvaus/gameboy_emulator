@@ -987,12 +987,17 @@ pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Func
         language.shift_left_int(&upper_pc.name, 8, IntFormat::Decimal),
     ]));
     let update_stack = increment_register_int(language, stack, 2, IntFormat::Decimal);
+    let set_ime = language
+        .registers
+        .ime_flag
+        .set(&language.statements.bool_literal(true));
 
     let code = Code::create_empty()
         .append(lower_pc.code)
         .append(upper_pc.code)
         .append(update_pc)
-        .append(update_stack);
+        .append(update_stack)
+        .append(set_ime);
 
     return create_function_custom(
         instruction,

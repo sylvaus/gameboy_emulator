@@ -2221,6 +2221,7 @@ pub fn reti_0d9(registers: &mut Registers, memory: &mut dyn Memory, _argument: &
     let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
     registers.pc = lower_pc + (upper_pc << 8u16);
     registers.sp = registers.sp + 2u16;
+    registers.ime_flag = true;
     return 16;
 }
 
