@@ -793,12 +793,27 @@ pub fn create_prefix(instruction: &Instruction, language: &Language) -> Function
         instruction,
         language,
         NO_USED_PARAMS,
-        language.statements.stop_with_message("Opcode 0xCB should be handled separately, something bad must have happened"),
+        language.statements.stop_with_message(
+            "Opcode 0xCB should be handled separately, something bad must have happened",
+        ),
         FunctionDetails {
             doc: None,
             pc_increment: None,
             return_value: None,
         },
+    );
+}
+
+pub fn create_ime_operation(instruction: &Instruction, language: &Language) -> Function {
+    let value = instruction.type_field == InstructionType::EI;
+    return create_function(
+        instruction,
+        language,
+        ONLY_USE_REGISTER,
+        language
+            .registers
+            .ime_flag
+            .set(&language.statements.bool_literal(value)),
     );
 }
 
@@ -845,8 +860,9 @@ pub fn create_instruction_function(
         InstructionType::PUSH => Some(create_push(instruction, language)),
         InstructionType::RST => Some(create_rst(instruction, language)),
         InstructionType::PREFIX => Some(create_prefix(instruction, language)),
-        // InstructionType::DI => {}
-        // InstructionType::EI => {}
+        InstructionType::DI | InstructionType::EI => {
+            Some(create_ime_operation(instruction, language))
+        }
         // InstructionType::SLA => {}
         // InstructionType::SRA => {}
         // InstructionType::SWAP => {}

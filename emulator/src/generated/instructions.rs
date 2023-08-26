@@ -2401,6 +2401,13 @@ pub fn ldspecial_0f2(registers: &mut Registers, memory: &mut dyn Memory, _argume
     return 8;
 }
 
+/// 0xf3 DI
+pub fn di_0f3(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.ime_flag = false;
+    registers.pc = registers.pc + 1;
+    return 4;
+}
+
 /// 0xf4 UNKNOWN
 pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     panic!("Unknown opcode 0xF4");
@@ -2459,6 +2466,13 @@ pub fn ld_0fa(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut
     registers.a = memory.get(argument.get_16_bits());
     registers.pc = registers.pc + 3;
     return 16;
+}
+
+/// 0xfb EI
+pub fn ei_0fb(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    registers.ime_flag = true;
+    registers.pc = registers.pc + 1;
+    return 4;
 }
 
 /// 0xfc UNKNOWN
