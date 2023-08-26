@@ -1,7 +1,7 @@
-use log::trace;
 use crate::memory::argument::Argument;
-use crate::memory::Memory;
 use crate::memory::registers::Registers;
+use crate::memory::Memory;
+use log::trace;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ImmediateArgumentType {
@@ -12,8 +12,6 @@ pub enum ImmediateArgumentType {
 }
 
 type InstructionFn = fn(&mut Registers, &mut dyn Memory, &Argument) -> u16;
-
-
 
 /// 0x0 NOP
 pub fn nop_000(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
@@ -67,7 +65,8 @@ pub fn dec_005(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.b = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -152,7 +151,8 @@ pub fn dec_00d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.c = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -230,7 +230,8 @@ pub fn dec_015(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.d = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -315,7 +316,8 @@ pub fn dec_01d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.e = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -333,7 +335,8 @@ pub fn rra_01f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let value_u8: u8 = registers.a;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     registers.flags = carried_value << 4u8;
     registers.a = result;
     registers.pc = registers.pc + 1;
@@ -343,7 +346,8 @@ pub fn rra_01f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x20 JR NZ r8
 pub fn jr_020(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_non_zero_flag() {
-        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
+        let no_jump_pc: i32 =
+            (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
     } else {
@@ -400,7 +404,8 @@ pub fn dec_025(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.h = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -417,14 +422,22 @@ pub fn ld_026(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 pub fn daa_027(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     if registers.get_add_sub_flag() {
         let carry_flag: u8 = registers.get_carry_flag() as u8;
-        registers.a = registers.a.wrapping_add((0xA0u8 * carry_flag).wrapping_add(0xFAu8 * (registers.get_half_carry_flag() as u8)));
+        registers.a = registers.a.wrapping_add(
+            (0xA0u8 * carry_flag).wrapping_add(0xFAu8 * (registers.get_half_carry_flag() as u8)),
+        );
         let zero_flag: u8 = (registers.a == 0x0u8) as u8;
-        registers.flags = (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
+        registers.flags =
+            (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
     } else {
         let carry_flag: u8 = ((registers.a > 0x99u8) || registers.get_carry_flag()) as u8;
-        registers.a = registers.a.wrapping_add((0x60u8 * carry_flag) + (0x6u8 * ((((registers.a & 0xFu8) > 0xAu8) || registers.get_half_carry_flag()) as u8)));
+        registers.a = registers.a.wrapping_add(
+            (0x60u8 * carry_flag)
+                + (0x6u8
+                    * ((((registers.a & 0xFu8) > 0xAu8) || registers.get_half_carry_flag()) as u8)),
+        );
         let zero_flag: u8 = (registers.a == 0x0u8) as u8;
-        registers.flags = (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
+        registers.flags =
+            (carry_flag << 4u8) + (zero_flag << 7u8) + (registers.flags & 0b1000000u8);
     }
     registers.pc = registers.pc + 1;
     return 4;
@@ -433,7 +446,8 @@ pub fn daa_027(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x28 JR Z r8
 pub fn jr_028(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_zero_flag() {
-        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
+        let no_jump_pc: i32 =
+            (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
     } else {
@@ -497,7 +511,8 @@ pub fn dec_02d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.l = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -521,7 +536,8 @@ pub fn cpl_02f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x30 JR NC r8
 pub fn jr_030(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_non_carry_flag() {
-        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
+        let no_jump_pc: i32 =
+            (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
     } else {
@@ -578,7 +594,8 @@ pub fn dec_035(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     memory.set(registers.get_hl(), (result & 0xFFi32) as u8);
     registers.pc = registers.pc + 1;
     return 12;
@@ -601,7 +618,8 @@ pub fn scf_037(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x38 JR C r8
 pub fn jr_038(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_carry_flag() {
-        let no_jump_pc: i32 = (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
+        let no_jump_pc: i32 =
+            (registers.pc as i32) + (2u16 as i32) + (argument.get_signed() as i32);
         registers.pc = no_jump_pc as u16;
         return 12u16;
     } else {
@@ -665,7 +683,8 @@ pub fn dec_03d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - (rhs & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
-    registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
+    registers.flags =
+        (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
     registers.a = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 1;
     return 4;
@@ -1261,7 +1280,8 @@ pub fn adc_088(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1277,7 +1297,8 @@ pub fn adc_089(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1293,7 +1314,8 @@ pub fn adc_08a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1309,7 +1331,8 @@ pub fn adc_08b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1325,7 +1348,8 @@ pub fn adc_08c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1341,7 +1365,8 @@ pub fn adc_08d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1357,7 +1382,8 @@ pub fn adc_08e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1373,7 +1399,8 @@ pub fn adc_08f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -1509,7 +1536,8 @@ pub fn sbc_098(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1525,7 +1553,8 @@ pub fn sbc_099(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1541,7 +1570,8 @@ pub fn sbc_09a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1557,7 +1587,8 @@ pub fn sbc_09b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1573,7 +1604,8 @@ pub fn sbc_09c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1589,7 +1621,8 @@ pub fn sbc_09d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1605,7 +1638,8 @@ pub fn sbc_09e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1621,7 +1655,8 @@ pub fn sbc_09f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -1978,7 +2013,10 @@ pub fn jp_0c3(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_non_zero_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(
+            registers.sp - 1u16,
+            ((registers.pc >> 8u16) & 0xFFu16) as u8,
+        );
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
@@ -2016,7 +2054,10 @@ pub fn add_0c6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xc7 RST 00H
 pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x0u16;
@@ -2058,7 +2099,11 @@ pub fn jp_0ca(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 }
 
 /// 0xcb PREFIX CB
-pub fn prefix_0cb(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn prefix_0cb(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Opcode 0xCB should be handled separately, something bad must have happened");
 }
 
@@ -2066,7 +2111,10 @@ pub fn prefix_0cb(_registers: &mut Registers, _memory: &mut dyn Memory, _argumen
 pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_zero_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(
+            registers.sp - 1u16,
+            ((registers.pc >> 8u16) & 0xFFu16) as u8,
+        );
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
@@ -2080,7 +2128,10 @@ pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 /// 0xcd CALL a16
 pub fn call_0cd(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     registers.pc = registers.pc + 3u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = argument.get_16_bits();
@@ -2094,7 +2145,8 @@ pub fn adc_0ce(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32) + ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     let carry_flag: u8 = (result > 0xFFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8);
@@ -2106,7 +2158,10 @@ pub fn adc_0ce(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xcf RST 08H
 pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x8u16;
@@ -2148,7 +2203,11 @@ pub fn jp_0d2(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 }
 
 /// 0xd3 UNKNOWN
-pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0d3(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xD3");
 }
 
@@ -2156,7 +2215,10 @@ pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_non_carry_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(
+            registers.sp - 1u16,
+            ((registers.pc >> 8u16) & 0xFFu16) as u8,
+        );
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
@@ -2194,7 +2256,10 @@ pub fn sub_0d6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xd7 RST 10H
 pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x10u16;
@@ -2237,7 +2302,11 @@ pub fn jp_0da(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 }
 
 /// 0xdb UNKNOWN
-pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0db(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xDB");
 }
 
@@ -2245,7 +2314,10 @@ pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 pub fn call_0dc(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_carry_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(
+            registers.sp - 1u16,
+            ((registers.pc >> 8u16) & 0xFFu16) as u8,
+        );
         memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
@@ -2257,7 +2329,11 @@ pub fn call_0dc(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 }
 
 /// 0xdd UNKNOWN
-pub fn unknown_0dd(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0dd(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xDD");
 }
 
@@ -2268,7 +2344,8 @@ pub fn sbc_0de(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
-    let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
+    let half_value: i32 =
+        ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32) - ((rrhs as i32) & 0xFi32);
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     let carry_flag: u8 = (result < 0x0i32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
@@ -2280,7 +2357,10 @@ pub fn sbc_0de(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xdf RST 18H
 pub fn rst_0df(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x18u16;
@@ -2304,19 +2384,31 @@ pub fn pop_0e1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 }
 
 /// 0xe2 LDSpecial (C) A
-pub fn ldspecial_0e2(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn ldspecial_0e2(
+    registers: &mut Registers,
+    memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     memory.set((registers.c as u16) + 0xFF00u16, registers.a);
     registers.pc = registers.pc + 1;
     return 8;
 }
 
 /// 0xe3 UNKNOWN
-pub fn unknown_0e3(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0e3(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xE3");
 }
 
 /// 0xe4 UNKNOWN
-pub fn unknown_0e4(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0e4(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xE4");
 }
 
@@ -2340,7 +2432,10 @@ pub fn and_0e6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xe7 RST 20H
 pub fn rst_0e7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x20u16;
@@ -2375,17 +2470,29 @@ pub fn ld_0ea(registers: &mut Registers, memory: &mut dyn Memory, argument: &Arg
 }
 
 /// 0xeb UNKNOWN
-pub fn unknown_0eb(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0eb(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xEB");
 }
 
 /// 0xec UNKNOWN
-pub fn unknown_0ec(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0ec(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xEC");
 }
 
 /// 0xed UNKNOWN
-pub fn unknown_0ed(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0ed(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xED");
 }
 
@@ -2400,7 +2507,10 @@ pub fn xor_0ee(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xef RST 28H
 pub fn rst_0ef(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x28u16;
@@ -2424,7 +2534,11 @@ pub fn pop_0f1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 }
 
 /// 0xf2 LDSpecial A (C)
-pub fn ldspecial_0f2(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn ldspecial_0f2(
+    registers: &mut Registers,
+    memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     registers.a = memory.get((registers.c as u16) + 0xFF00u16);
     registers.pc = registers.pc + 1;
     return 8;
@@ -2438,7 +2552,11 @@ pub fn di_0f3(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 }
 
 /// 0xf4 UNKNOWN
-pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0f4(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xF4");
 }
 
@@ -2462,7 +2580,10 @@ pub fn or_0f6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 /// 0xf7 RST 30H
 pub fn rst_0f7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x30u16;
@@ -2505,12 +2626,20 @@ pub fn ei_0fb(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 }
 
 /// 0xfc UNKNOWN
-pub fn unknown_0fc(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0fc(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xFC");
 }
 
 /// 0xfd UNKNOWN
-pub fn unknown_0fd(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &Argument) -> u16 {
+pub fn unknown_0fd(
+    _registers: &mut Registers,
+    _memory: &mut dyn Memory,
+    _argument: &Argument,
+) -> u16 {
     panic!("Unknown opcode 0xFD");
 }
 
@@ -2531,7 +2660,10 @@ pub fn cp_0fe(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 /// 0xff RST 38H
 pub fn rst_0ff(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(
+        registers.sp - 1u16,
+        ((registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
     memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x38u16;
@@ -2855,7 +2987,8 @@ pub fn rr_118(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.b;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.b = result;
@@ -2868,7 +3001,8 @@ pub fn rr_119(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.c;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.c = result;
@@ -2881,7 +3015,8 @@ pub fn rr_11a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.d;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.d = result;
@@ -2894,7 +3029,8 @@ pub fn rr_11b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.e;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.e = result;
@@ -2907,7 +3043,8 @@ pub fn rr_11c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.h;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.h = result;
@@ -2920,7 +3057,8 @@ pub fn rr_11d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.l;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.l = result;
@@ -2933,7 +3071,8 @@ pub fn rr_11e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Ar
     let value_u8: u8 = memory.get(registers.get_hl());
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     memory.set(registers.get_hl(), result);
@@ -2946,7 +3085,8 @@ pub fn rr_11f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
     let value_u8: u8 = registers.a;
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
-    let result: u8 = (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
+    let result: u8 =
+        (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
     registers.a = result;
@@ -3854,7 +3994,10 @@ pub fn res_185(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x186 RES 0 (HL)
 pub fn res_186(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b11111110u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b11111110u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3910,7 +4053,10 @@ pub fn res_18d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x18e RES 1 (HL)
 pub fn res_18e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b11111101u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b11111101u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3966,7 +4112,10 @@ pub fn res_195(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x196 RES 2 (HL)
 pub fn res_196(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b11111011u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b11111011u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4022,7 +4171,10 @@ pub fn res_19d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x19e RES 3 (HL)
 pub fn res_19e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b11110111u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b11110111u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4078,7 +4230,10 @@ pub fn res_1a5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1a6 RES 4 (HL)
 pub fn res_1a6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b11101111u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b11101111u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4134,7 +4289,10 @@ pub fn res_1ad(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1ae RES 5 (HL)
 pub fn res_1ae(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b11011111u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b11011111u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4190,7 +4348,10 @@ pub fn res_1b5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1b6 RES 6 (HL)
 pub fn res_1b6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b10111111u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b10111111u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4246,7 +4407,10 @@ pub fn res_1bd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1be RES 7 (HL)
 pub fn res_1be(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) & 0b1111111u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) & 0b1111111u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4470,7 +4634,10 @@ pub fn set_1dd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1de SET 3 (HL)
 pub fn set_1de(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b1000u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) | 0b1000u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4526,7 +4693,10 @@ pub fn set_1e5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1e6 SET 4 (HL)
 pub fn set_1e6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b10000u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) | 0b10000u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4582,7 +4752,10 @@ pub fn set_1ed(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1ee SET 5 (HL)
 pub fn set_1ee(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b100000u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) | 0b100000u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4638,7 +4811,10 @@ pub fn set_1f5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1f6 SET 6 (HL)
 pub fn set_1f6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b1000000u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) | 0b1000000u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4694,7 +4870,10 @@ pub fn set_1fd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1fe SET 7 (HL)
 pub fn set_1fe(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b10000000u8);
+    memory.set(
+        registers.get_hl(),
+        memory.get(registers.get_hl()) | 0b10000000u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -5220,7 +5399,7 @@ pub fn get_instruction(opcode: u16) -> (InstructionFn, ImmediateArgumentType) {
         509 => (set_1fd, ImmediateArgumentType::None),
         510 => (set_1fe, ImmediateArgumentType::None),
         511 => (set_1ff, ImmediateArgumentType::None),
-        _ => panic!("Unknown opcode {:?}", opcode)
+        _ => panic!("Unknown opcode {:?}", opcode),
     }
 }
 

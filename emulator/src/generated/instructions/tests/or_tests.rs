@@ -1,8 +1,6 @@
 /// Tests for the OR instruction
 /// The OR instruction is described in chapter 4: page 104-105 of https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf instruction is described in chapter 4: page OR of https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
-use crate::generated::instructions::tests::fixture::{
-    FakeMemory, REGISTERS_8_BITS, REGISTER_A
-};
+use crate::generated::instructions::tests::fixture::{FakeMemory, REGISTERS_8_BITS, REGISTER_A};
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::memory::argument::Argument;
 use crate::memory::registers::Registers;

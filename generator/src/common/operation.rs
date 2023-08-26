@@ -1,5 +1,9 @@
 use crate::common::base::{Operation, OperationWithFlag};
-use crate::common::flags::{compute_carry_flag, compute_half_carry_flag, compute_zero_flag, create_carry_flag_value, create_half_carry_flag_value, create_set_flags, create_zero_flag_value, get_carry_max_value, get_half_carry_max_value};
+use crate::common::flags::{
+    compute_carry_flag, compute_half_carry_flag, compute_zero_flag, create_carry_flag_value,
+    create_half_carry_flag_value, create_set_flags, create_zero_flag_value, get_carry_max_value,
+    get_half_carry_max_value,
+};
 use crate::common::getset::create_get_code;
 use crate::instruction::{FlagAction, Instruction};
 use crate::interface::{Expression, IntFormat, Language, Type};

@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use crate::instruction::Instruction;
+use std::fmt::Display;
 
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -237,7 +237,8 @@ pub trait Statements {
         doc: &str,
         return_type: Type,
     ) -> Function;
-    fn get_function_by_opcode(&self, instruction_functions: &[(Instruction, Function)]) -> Function;
+    fn get_function_by_opcode(&self, instruction_functions: &[(Instruction, Function)])
+        -> Function;
 }
 
 pub trait Operations {

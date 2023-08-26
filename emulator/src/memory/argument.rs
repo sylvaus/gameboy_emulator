@@ -2,7 +2,7 @@ pub enum Argument {
     None,
     Uint8(u8),
     Int8(i8),
-    Uint16(u16)
+    Uint16(u16),
 }
 
 impl Argument {

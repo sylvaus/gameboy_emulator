@@ -1,7 +1,7 @@
-use crate::instruction::{FlagAction, Instruction};
-use crate::interface::{Code, Expression, IntFormat, Language, Type, Variable};
 use crate::common::base::Operation;
 use crate::instruction;
+use crate::instruction::{FlagAction, Instruction};
+use crate::interface::{Code, Expression, IntFormat, Language, Type, Variable};
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
 const OFFSET_HALF_CARRY_FLAG_VALUE: i64 = 5;
@@ -24,7 +24,11 @@ pub fn get_half_carry_max_value(instruction: &Instruction) -> i64 {
     }
 }
 
-pub fn compute_zero_flag(language: &Language, result: &Expression, carry_max_value: i64) -> Variable {
+pub fn compute_zero_flag(
+    language: &Language,
+    result: &Expression,
+    carry_max_value: i64,
+) -> Variable {
     let equals = language.equals_int(
         &language.bitwise_and_int(result, carry_max_value, IntFormat::Hex),
         0,
@@ -136,10 +140,7 @@ pub fn create_set_flags(
     if values.is_empty() {
         Code::create_empty()
     } else {
-        language
-            .registers
-            .f
-            .set(&language.operations.add(&values))
+        language.registers.f.set(&language.operations.add(&values))
     }
 }
 

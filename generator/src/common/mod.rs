@@ -1,6 +1,6 @@
-pub mod flags;
 pub mod base;
-pub mod operation;
-pub mod getset;
+pub mod flags;
 pub mod function;
+pub mod getset;
+pub mod operation;
 pub mod register;

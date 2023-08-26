@@ -179,16 +179,13 @@ pub const REGISTER_AF: Register16BitsInfo = Register16BitsInfo {
     },
 };
 
-pub const REGISTERS_16_BITS: &[Register16BitsInfo] = &[
-    REGISTER_BC, REGISTER_DE, REGISTER_HL, REGISTER_SP,
-];
-pub const REGISTERS_16_BITS_WITHOUT_HL: &[Register16BitsInfo] = &[
-    REGISTER_BC, REGISTER_DE, REGISTER_SP,
-];
+pub const REGISTERS_16_BITS: &[Register16BitsInfo] =
+    &[REGISTER_BC, REGISTER_DE, REGISTER_HL, REGISTER_SP];
+pub const REGISTERS_16_BITS_WITHOUT_HL: &[Register16BitsInfo] =
+    &[REGISTER_BC, REGISTER_DE, REGISTER_SP];
 
-pub const PUSH_POP_REGISTERS_16_BITS: &[Register16BitsInfo] = &[
-    REGISTER_BC, REGISTER_DE, REGISTER_HL, REGISTER_AF,
-];
+pub const PUSH_POP_REGISTERS_16_BITS: &[Register16BitsInfo] =
+    &[REGISTER_BC, REGISTER_DE, REGISTER_HL, REGISTER_AF];
 
 /// Flags defined page 108: https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
 pub struct FlagInfo {
@@ -240,7 +237,4 @@ pub const FLAG_CARRY: FlagInfo = FlagInfo {
     },
 };
 
-pub const FLAG_INFOS: &[FlagInfo] = &[
-    FLAG_NON_ZERO, FLAG_ZERO, FLAG_NON_CARRY, FLAG_CARRY
-];
-
+pub const FLAG_INFOS: &[FlagInfo] = &[FLAG_NON_ZERO, FLAG_ZERO, FLAG_NON_CARRY, FLAG_CARRY];

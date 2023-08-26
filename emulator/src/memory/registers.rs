@@ -11,7 +11,7 @@ pub const ZERO_FLAG_MASK: u8 = 0b1 << OFFSET_ZERO_FLAG;
 pub const CARRY_FLAG_INV_MASK: u8 = 0xFF - CARRY_FLAG_MASK;
 pub const HALF_CARRY_FLAG_INV_MASK: u8 = 0xFF - HALF_CARRY_FLAG_MASK;
 pub const ADD_SUB_FLAG_INV_MASK: u8 = 0xFF - ADD_SUB_FLAG_MASK;
-pub const ZERO_FLAG_INV_MASK: u8 = 0xFF -  ZERO_FLAG_MASK;
+pub const ZERO_FLAG_INV_MASK: u8 = 0xFF - ZERO_FLAG_MASK;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Registers {

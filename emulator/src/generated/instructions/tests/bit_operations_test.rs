@@ -188,7 +188,7 @@ fn test_res_8bits_address() {
 #[test]
 fn test_set_8bits_address() {
     for bit_index in BIT_INDEXES {
-        let opcode =  (bit_index << 3) + 0b111000110;
+        let opcode = (bit_index << 3) + 0b111000110;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();

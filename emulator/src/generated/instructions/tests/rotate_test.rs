@@ -3,8 +3,8 @@
 use crate::generated::instructions::tests::fixture::{FakeMemory, REGISTERS_8_BITS};
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::memory::argument::Argument;
-use crate::memory::Memory;
 use crate::memory::registers::Registers;
+use crate::memory::Memory;
 
 const RLC_BASE_OPCODE: u16 = 0b100000000;
 const RL_BASE_OPCODE: u16 = 0b100010000;

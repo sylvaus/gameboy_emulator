@@ -1,8 +1,6 @@
 /// Tests for the JUMP instruction
 /// The JUMP instruction is described in chapter 4: page 116 and 117 of https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
-use crate::generated::instructions::tests::fixture::{
-    FakeMemory, FLAG_INFOS,
-};
+use crate::generated::instructions::tests::fixture::{FakeMemory, FLAG_INFOS};
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::memory::argument::Argument;
 use crate::memory::registers::Registers;
@@ -129,4 +127,3 @@ fn test_jump_hl() {
     assert_eq!(register, expected);
     assert_eq!(argument_type, ImmediateArgumentType::None);
 }
-

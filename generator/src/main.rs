@@ -52,7 +52,8 @@ fn main() {
         .map(|instruction| {
             let function = create_instruction_function(&instruction, &language);
             (instruction, function)
-        }).collect();
+        })
+        .collect();
 
     for (_, function) in &instruction_functions {
         file.write(function.definition.to_string().as_bytes())
@@ -60,7 +61,9 @@ fn main() {
         file.write(b"\n").unwrap();
     }
 
-    let function_by_opcode = language.statements.get_function_by_opcode(&instruction_functions);
+    let function_by_opcode = language
+        .statements
+        .get_function_by_opcode(&instruction_functions);
     file.write(function_by_opcode.definition.to_string().as_bytes())
         .unwrap();
     file.write(b"\n").unwrap();

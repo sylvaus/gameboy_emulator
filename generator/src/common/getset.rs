@@ -34,7 +34,11 @@ pub fn create_set_code_with_offset(
     get_register_from_name(language, &argument.name).set(value)
 }
 
-pub fn create_set_memory_code(language: &Language, address: &Expression, value: &Expression) -> Code {
+pub fn create_set_memory_code(
+    language: &Language,
+    address: &Expression,
+    value: &Expression,
+) -> Code {
     match value.type_ {
         Type::Uint8 => language.memory.set_8_bits(address, value),
         Type::Uint16 => language.memory.set_16_bits(address, value),

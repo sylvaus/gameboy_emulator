@@ -5,7 +5,12 @@ pub fn increment_register(language: &Language, register: &dyn Register, value: E
     register.set(&language.operations.add(&[register.get(), value]))
 }
 
-pub fn increment_register_int(language: &Language, register: &dyn Register, value: i64, format: IntFormat) -> Code {
+pub fn increment_register_int(
+    language: &Language,
+    register: &dyn Register,
+    value: i64,
+    format: IntFormat,
+) -> Code {
     register.set(&language.add_int(register.get(), value, format))
 }
 
@@ -13,7 +18,12 @@ pub fn decrement_register(language: &Language, register: &dyn Register, value: E
     register.set(&language.operations.sub(&[register.get(), value]))
 }
 
-pub fn decrement_register_int(language: &Language, register: &dyn Register, value: i64, format: IntFormat) -> Code {
+pub fn decrement_register_int(
+    language: &Language,
+    register: &dyn Register,
+    value: i64,
+    format: IntFormat,
+) -> Code {
     register.set(&language.sub_int(register.get(), value, format))
 }
 
@@ -37,7 +47,10 @@ pub fn get_register_from_name<'a>(language: &'a Language, name: &str) -> &'a Box
     }
 }
 
-pub fn get_sub_registers_from_name<'a>(language: &'a Language, name: &str) -> (&'a Box<dyn Register>, &'a Box<dyn Register>) {
+pub fn get_sub_registers_from_name<'a>(
+    language: &'a Language,
+    name: &str,
+) -> (&'a Box<dyn Register>, &'a Box<dyn Register>) {
     match name.to_lowercase().as_str() {
         instruction::REGISTER_NAME_AF => (&language.registers.f, &language.registers.a),
         instruction::REGISTER_NAME_BC => (&language.registers.c, &language.registers.b),
