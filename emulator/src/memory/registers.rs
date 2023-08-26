@@ -87,7 +87,7 @@ impl Registers {
         if value {
             self.flags |= ADD_SUB_FLAG_MASK;
         } else {
-            self.flags &= ADD_SUB_FLAG_MASK;
+            self.flags &= ADD_SUB_FLAG_INV_MASK;
         }
     }
     pub fn set_zero_flag(&mut self, value: bool) {
