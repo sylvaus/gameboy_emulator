@@ -18,3 +18,4 @@ mod jump_test;
 mod ld_test;
 mod pop_test;
 mod push_test;
+mod ret_test;
