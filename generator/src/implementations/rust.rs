@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
-use crate::interface::{ArgumentGetters, Code, Expression, Flags, FlagsRegister, Function, FunctionTableCall, IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type};
-use crate::parser::Instruction;
+use crate::interface::{
+    ArgumentGetters, Code, Expression, Flags, FlagsRegister, Function, FunctionTableCall,
+    IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type,
+};
 
 const REGISTER_VAR_NAME: &str = "registers";
 const MEMORY_VAR_NAME: &str = "memory";
@@ -12,10 +14,7 @@ struct ArgumentsImpl {}
 impl ArgumentGetters for ArgumentsImpl {
     fn get_uint8(&self) -> Expression {
         Expression::new(
-            format!(
-                "{}.get({}.pc + 1)",
-                MEMORY_VAR_NAME, REGISTER_VAR_NAME
-            ),
+            format!("{}.get({}.pc + 1)", MEMORY_VAR_NAME, REGISTER_VAR_NAME),
             Type::Uint8,
         )
     }
@@ -43,7 +42,7 @@ impl ArgumentGetters for ArgumentsImpl {
 
 struct AttributeRegister {
     name: String,
-    type_: Type
+    type_: Type,
 }
 
 impl Register for AttributeRegister {
@@ -52,7 +51,11 @@ impl Register for AttributeRegister {
     }
 
     fn set(&self, value: &Expression) -> Code {
-        assert_eq!(value.type_, self.type_, "Cannot set a {:?} register with type: {:?}", self.type_, value.type_);
+        assert_eq!(
+            value.type_, self.type_,
+            "Cannot set a {:?} register with type: {:?}",
+            self.type_, value.type_
+        );
         Code::from_str(&format!(
             "{}.{} = {};",
             REGISTER_VAR_NAME, self.name, value.text
@@ -79,7 +82,12 @@ impl Register for GetterSetterRegister {
     }
 
     fn set(&self, value: &Expression) -> Code {
-        assert_eq!(value.type_, Type::Uint16, "Cannot set a 16 bit register with type: {:?}", value.type_);
+        assert_eq!(
+            value.type_,
+            Type::Uint16,
+            "Cannot set a 16 bit register with type: {:?}",
+            value.type_
+        );
         Code::from_str(&format!(
             "{}.set_{}({});",
             REGISTER_VAR_NAME, self.name, value.text
@@ -97,7 +105,12 @@ impl Register for FlagsRegisterImpl {
     }
 
     fn set(&self, value: &Expression) -> Code {
-        assert_eq!(value.type_, Type::Uint8, "Cannot set a 8 bit register with type: {:?}", value.type_);
+        assert_eq!(
+            value.type_,
+            Type::Uint8,
+            "Cannot set a 8 bit register with type: {:?}",
+            value.type_
+        );
         Code::from_str(&format!("registers.flags = {};", value.text))
     }
 }
@@ -128,7 +141,12 @@ impl Memory for MemoryImpl {
     }
 
     fn get(&self, address: &Expression) -> Expression {
-        assert_eq!(address.type_, Type::Uint16, "Address type should be uint16 and not: {:?}", address.type_);
+        assert_eq!(
+            address.type_,
+            Type::Uint16,
+            "Address type should be uint16 and not: {:?}",
+            address.type_
+        );
         Expression::new(
             format!("{}.get({})", MEMORY_VAR_NAME, address.text),
             Type::Uint8,
@@ -136,7 +154,12 @@ impl Memory for MemoryImpl {
     }
 
     fn get_signed(&self, address: &Expression) -> Expression {
-        assert_eq!(address.type_, Type::Uint16, "Address type should be uint16 and not: {:?}", address.type_);
+        assert_eq!(
+            address.type_,
+            Type::Uint16,
+            "Address type should be uint16 and not: {:?}",
+            address.type_
+        );
         Expression::new(
             format!("{}.get_signed({})", MEMORY_VAR_NAME, address.text),
             Type::Int8,
@@ -144,7 +167,12 @@ impl Memory for MemoryImpl {
     }
 
     fn get_16_bits(&self, address: &Expression) -> Expression {
-        assert_eq!(address.type_, Type::Uint16, "Address type should be uint16 and not: {:?}", address.type_);
+        assert_eq!(
+            address.type_,
+            Type::Uint16,
+            "Address type should be uint16 and not: {:?}",
+            address.type_
+        );
         Expression::new(
             format!("{}.get_16_bits({})", MEMORY_VAR_NAME, address.text),
             Type::Uint16,
@@ -152,8 +180,18 @@ impl Memory for MemoryImpl {
     }
 
     fn set_8_bits(&self, address: &Expression, value: &Expression) -> Code {
-        assert_eq!(address.type_, Type::Uint16, "Address type should be uint16 and not: {:?}", value.type_);
-        assert_eq!(value.type_, Type::Uint8, "Value type should be uint8 and not: {:?}", value.type_);
+        assert_eq!(
+            address.type_,
+            Type::Uint16,
+            "Address type should be uint16 and not: {:?}",
+            value.type_
+        );
+        assert_eq!(
+            value.type_,
+            Type::Uint8,
+            "Value type should be uint8 and not: {:?}",
+            value.type_
+        );
         Code::from_str(&format!(
             "{}.set({}, {});",
             MEMORY_VAR_NAME, address.text, value.text
@@ -161,8 +199,18 @@ impl Memory for MemoryImpl {
     }
 
     fn set_16_bits(&self, address: &Expression, value: &Expression) -> Code {
-        assert_eq!(address.type_, Type::Uint16, "Address type should be uint16 and not: {:?}", value.type_);
-        assert_eq!(value.type_, Type::Uint16, "Value type should be uint16 and not: {:?}", value.type_);
+        assert_eq!(
+            address.type_,
+            Type::Uint16,
+            "Address type should be uint16 and not: {:?}",
+            value.type_
+        );
+        assert_eq!(
+            value.type_,
+            Type::Uint16,
+            "Value type should be uint16 and not: {:?}",
+            value.type_
+        );
         Code::from_str(&format!(
             "{}.set_16_bits({}, {});",
             MEMORY_VAR_NAME, address.text, value.text
@@ -175,9 +223,9 @@ struct StatementsImpl {}
 impl Statements for StatementsImpl {
     fn header(&self) -> Option<Code> {
         Some(Code::from_str(
-            "use log::trace\n\
+            "use log::trace;\n\
             use crate::memory::Memory;\n\
-            use crate::memory::registers::Registers;",
+            use crate::memory::registers::Registers;\n",
         ))
     }
 
@@ -220,7 +268,7 @@ impl Statements for StatementsImpl {
             Type::Int32 => formatter(value, "i32"),
             Type::Uint64 => formatter(value, "u64"),
             Type::Int64 => formatter(value, "i64"),
-            _ => panic!("Cannot create int literal of type {:?}", type_)
+            _ => panic!("Cannot create int literal of type {:?}", type_),
         };
         Expression::new(text, type_)
     }
@@ -330,7 +378,10 @@ impl Operations for OperationsImpl {
         Expression::new(format!("{} + {}", lhs.text, rhs.text), lhs.type_)
     }
     fn sub(&self, lhs: &Expression, rhs: &Expression) -> Expression {
-        assert_eq!(lhs.type_, rhs.type_, "Cannot subtract values of different types");
+        assert_eq!(
+            lhs.type_, rhs.type_,
+            "Cannot subtract values of different types"
+        );
         Expression::new(format!("{} - {}", lhs.text, rhs.text), lhs.type_)
     }
 }
@@ -339,26 +390,33 @@ pub fn get_rust_language() -> Language {
     let registers = Registers {
         name: "registers".to_string(),
         a: Box::new(AttributeRegister {
-            name: "a".to_string(), type_: Type::Uint8
+            name: "a".to_string(),
+            type_: Type::Uint8,
         }),
         flags: Box::new(FlagsRegisterImpl {}),
         b: Box::new(AttributeRegister {
-            name: "b".to_string(), type_: Type::Uint8
+            name: "b".to_string(),
+            type_: Type::Uint8,
         }),
         c: Box::new(AttributeRegister {
-            name: "c".to_string(), type_: Type::Uint8
+            name: "c".to_string(),
+            type_: Type::Uint8,
         }),
         d: Box::new(AttributeRegister {
-            name: "d".to_string(), type_: Type::Uint8
+            name: "d".to_string(),
+            type_: Type::Uint8,
         }),
         e: Box::new(AttributeRegister {
-            name: "e".to_string(), type_: Type::Uint8
+            name: "e".to_string(),
+            type_: Type::Uint8,
         }),
         h: Box::new(AttributeRegister {
-            name: "h".to_string(), type_: Type::Uint8
+            name: "h".to_string(),
+            type_: Type::Uint8,
         }),
         l: Box::new(AttributeRegister {
-            name: "l".to_string(), type_: Type::Uint8
+            name: "l".to_string(),
+            type_: Type::Uint8,
         }),
         af: Box::new(GetterSetterRegister {
             name: "af".to_string(),
@@ -373,19 +431,24 @@ pub fn get_rust_language() -> Language {
             name: "hl".to_string(),
         }),
         stack_pointer: Box::new(AttributeRegister {
-            name: "sp".to_string(), type_: Type::Uint16
+            name: "sp".to_string(),
+            type_: Type::Uint16,
         }),
         program_counter: Box::new(AttributeRegister {
-            name: "pc".to_string(), type_: Type::Uint16
+            name: "pc".to_string(),
+            type_: Type::Uint16,
         }),
         halted: Box::new(AttributeRegister {
-            name: "halted".to_string(), type_: Type::Bool
+            name: "halted".to_string(),
+            type_: Type::Bool,
         }),
         stopped: Box::new(AttributeRegister {
-            name: "stopped".to_string(), type_: Type::Bool
+            name: "stopped".to_string(),
+            type_: Type::Bool,
         }),
         ime_flag: Box::new(AttributeRegister {
-            name: "ime_flag".to_string(), type_: Type::Bool
+            name: "ime_flag".to_string(),
+            type_: Type::Bool,
         }),
     };
 

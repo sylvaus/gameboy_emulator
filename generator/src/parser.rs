@@ -121,6 +121,17 @@ impl Argument {
             self.name.clone()
         }
     }
+
+    pub fn is_immediate(&self) -> bool {
+        match self.type_field {
+            ArgumentType::Immediate8Bits
+            | ArgumentType::Immediate16Bits
+            | ArgumentType::Unsigned8Bit
+            | ArgumentType::Address16Bit
+            | ArgumentType::PCIncrement8Bit => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AddEnumName)]

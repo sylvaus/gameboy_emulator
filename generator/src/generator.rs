@@ -1,11 +1,14 @@
-use clap::arg;
-use crate::interface::{Code, Expression, Function, IntFormat, Language, Parameter, Register, Type};
+use crate::interface::{
+    Code, Expression, Function, IntFormat, Language, Parameter, Register, Type,
+};
 use crate::parser::{Argument, ArgumentType, Instruction, InstructionType};
+use clap::arg;
 
 fn create_nop(instruction: &Instruction, language: &Language) -> Function {
     create_function(
         instruction,
         language,
+        true,
         false,
         &increment_pc(instruction.length, language),
         None,
@@ -18,6 +21,7 @@ fn create_unknown(instruction: &Instruction, language: &Language) -> Function {
         instruction,
         language,
         false,
+        false,
         &language
             .statements
             .stop_with_message(&format!("Unknown opcode 0x{:X}", instruction.value)),
@@ -27,16 +31,28 @@ fn create_unknown(instruction: &Instruction, language: &Language) -> Function {
 }
 
 fn create_ld(instruction: &Instruction, language: &Language) -> Function {
-    let offset = language.statements.int_literal(0xFF00, Type::Uint16, IntFormat::Decimal);
+    let offset = language
+        .statements
+        .int_literal(0xFF00, Type::Uint16, IntFormat::Decimal);
     let get_code = match instruction.type_field {
-        InstructionType::LDH | InstructionType::LDSpecial => create_get_code_with_offset(language, &instruction.second_argument.as_ref().unwrap(), Some(&offset)),
-        _ => create_get_code(language, &instruction.second_argument.as_ref().unwrap())
+        InstructionType::LDH | InstructionType::LDSpecial => create_get_code_with_offset(
+            language,
+            &instruction.second_argument.as_ref().unwrap(),
+            Some(&offset),
+        ),
+        _ => create_get_code(language, &instruction.second_argument.as_ref().unwrap()),
     };
 
-    let mut code = create_set_code(language, instruction.first_argument.as_ref().unwrap(), &get_code);
+    let mut code = create_set_code(
+        language,
+        instruction.first_argument.as_ref().unwrap(),
+        &get_code,
+    );
 
     let hl = &language.registers.hl;
-    let one = language.statements.int_literal(1, Type::Uint16, IntFormat::Decimal);
+    let one = language
+        .statements
+        .int_literal(1, Type::Uint16, IntFormat::Decimal);
     if instruction.type_field == InstructionType::LDI {
         code = code.append(hl.set(&language.operations.add(&hl.get(), &one)));
     }
@@ -45,10 +61,14 @@ fn create_ld(instruction: &Instruction, language: &Language) -> Function {
     }
     code = code.append(increment_pc(instruction.length, language));
 
+    let use_memory = instruction.first_argument.as_ref().unwrap().is_address
+        || instruction.second_argument.as_ref().unwrap().is_address
+        || instruction.second_argument.as_ref().unwrap().is_immediate();
     create_function(
         &instruction,
         &language,
         true,
+        use_memory,
         &code,
         None,
         &get_duration(&instruction),
@@ -58,6 +78,7 @@ fn create_ld(instruction: &Instruction, language: &Language) -> Function {
 fn create_function(
     instruction: &Instruction,
     language: &Language,
+    use_register: bool,
     use_memory: bool,
     code: &Code,
     doc: Option<&str>,
@@ -75,18 +96,17 @@ fn create_function(
     }
 
     let parameters = vec![
-        // Registers is always used at least to update pc.
-        Parameter::new(Type::Registers, language.registers.name.clone(), true),
+        Parameter::new(
+            Type::Registers,
+            language.registers.name.clone(),
+            use_register,
+        ),
         Parameter::new(Type::Memory, language.memory.name(), use_memory),
     ];
 
-    language.statements.function(
-        &name,
-        &parameters,
-        code,
-        &complete_doc,
-        return_value,
-    )
+    language
+        .statements
+        .function(&name, &parameters, code, &complete_doc, return_value)
 }
 
 fn increment_pc(increment: i64, language: &Language) -> Code {
@@ -103,10 +123,15 @@ fn get_duration(instruction: &Instruction) -> Expression {
 }
 
 fn create_set_code(language: &Language, argument: &Argument, value: &Expression) -> Code {
-    create_set_code_with_offset(language, argument, value, None::<>)
+    create_set_code_with_offset(language, argument, value, None)
 }
 
-fn create_set_code_with_offset(language: &Language, argument: &Argument, value: &Expression, address_offset: Option<&Expression>) -> Code {
+fn create_set_code_with_offset(
+    language: &Language,
+    argument: &Argument,
+    value: &Expression,
+    address_offset: Option<&Expression>,
+) -> Code {
     if argument.is_address {
         let mut address = create_get_code_no_address(language, argument);
         if let Some(offset) = address_offset {
@@ -116,7 +141,10 @@ fn create_set_code_with_offset(language: &Language, argument: &Argument, value: 
     }
 
     if argument.type_field != ArgumentType::Register {
-        panic!("Argument Type cannot be a destination for set {:?}", argument)
+        panic!(
+            "Argument Type cannot be a destination for set {:?}",
+            argument
+        )
     }
 
     get_register_from_name(language, &argument.name).set(value)
@@ -126,12 +154,15 @@ fn create_set_memory_code(language: &Language, address: &Expression, value: &Exp
     match value.type_ {
         Type::Uint8 => language.memory.set_8_bits(address, value),
         Type::Uint16 => language.memory.set_16_bits(address, value),
-        _ => panic!("Impossible to set memory with: value: {:?}, address: {:?}", value, address)
+        _ => panic!(
+            "Impossible to set memory with: value: {:?}, address: {:?}",
+            value, address
+        ),
     }
 }
 
 fn create_get_code(language: &Language, argument: &Argument) -> Expression {
-    create_get_code_with_offset(language, argument, None::<>)
+    create_get_code_with_offset(language, argument, None)
 }
 
 fn create_get_code_with_offset(
@@ -144,7 +175,9 @@ fn create_get_code_with_offset(
         return code;
     }
     if let Some(address) = offset {
-        return language.memory.get(&language.operations.add(address, &code));
+        return language
+            .memory
+            .get(&language.operations.add(address, &code));
     }
     language.memory.get(&code)
 }
