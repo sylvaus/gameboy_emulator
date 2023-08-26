@@ -2,13 +2,20 @@ use crate::common::base::Operation;
 use crate::common::flags::{
     create_carry_flag_value, create_set_flags, create_zero_flag_value, get_flag_from_name,
 };
-use crate::common::function::{create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS, ONLY_USE_REGISTER, USE_REGISTER_AND_MEMORY, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT};
-use crate::common::getset::{create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code, create_set_code_with_offset};
+use crate::common::function::{
+    create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS,
+    ONLY_USE_REGISTER, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT, USE_REGISTER_AND_MEMORY,
+};
+use crate::common::getset::{
+    create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code,
+    create_set_code_with_offset, create_set_memory_code,
+};
 use crate::common::operation::{
     create_op_with_flag_code, create_op_with_flag_code_3_custom_values,
 };
 use crate::common::register::{
-    decrement_register, get_sub_registers_from_name, increment_register, increment_register_int,
+    decrement_register, decrement_register_int, get_sub_registers_from_name, increment_register,
+    increment_register_int,
 };
 use crate::instruction;
 use crate::instruction::{Argument, FlagAction, Instruction, InstructionType};
@@ -649,6 +656,63 @@ pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
     );
 }
 
+pub fn create_call(instruction: &Instruction, language: &Language) -> Function {
+    let program_counter = language.registers.program_counter.as_ref();
+
+    let lower_pc_value = language.bitwise_and_int(&program_counter.get(), 0xFF, IntFormat::Hex);
+    let lower_pc_value = language.operations.cast(&lower_pc_value, Type::Uint8);
+    let upper_pc_value = language.bitwise_and_int(
+        &language.shift_right_int(&program_counter.get(), 8, IntFormat::Decimal),
+        0xFF,
+        IntFormat::Hex,
+    );
+    let upper_pc_value = language.operations.cast(&upper_pc_value, Type::Uint8);
+
+    let stack_pointer = language.registers.stack_pointer.as_ref();
+
+    let update_stack = decrement_register_int(language, stack_pointer, 2, IntFormat::Decimal);
+    let code = language
+        .increment_pc_with_int(instruction.length)
+        .append(create_set_memory_code(
+            language,
+            &stack_pointer.get(),
+            &upper_pc_value,
+        ))
+        .append(create_set_memory_code(
+            language,
+            &language.sub_int(stack_pointer.get(), 1, IntFormat::Decimal),
+            &lower_pc_value,
+        ))
+        .append(update_stack)
+        .append(program_counter.set(&language.arguments.get_uint16()))
+        .append(language.return_duration(instruction.duration));
+
+    let code = if instruction.second_argument.is_some() {
+        let no_call = language
+            .increment_pc_with_int(instruction.length)
+            .append(language.return_duration(instruction.duration_no_action));
+        language.statements.if_else(
+            &get_flag_from_name(language, &instruction.first_argument.as_ref().unwrap().name),
+            &code,
+            &no_call,
+        )
+    } else {
+        code
+    };
+
+    return create_function_custom(
+        instruction,
+        language,
+        USE_ALL_PARAMETERS,
+        code,
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: None,
+        },
+    );
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -688,7 +752,7 @@ pub fn create_instruction_function(
         InstructionType::RET => Some(create_return(instruction, language)),
         InstructionType::POP => Some(create_pop(instruction, language)),
         InstructionType::JP => Some(create_jump(instruction, language)),
-        // InstructionType::CALL => {}
+        InstructionType::CALL => Some(create_call(instruction, language)),
         // InstructionType::PUSH => {}
         // InstructionType::RST => {}
         // InstructionType::PREFIX => {}

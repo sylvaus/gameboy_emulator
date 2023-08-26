@@ -1955,6 +1955,21 @@ pub fn jp_0c3(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
     return 16u16;
 }
 
+/// 0xc4 CALL NZ a16
+pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    if (registers.get_non_zero_flag()) {
+        registers.pc = registers.pc + 3u16;
+        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        registers.sp = registers.sp - 2u16;
+        registers.pc = argument.get_16_bits();
+        return 24u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
+}
+
 /// 0xc6 ADD A d8
 pub fn add_0c6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     let lhs: u8 = registers.a;
@@ -2002,6 +2017,31 @@ pub fn jp_0ca(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
         registers.pc = registers.pc + 3u16;
         return 12u16;
     }
+}
+
+/// 0xcc CALL Z a16
+pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    if (registers.get_zero_flag()) {
+        registers.pc = registers.pc + 3u16;
+        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        registers.sp = registers.sp - 2u16;
+        registers.pc = argument.get_16_bits();
+        return 24u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
+}
+
+/// 0xcd CALL a16
+pub fn call_0cd(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 3u16;
+    memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = argument.get_16_bits();
+    return 24u16;
 }
 
 /// 0xce ADC A d8
@@ -2059,6 +2099,21 @@ pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
     panic!("Unknown opcode 0xD3");
 }
 
+/// 0xd4 CALL NC a16
+pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    if (registers.get_non_carry_flag()) {
+        registers.pc = registers.pc + 3u16;
+        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        registers.sp = registers.sp - 2u16;
+        registers.pc = argument.get_16_bits();
+        return 24u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
+}
+
 /// 0xd6 SUB A d8
 pub fn sub_0d6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     let lhs: u8 = registers.a;
@@ -2102,6 +2157,21 @@ pub fn jp_0da(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
 /// 0xdb UNKNOWN
 pub fn unknown_0db(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     panic!("Unknown opcode 0xDB");
+}
+
+/// 0xdc CALL C a16
+pub fn call_0dc(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    if (registers.get_carry_flag()) {
+        registers.pc = registers.pc + 3u16;
+        memory.set(registers.sp, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+        memory.set(registers.sp - 1u16, (registers.pc & 0xFFu16) as u8);
+        registers.sp = registers.sp - 2u16;
+        registers.pc = argument.get_16_bits();
+        return 24u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
 }
 
 /// 0xdd UNKNOWN

@@ -13,6 +13,10 @@ pub fn decrement_register(language: &Language, register: &dyn Register, value: E
     register.set(&language.operations.sub(&[register.get(), value]))
 }
 
+pub fn decrement_register_int(language: &Language, register: &dyn Register, value: i64, format: IntFormat) -> Code {
+    register.set(&language.sub_int(register.get(), value, format))
+}
+
 pub fn get_register_from_name<'a>(language: &'a Language, name: &str) -> &'a Box<dyn Register> {
     match name.to_lowercase().as_str() {
         instruction::REGISTER_NAME_A => &language.registers.a,
