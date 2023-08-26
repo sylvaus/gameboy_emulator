@@ -113,3 +113,59 @@ pub const REGISTERS_8_BITS: &[Register8BitsInfo] = &[
 pub const REGISTERS_8_BITS_WITHOUT_A: &[Register8BitsInfo] = &[
     REGISTER_B, REGISTER_C, REGISTER_D, REGISTER_E, REGISTER_H, REGISTER_L,
 ];
+
+pub struct Register16BitsInfo {
+    pub name: &'static str,
+    pub index: u8,
+    pub getter: fn(&Registers) -> u16,
+    pub setter: fn(&mut Registers, u16),
+}
+
+impl PartialEq for Register16BitsInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+pub const REGISTER_BC: Register16BitsInfo = Register16BitsInfo {
+    name: "Register BC",
+    index: 0,
+    getter: |r| r.get_bc(),
+    setter: |r, value| {
+        r.set_bc(value);
+    },
+};
+
+pub const REGISTER_DE: Register16BitsInfo = Register16BitsInfo {
+    name: "Register DE",
+    index: 0b01,
+    getter: |r| r.get_de(),
+    setter: |r, value| {
+        r.set_de(value);
+    },
+};
+
+pub const REGISTER_HL: Register16BitsInfo = Register16BitsInfo {
+    name: "Register HL",
+    index: 0b10,
+    getter: |r| r.get_hl(),
+    setter: |r, value| {
+        r.set_hl(value);
+    },
+};
+
+pub const REGISTER_SP: Register16BitsInfo = Register16BitsInfo {
+    name: "Register SP",
+    index: 0b11,
+    getter: |r| r.sp,
+    setter: |r, value| {
+        r.sp = value;
+    },
+};
+
+pub const REGISTERS_16_BITS: &[Register16BitsInfo] = &[
+    REGISTER_BC, REGISTER_DE, REGISTER_HL, REGISTER_SP,
+];
+pub const REGISTERS_16_BITS_WITHOUT_HL: &[Register16BitsInfo] = &[
+    REGISTER_BC, REGISTER_DE, REGISTER_SP,
+];
