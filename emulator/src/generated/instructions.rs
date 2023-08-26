@@ -3101,6 +3101,86 @@ pub fn sra_12f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     return 8;
 }
 
+/// 0x130 SWAP B
+pub fn swap_130(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.b;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.b = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x131 SWAP C
+pub fn swap_131(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.c;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.c = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x132 SWAP D
+pub fn swap_132(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.d;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.d = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x133 SWAP E
+pub fn swap_133(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.e;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.e = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x134 SWAP H
+pub fn swap_134(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.h;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.h = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x135 SWAP L
+pub fn swap_135(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.l;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.l = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x136 SWAP (HL)
+pub fn swap_136(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = memory.get(registers.get_hl());
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    memory.set(registers.get_hl(), result);
+    registers.pc = registers.pc + 2;
+    return 16;
+}
+
+/// 0x137 SWAP A
+pub fn swap_137(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let value: u8 = registers.a;
+    let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
+    registers.flags = (result == 0u8) as u8;
+    registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
 /// 0x138 SRL B
 pub fn srl_138(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.b;

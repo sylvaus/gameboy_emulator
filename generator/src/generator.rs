@@ -864,6 +864,33 @@ pub fn create_shift(instruction: &Instruction, language: &Language) -> Function 
     return create_function(instruction, language, get_used_params(instruction), code);
 }
 
+pub fn create_swap(instruction: &Instruction, language: &Language) -> Function {
+    let argument = instruction.first_argument.as_ref().unwrap();
+    let get_code = create_get_code(language, argument);
+    let value = language.statements.variable("value", &get_code);
+
+    let result = language.operations.add(&[
+        language.shift_right_int(&value.name, 4, IntFormat::Decimal),
+        language.shift_left_int(
+            &language.bitwise_and_int(&value.name, 0b1111, IntFormat::Bin),
+            4,
+            IntFormat::Decimal,
+        ),
+    ]);
+    let result = language.statements.variable("result", &result);
+
+    let zero_flag = language.equals_int(&result.name, 0, IntFormat::Decimal);
+    let zero_flag = language.operations.cast(&zero_flag, Type::Uint8);
+
+    let code = Code::create_empty()
+        .append(value.code)
+        .append(result.code)
+        .append(create_set_flags(instruction, language, &[zero_flag]))
+        .append(create_set_code(language, argument, &result.name));
+
+    return create_function(instruction, language, get_used_params(instruction), code);
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -913,7 +940,7 @@ pub fn create_instruction_function(
         InstructionType::SLA | InstructionType::SRA | InstructionType::SRL => {
             Some(create_shift(instruction, language))
         }
-        // InstructionType::SWAP => {}
+        InstructionType::SWAP => Some(create_swap(instruction, language)),
         // InstructionType::BIT => {}
         // InstructionType::RES => {}
         // InstructionType::SET => {}
