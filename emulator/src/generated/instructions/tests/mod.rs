@@ -8,3 +8,4 @@ mod or_tests;
 mod xor_tests;
 mod bit_operations_test;
 mod call_test;
+mod cp_test;
