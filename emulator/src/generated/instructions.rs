@@ -1937,6 +1937,23 @@ pub fn pop_0c1(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 12;
 }
 
+/// 0xc2 JP NZ a16
+pub fn jp_0c2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_non_zero_flag()) {
+        registers.pc = memory.get_16_bits(registers.pc + 1);
+        return 16u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
+}
+
+/// 0xc3 JP a16
+pub fn jp_0c3(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.pc = memory.get_16_bits(registers.pc + 1);
+    return 16u16;
+}
+
 /// 0xc6 ADD A d8
 pub fn add_0c6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     let lhs: u8 = registers.a;
@@ -1973,6 +1990,17 @@ pub fn ret_0c9(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.pc = lower_pc + (upper_pc << 8u16);
     registers.sp = registers.sp + 2u16;
     return 16u16;
+}
+
+/// 0xca JP Z a16
+pub fn jp_0ca(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_zero_flag()) {
+        registers.pc = memory.get_16_bits(registers.pc + 1);
+        return 16u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
 }
 
 /// 0xce ADC A d8
@@ -2014,6 +2042,17 @@ pub fn pop_0d1(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     return 12;
 }
 
+/// 0xd2 JP NC a16
+pub fn jp_0d2(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_non_carry_flag()) {
+        registers.pc = memory.get_16_bits(registers.pc + 1);
+        return 16u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
+    }
+}
+
 /// 0xd3 UNKNOWN
 pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xD3");
@@ -2045,6 +2084,17 @@ pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     } else {
         registers.pc = registers.pc + 1u16;
         return 8u16;
+    }
+}
+
+/// 0xda JP C a16
+pub fn jp_0da(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    if (registers.get_carry_flag()) {
+        registers.pc = memory.get_16_bits(registers.pc + 1);
+        return 16u16;
+    } else {
+        registers.pc = registers.pc + 3u16;
+        return 12u16;
     }
 }
 
@@ -2127,6 +2177,12 @@ pub fn add_0e8(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.sp = (result & 0xFFFFi32) as u16;
     registers.pc = registers.pc + 2;
     return 16;
+}
+
+/// 0xe9 JP HL
+pub fn jp_0e9(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.pc = registers.get_hl();
+    return 4u16;
 }
 
 /// 0xea LD (a16) A

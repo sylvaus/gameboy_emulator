@@ -424,17 +424,25 @@ impl Language {
     }
 
     pub fn variable_with_cast(&self, name: &str, code: &Expression, type_: Type) -> Variable {
-        self.statements.variable(name, &self.operations.cast(code, type_))
+        self.statements
+            .variable(name, &self.operations.cast(code, type_))
     }
 
     pub fn add_int(&self, value: Expression, increment: i64, format: IntFormat) -> Expression {
         let type_ = value.type_;
-        self.operations.add(
-            &[value, self.statements.int_literal(increment, type_, format)]
-        )
+        self.operations
+            .add(&[value, self.statements.int_literal(increment, type_, format)])
     }
 
     pub fn get_from_address(&self, address: &Expression) -> Expression {
         self.memory.get(&address)
+    }
+
+    pub fn increment_pc_with_int(&self, increment: i64) -> Code {
+        self.registers.program_counter.set(&self.add_int(
+            self.registers.program_counter.get(),
+            increment,
+            IntFormat::Decimal,
+        ))
     }
 }

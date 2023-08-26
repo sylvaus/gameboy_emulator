@@ -575,15 +575,9 @@ pub fn create_return(instruction: &Instruction, language: &Language) -> Function
         .append(update_stack)
         .append(language.return_duration(instruction.duration));
 
-    let no_return = increment_register_int(
-        language,
-        program_counter,
-        instruction.length,
-        IntFormat::Decimal,
-    )
-    .append(language.return_duration(instruction.duration_no_action));
-
     let code = if let Some(argument) = instruction.first_argument.as_ref() {
+        let no_return = language.increment_pc_with_int(instruction.length)
+            .append(language.return_duration(instruction.duration_no_action));
         language.statements.if_else(
             &get_flag_from_name(language, &argument.name),
             &code,
@@ -629,6 +623,40 @@ pub fn create_pop(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, USE_REGISTER_AND_MEMORY, code);
 }
 
+pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
+    let program_counter = language.registers.program_counter.as_ref();
+
+    let pc_argument = instruction.second_argument.as_ref()
+        .unwrap_or(instruction.first_argument.as_ref().unwrap());
+
+    let code = program_counter.set(&create_get_code(language, &pc_argument))
+        .append(language.return_duration(instruction.duration));
+
+    let code = if instruction.second_argument.is_some() {
+        let no_jump = language.increment_pc_with_int(instruction.length)
+            .append(language.return_duration(instruction.duration_no_action));
+        language.statements.if_else(
+            &get_flag_from_name(language, &instruction.first_argument.as_ref().unwrap().name),
+            &code,
+            &no_jump,
+        )
+    } else {
+        code
+    };
+
+    return create_function_custom(
+        instruction,
+        language,
+        USE_REGISTER_AND_MEMORY,
+        code,
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: None,
+        },
+    );
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -667,7 +695,7 @@ pub fn create_instruction_function(
         InstructionType::CP => Some(create_comparison(instruction, language)),
         InstructionType::RET => Some(create_return(instruction, language)),
         InstructionType::POP => Some(create_pop(instruction, language)),
-        // InstructionType::JP => {}
+        InstructionType::JP => Some(create_jump(instruction, language)),
         // InstructionType::CALL => {}
         // InstructionType::PUSH => {}
         // InstructionType::RST => {}
