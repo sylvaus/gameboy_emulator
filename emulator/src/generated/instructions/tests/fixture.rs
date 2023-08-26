@@ -6,12 +6,14 @@ use crate::memory::Memory;
 #[derive(Debug)]
 pub struct FakeMemory {
     memory: HashMap<u16, u8>,
+    num_writes: u32,
 }
 
 impl FakeMemory {
     pub fn new() -> Self {
         Self {
             memory: HashMap::new(),
+            num_writes: 0,
         }
     }
 
@@ -20,6 +22,10 @@ impl FakeMemory {
             *self.memory.get(&address).expect("value was not set"),
             value
         )
+    }
+
+    pub fn assert_never_updated(&self) {
+        assert_eq!(self.num_writes, 0)
     }
 }
 
@@ -33,6 +39,7 @@ impl Memory for FakeMemory {
     }
 
     fn set(&mut self, address: u16, value: u8) {
+        self.num_writes += 1;
         self.memory.insert(address, value);
     }
 }
@@ -46,7 +53,7 @@ pub struct Register8BitsInfo {
 
 impl PartialEq for Register8BitsInfo {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+        self.index == other.index
     }
 }
 
@@ -123,7 +130,7 @@ pub struct Register16BitsInfo {
 
 impl PartialEq for Register16BitsInfo {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+        self.index == other.index
     }
 }
 
@@ -169,3 +176,58 @@ pub const REGISTERS_16_BITS: &[Register16BitsInfo] = &[
 pub const REGISTERS_16_BITS_WITHOUT_HL: &[Register16BitsInfo] = &[
     REGISTER_BC, REGISTER_DE, REGISTER_SP,
 ];
+
+/// Flags defined page 108: https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
+pub struct FlagInfo {
+    pub name: &'static str,
+    pub index: u16,
+    pub getter: fn(&Registers) -> bool,
+    pub setter: fn(&mut Registers, bool),
+}
+
+impl PartialEq for FlagInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.index == other.index
+    }
+}
+
+pub const FLAG_NON_ZERO: FlagInfo = FlagInfo {
+    name: "Flag non zero",
+    index: 0b00,
+    getter: |r| r.get_non_zero_flag(),
+    setter: |r, value| {
+        r.set_non_zero_flag(value);
+    },
+};
+
+pub const FLAG_ZERO: FlagInfo = FlagInfo {
+    name: "Flag zero",
+    index: 0b01,
+    getter: |r| r.get_zero_flag(),
+    setter: |r, value| {
+        r.set_zero_flag(value);
+    },
+};
+
+pub const FLAG_NON_CARRY: FlagInfo = FlagInfo {
+    name: "Flag non carry",
+    index: 0b10,
+    getter: |r| r.get_non_carry_flag(),
+    setter: |r, value| {
+        r.set_non_carry_flag(value);
+    },
+};
+
+pub const FLAG_CARRY: FlagInfo = FlagInfo {
+    name: "Flag carry",
+    index: 0b11,
+    getter: |r| r.get_carry_flag(),
+    setter: |r, value| {
+        r.set_carry_flag(value);
+    },
+};
+
+pub const FLAG_INFOS: &[FlagInfo] = &[
+    FLAG_NON_ZERO, FLAG_ZERO, FLAG_NON_CARRY, FLAG_CARRY
+];
+

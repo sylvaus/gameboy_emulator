@@ -98,6 +98,13 @@ impl Registers {
         }
     }
 
+    pub fn set_non_carry_flag(&mut self, value: bool) {
+        self.set_carry_flag(!value)
+    }
+    pub fn set_non_zero_flag(&mut self, value: bool) {
+        self.set_zero_flag(!value)
+    }
+
     pub fn get_af(&self) -> u16 {
         Registers::get_composite_register(self.a, self.flags)
     }
