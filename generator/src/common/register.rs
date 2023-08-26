@@ -32,3 +32,14 @@ pub fn get_register_from_name<'a>(language: &'a Language, name: &str) -> &'a Box
         _ => panic!("No register for name {}", name),
     }
 }
+
+pub fn get_sub_registers_from_name<'a>(language: &'a Language, name: &str) -> (&'a Box<dyn Register>, &'a Box<dyn Register>) {
+    match name.to_lowercase().as_str() {
+        instruction::REGISTER_NAME_AF => (&language.registers.f, &language.registers.a),
+        instruction::REGISTER_NAME_BC => (&language.registers.c, &language.registers.b),
+        instruction::REGISTER_NAME_DE => (&language.registers.e, &language.registers.d),
+        instruction::REGISTER_NAME_HL => (&language.registers.l, &language.registers.h),
+
+        _ => panic!("No u16 register for name {}", name),
+    }
+}

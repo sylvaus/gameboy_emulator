@@ -14,7 +14,9 @@ use crate::common::operation;
 use crate::common::operation::{
     create_op_with_flag_code, create_op_with_flag_code_3_custom_values,
 };
-use crate::common::register::{decrement_register, increment_register, increment_register_int};
+use crate::common::register::{
+    decrement_register, get_sub_registers_from_name, increment_register, increment_register_int,
+};
 use crate::instruction;
 use crate::instruction::{Argument, FlagAction, Instruction, InstructionType};
 use crate::interface::{Code, Function, IntFormat, Language, Register, Type};
@@ -604,6 +606,29 @@ pub fn create_return(instruction: &Instruction, language: &Language) -> Function
     );
 }
 
+pub fn create_pop(instruction: &Instruction, language: &Language) -> Function {
+    // Comparison is implemented by subtracting the input to the register a.
+    let stack = language.registers.stack_pointer.as_ref();
+    let (lower, upper) =
+        get_sub_registers_from_name(language, &instruction.first_argument.as_ref().unwrap().name);
+
+    let code = Code::create_empty()
+        .append(lower.set(&language.get_from_address(&stack.get())))
+        .append(upper.set(&language.get_from_address(&language.add_int(
+            stack.get(),
+            1,
+            IntFormat::Decimal,
+        ))))
+        .append(increment_register_int(
+            language,
+            stack,
+            2,
+            IntFormat::Decimal,
+        ));
+
+    return create_function(instruction, language, USE_REGISTER_AND_MEMORY, code);
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -641,7 +666,7 @@ pub fn create_instruction_function(
         }
         InstructionType::CP => Some(create_comparison(instruction, language)),
         InstructionType::RET => Some(create_return(instruction, language)),
-        // InstructionType::POP => {}
+        InstructionType::POP => Some(create_pop(instruction, language)),
         // InstructionType::JP => {}
         // InstructionType::CALL => {}
         // InstructionType::PUSH => {}

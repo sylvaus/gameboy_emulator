@@ -1928,6 +1928,15 @@ pub fn ret_0c0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     }
 }
 
+/// 0xc1 POP BC
+pub fn pop_0c1(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.c = memory.get(registers.sp);
+    registers.b = memory.get(registers.sp + 1u16);
+    registers.sp = registers.sp + 2u16;
+    registers.pc = registers.pc + 1;
+    return 12;
+}
+
 /// 0xc6 ADD A d8
 pub fn add_0c6(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     let lhs: u8 = registers.a;
@@ -1996,6 +2005,15 @@ pub fn ret_0d0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     }
 }
 
+/// 0xd1 POP DE
+pub fn pop_0d1(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.e = memory.get(registers.sp);
+    registers.d = memory.get(registers.sp + 1u16);
+    registers.sp = registers.sp + 2u16;
+    registers.pc = registers.pc + 1;
+    return 12;
+}
+
 /// 0xd3 UNKNOWN
 pub fn unknown_0d3(_registers: &mut Registers, _memory: &mut dyn Memory) -> u16 {
     panic!("Unknown opcode 0xD3");
@@ -2060,6 +2078,15 @@ pub fn sbc_0de(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
 pub fn ldh_0e0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     memory.set(((memory.get(registers.pc + 1)) as u16) + 0xFF00u16, registers.a);
     registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0xe1 POP HL
+pub fn pop_0e1(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.l = memory.get(registers.sp);
+    registers.h = memory.get(registers.sp + 1u16);
+    registers.sp = registers.sp + 2u16;
+    registers.pc = registers.pc + 1;
     return 12;
 }
 
@@ -2136,6 +2163,15 @@ pub fn xor_0ee(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
 pub fn ldh_0f0(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
     registers.a = memory.get(((memory.get(registers.pc + 1)) as u16) + 0xFF00u16);
     registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0xf1 POP AF
+pub fn pop_0f1(registers: &mut Registers, memory: &mut dyn Memory) -> u16 {
+    registers.flags = memory.get(registers.sp);
+    registers.a = memory.get(registers.sp + 1u16);
+    registers.sp = registers.sp + 2u16;
+    registers.pc = registers.pc + 1;
     return 12;
 }
 
