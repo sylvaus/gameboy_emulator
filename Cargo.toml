@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "generator",
+    "emulator",
+    "macros_derive",
+]

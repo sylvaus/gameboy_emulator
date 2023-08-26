@@ -5,40 +5,19 @@ Goal
 ----
 Being able to run a GameBoy game (sound optional)
 
-Status
-------
-![Build](https://github.com/sylvaus/gameboy_emulator/workflows/CMake/badge.svg) [![codecov](https://codecov.io/gh/sylvaus/gameboy_emulator/branch/main/graph/badge.svg?token=HKHSPI4P2V)](https://codecov.io/gh/sylvaus/gameboy_emulator)    
-see [Project](https://github.com/sylvaus/gameboy_emulator/projects/1)
 
-
-Dependencies
-------------
-* GCC >= 5
-* CMake >= 3.10
-* conan [installation](https://docs.conan.io/en/latest/installation.html)
-
-Tested on:
-* WSL2
-  * Apt packages: `sudo apt install build-essential gcc g++ cmake python3 python3-dev python3-pip python3-venv gdb`
-  * Conan: `python3 -m pip install conan`
+Compatibility
+-------------
+Tested on: Fedora 38
 
 Setup 
 -----
-### CLion
-
-* You may have to tick the Settings > Advanced Settings > Execute commands in login
-![settings clion wsl execute with login](/doc/images/settings_clion_execute_with_login.png)
-
+TODO
 
 
 Installation
 ------------
-In the folder, run the following commands:
-* `mdkir build && cd build`
-* `conan install ..`
-* `cmake ..` or `cmake .. -DTEST=ON` for tests
-* `make`
-
+TODO
 
 Important Findings
 ------------------
