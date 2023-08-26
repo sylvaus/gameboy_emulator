@@ -19,3 +19,4 @@ mod ld_test;
 mod pop_test;
 mod push_test;
 mod ret_test;
+mod rotate_test;
