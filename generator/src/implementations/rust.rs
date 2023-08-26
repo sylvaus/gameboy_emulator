@@ -1,9 +1,9 @@
+use crate::instruction::{ArgumentType, Instruction};
 use std::collections::HashMap;
 
 use crate::interface::{
-    ArgumentGetters, Code, Expression, Flags, Function, FunctionTableCall,
-    IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type,
-    Variable,
+    ArgumentGetters, Code, Expression, Flags, Function, IntFormat, Language, Memory, Operations,
+    Parameter, Register, Registers, Statements, Type, Variable,
 };
 
 const ARGUMENT_VAR_NAME: &str = "argument";
@@ -19,28 +19,15 @@ impl ArgumentGetters for ArgumentsImpl {
     }
 
     fn get_uint8(&self) -> Expression {
-        Expression::new(
-            format!("{}.get()", ARGUMENT_VAR_NAME),
-            Type::Uint8,
-        )
+        Expression::new(format!("{}.get()", ARGUMENT_VAR_NAME), Type::Uint8)
     }
 
     fn get_int8(&self) -> Expression {
-        Expression::new(
-            format!(
-                "{}.get_signed()", ARGUMENT_VAR_NAME
-            ),
-            Type::Int8,
-        )
+        Expression::new(format!("{}.get_signed()", ARGUMENT_VAR_NAME), Type::Int8)
     }
 
     fn get_uint16(&self) -> Expression {
-        Expression::new(
-            format!(
-                "{}.get_16_bits()", ARGUMENT_VAR_NAME
-            ),
-            Type::Uint16,
-        )
+        Expression::new(format!("{}.get_16_bits()", ARGUMENT_VAR_NAME), Type::Uint16)
     }
 }
 
@@ -213,14 +200,36 @@ impl Memory for MemoryImpl {
 
 struct StatementsImpl {}
 
+const HEADER: &str = "use log::trace;
+use crate::memory::argument::Argument;
+use crate::memory::Memory;
+use crate::memory::registers::Registers;
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum ImmediateArgumentType {
+    None,
+    Unsigned8Bits,
+    Signed8Bits,
+    Unsigned16Bits,
+}
+
+pub struct Instruction {
+    pub function: fn(&mut Registers, &mut dyn Memory, &mut Argument) -> u16,
+    pub argument: ImmediateArgumentType,
+}
+
+impl Instruction {
+    pub fn new(
+        function: fn(&mut Registers, &mut dyn Memory, &mut Argument) -> u16,
+        argument: ImmediateArgumentType,
+    ) -> Self {
+        Instruction { function, argument }
+    }
+}";
+
 impl Statements for StatementsImpl {
     fn header(&self) -> Option<Code> {
-        Some(Code::from_str(
-            "use log::trace;\n\
-            use crate::memory::argument::Argument;\n\
-            use crate::memory::Memory;\n\
-            use crate::memory::registers::Registers;\n",
-        ))
+        Some(Code::from_str(HEADER))
     }
 
     fn footer(&self) -> Option<Code> {
@@ -268,7 +277,10 @@ impl Statements for StatementsImpl {
     }
 
     fn bool_literal(&self, value: bool) -> Expression {
-        Expression::new(String::from(if value {"true"} else {"false"}), Type::Bool)
+        Expression::new(
+            String::from(if value { "true" } else { "false" }),
+            Type::Bool,
+        )
     }
 
     fn variable(&self, name: &str, code: &Expression) -> Variable {
@@ -346,8 +358,63 @@ impl Statements for StatementsImpl {
         Function::new(String::from(name), signature, definition)
     }
 
-    fn function_table_call(&self, id_function_map: &HashMap<u16, &Function>) -> FunctionTableCall {
-        todo!()
+    fn get_function_by_opcode(
+        &self,
+        instruction_functions: &[(Instruction, Function)],
+    ) -> Function {
+        let name = String::from("get_instruction");
+        let signature = format!("{}(opcode: u16) -> Instruction", name);
+
+        let matches = instruction_functions
+            .iter()
+            .map(|(instruction, function)| make_function_match_case(instruction, function))
+            .collect();
+
+        let code = Code::from_str(&format!("pub fn {}(opcode: u16) -> Instruction {{", name))
+            .append_line(format!("{}match opcode {{", INDENT))
+            .append(Code::from_lines(matches).indent(INDENT).indent(INDENT))
+            .append_line(format!(
+                "{}{}_ => panic!(\"Unknown opcode {{:?}}\", opcode)",
+                INDENT, INDENT
+            ))
+            .append_line(format!("{}}}", INDENT))
+            .append_line(String::from("}"));
+
+        Function::new(String::from(name), signature, code)
+    }
+}
+
+fn make_function_match_case(instruction: &Instruction, function: &Function) -> String {
+    String::from(format!(
+        "{} => Instruction::new({}, {}),",
+        instruction.value,
+        function.name,
+        get_immediate_argument(instruction)
+    ))
+}
+
+fn get_immediate_argument(instruction: &Instruction) -> &'static str {
+    let immediate = instruction
+        .first_argument
+        .as_ref()
+        .filter(|instruction| instruction.is_immediate())
+        .or(instruction
+            .second_argument
+            .as_ref()
+            .filter(|instruction| instruction.is_immediate()));
+    if let Some(immediate) = immediate.as_ref() {
+        match immediate.type_field {
+            ArgumentType::Immediate8Bits | ArgumentType::Unsigned8Bit => {
+                "ImmediateArgumentType::Unsigned8Bits"
+            }
+            ArgumentType::Immediate16Bits | ArgumentType::Address16Bit => {
+                "ImmediateArgumentType::Unsigned16Bits"
+            }
+            ArgumentType::PCIncrement8Bit => "ImmediateArgumentType::Signed8Bits",
+            _ => "ImmediateArgumentType::None",
+        }
+    } else {
+        "ImmediateArgumentType::None"
     }
 }
 

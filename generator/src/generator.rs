@@ -2,7 +2,11 @@ use crate::common::base::Operation;
 use crate::common::flags::{
     create_carry_flag_value, create_set_flags, create_zero_flag_value, get_flag_from_name,
 };
-use crate::common::function::{create_function, create_function_custom, get_used_params, FunctionDetails, NO_USED_PARAMS, ONLY_USE_REGISTER, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT, USE_REGISTER_AND_MEMORY, get_duration};
+use crate::common::function::{
+    create_function, create_function_custom, get_duration, get_used_params, FunctionDetails,
+    NO_USED_PARAMS, ONLY_USE_REGISTER, USE_ALL_PARAMETERS, USE_REGISTER_AND_ARGUMENT,
+    USE_REGISTER_AND_MEMORY,
+};
 use crate::common::getset::{
     create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code,
     create_set_code_with_offset, create_set_memory_code,
@@ -952,8 +956,6 @@ pub fn create_stop(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, get_used_params(instruction), code);
 }
 
-
-
 pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Function {
     let stack = language.registers.stack_pointer.as_ref();
     let program_counter = language.registers.program_counter.as_ref();
@@ -994,21 +996,18 @@ pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Func
     );
 }
 
-pub fn create_instruction_function(
-    instruction: &Instruction,
-    language: &Language,
-) -> Option<Function> {
+pub fn create_instruction_function(instruction: &Instruction, language: &Language) -> Function {
     match instruction.type_field {
-        InstructionType::UNKNOWN => Some(create_unknown(instruction, language)),
-        InstructionType::NOP => Some(create_nop(instruction, language)),
-        InstructionType::LD => Some(create_ld(instruction, language)),
-        InstructionType::LDI | InstructionType::LDD => Some(create_ldid(instruction, language)),
+        InstructionType::UNKNOWN => create_unknown(instruction, language),
+        InstructionType::NOP => create_nop(instruction, language),
+        InstructionType::LD => create_ld(instruction, language),
+        InstructionType::LDI | InstructionType::LDD => create_ldid(instruction, language),
         InstructionType::LDH | InstructionType::LDSpecial => {
-            Some(create_ldh_special(instruction, language))
+            create_ldh_special(instruction, language)
         }
-        InstructionType::LDHL => Some(create_ldhl(instruction, language)),
-        InstructionType::INC | InstructionType::DEC => Some(create_inc_dec(instruction, language)),
-        InstructionType::ADD | InstructionType::SUB => Some(create_add_sub(instruction, language)),
+        InstructionType::LDHL => create_ldhl(instruction, language),
+        InstructionType::INC | InstructionType::DEC => create_inc_dec(instruction, language),
+        InstructionType::ADD | InstructionType::SUB => create_add_sub(instruction, language),
         InstructionType::RLCA
         | InstructionType::RRCA
         | InstructionType::RLA
@@ -1016,39 +1015,37 @@ pub fn create_instruction_function(
         | InstructionType::RLC
         | InstructionType::RRC
         | InstructionType::RL
-        | InstructionType::RR => Some(create_rotate(instruction, language)),
-        InstructionType::JR => Some(create_jr(instruction, language)),
-        InstructionType::DAA => Some(create_daa(instruction, language)),
-        InstructionType::CPL => Some(create_cpl(instruction, language)),
-        InstructionType::SCF => Some(create_scf(instruction, language)),
-        InstructionType::CCF => Some(create_ccf(instruction, language)),
-        InstructionType::HALT => Some(create_halt(instruction, language)),
+        | InstructionType::RR => create_rotate(instruction, language),
+        InstructionType::JR => create_jr(instruction, language),
+        InstructionType::DAA => create_daa(instruction, language),
+        InstructionType::CPL => create_cpl(instruction, language),
+        InstructionType::SCF => create_scf(instruction, language),
+        InstructionType::CCF => create_ccf(instruction, language),
+        InstructionType::HALT => create_halt(instruction, language),
         InstructionType::ADC | InstructionType::SBC => {
-            Some(create_add_sub_with_carry(instruction, language))
+            create_add_sub_with_carry(instruction, language)
         }
         InstructionType::XOR | InstructionType::OR | InstructionType::AND => {
-            Some(create_bitwise_operation(instruction, language))
+            create_bitwise_operation(instruction, language)
         }
-        InstructionType::CP => Some(create_comparison(instruction, language)),
-        InstructionType::RET => Some(create_return(instruction, language)),
-        InstructionType::POP => Some(create_pop(instruction, language)),
-        InstructionType::JP => Some(create_jump(instruction, language)),
-        InstructionType::CALL => Some(create_call(instruction, language)),
-        InstructionType::PUSH => Some(create_push(instruction, language)),
-        InstructionType::RST => Some(create_rst(instruction, language)),
-        InstructionType::PREFIX => Some(create_prefix(instruction, language)),
-        InstructionType::DI | InstructionType::EI => {
-            Some(create_ime_operation(instruction, language))
-        }
+        InstructionType::CP => create_comparison(instruction, language),
+        InstructionType::RET => create_return(instruction, language),
+        InstructionType::POP => create_pop(instruction, language),
+        InstructionType::JP => create_jump(instruction, language),
+        InstructionType::CALL => create_call(instruction, language),
+        InstructionType::PUSH => create_push(instruction, language),
+        InstructionType::RST => create_rst(instruction, language),
+        InstructionType::PREFIX => create_prefix(instruction, language),
+        InstructionType::DI | InstructionType::EI => create_ime_operation(instruction, language),
         InstructionType::SLA | InstructionType::SRA | InstructionType::SRL => {
-            Some(create_shift(instruction, language))
+            create_shift(instruction, language)
         }
-        InstructionType::SWAP => Some(create_swap(instruction, language)),
-        InstructionType::BIT => Some(create_bit(instruction, language)),
-        InstructionType::RES => Some(create_res(instruction, language)),
-        InstructionType::SET => Some(create_set(instruction, language)),
-        InstructionType::STOP => Some(create_stop(instruction, language)),
-        InstructionType::RETI => Some(create_return_ime(instruction, language)),
-        _ => None,
+        InstructionType::SWAP => create_swap(instruction, language),
+        InstructionType::BIT => create_bit(instruction, language),
+        InstructionType::RES => create_res(instruction, language),
+        InstructionType::SET => create_set(instruction, language),
+        InstructionType::STOP => create_stop(instruction, language),
+        InstructionType::RETI => create_return_ime(instruction, language),
+        _ => panic!("Unsupported instruction type {:?}", instruction.type_field),
     }
 }

@@ -5,13 +5,15 @@ use std::io::Write;
 use clap::Parser;
 
 use crate::generator::create_instruction_function;
+use crate::instruction::Instruction;
+use crate::interface::Function;
 
+mod common;
 mod generator;
 mod implementations;
 mod instruction;
 mod interface;
 mod parser;
-mod common;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -43,15 +45,26 @@ fn main() {
     if let Some(header) = language.statements.header() {
         file.write(header.to_string().as_bytes()).unwrap();
     }
+    file.write(b"\n\n").unwrap();
+
+    let instruction_functions: Vec<(Instruction, Function)> = instructions
+        .into_iter()
+        .map(|instruction| {
+            let function = create_instruction_function(&instruction, &language);
+            (instruction, function)
+        }).collect();
+
+    for (_, function) in &instruction_functions {
+        file.write(function.definition.to_string().as_bytes())
+            .unwrap();
+        file.write(b"\n").unwrap();
+    }
+
+    let function_by_opcode = language.statements.get_function_by_opcode(&instruction_functions);
+    file.write(function_by_opcode.definition.to_string().as_bytes())
+        .unwrap();
     file.write(b"\n").unwrap();
 
-    for instruction in &instructions {
-        if let Some(function) = create_instruction_function(instruction, &language) {
-            file.write(function.definition.to_string().as_bytes())
-                .unwrap();
-            file.write(b"\n").unwrap();
-        }
-    }
     if let Some(footer) = language.statements.footer() {
         file.write(footer.to_string().as_bytes()).unwrap();
         file.write(b"\n").unwrap();

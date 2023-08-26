@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Display;
+use crate::instruction::Instruction;
 
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -203,20 +204,6 @@ impl Function {
     }
 }
 
-pub struct FunctionTableCall {
-    pub global_definition: String,
-    pub function: Box<Function>,
-}
-
-impl FunctionTableCall {
-    pub fn new(global_definition: String, function: Box<Function>) -> Self {
-        Self {
-            global_definition,
-            function,
-        }
-    }
-}
-
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 pub enum IntFormat {
@@ -251,7 +238,7 @@ pub trait Statements {
         doc: &str,
         return_type: Type,
     ) -> Function;
-    fn function_table_call(&self, id_function_map: &HashMap<u16, &Function>) -> FunctionTableCall;
+    fn get_function_by_opcode(&self, instruction_functions: &[(Instruction, Function)]) -> Function;
 }
 
 pub trait Operations {
