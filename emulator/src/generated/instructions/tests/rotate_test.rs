@@ -1,6 +1,6 @@
 /// Tests for the rotate instructions
 /// The rotate instructions is described in chapter 4: page 109-111 of https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
-use crate::generated::instructions::tests::fixture::{FakeMemory, REGISTERS_8_BITS_WITHOUT_A};
+use crate::generated::instructions::tests::fixture::{FakeMemory, REGISTERS_8_BITS};
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::memory::argument::Argument;
 use crate::memory::Memory;
@@ -265,7 +265,7 @@ fn test_rra_carry_and_carry_present() {
 
 #[test]
 fn test_rlc() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RLC_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -287,7 +287,7 @@ fn test_rlc() {
 
 #[test]
 fn test_rlc_carry() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RLC_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -310,7 +310,7 @@ fn test_rlc_carry() {
 
 #[test]
 fn test_rlc_zero() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RLC_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -333,7 +333,7 @@ fn test_rlc_zero() {
 
 #[test]
 fn test_rl() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RL_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -355,7 +355,7 @@ fn test_rl() {
 
 #[test]
 fn test_rl_carry() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RL_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -378,7 +378,7 @@ fn test_rl_carry() {
 
 #[test]
 fn test_rl_carry_present() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RL_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -402,7 +402,7 @@ fn test_rl_carry_present() {
 
 #[test]
 fn test_rl_carry_and_carry_present() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RL_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -426,7 +426,7 @@ fn test_rl_carry_and_carry_present() {
 
 #[test]
 fn test_rl_zero() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RL_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -449,7 +449,7 @@ fn test_rl_zero() {
 
 #[test]
 fn test_rl_zero_and_carry() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RL_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -473,7 +473,7 @@ fn test_rl_zero_and_carry() {
 
 #[test]
 fn test_rrc() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RRC_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -495,7 +495,7 @@ fn test_rrc() {
 
 #[test]
 fn test_rrc_carry() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RRC_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -518,7 +518,7 @@ fn test_rrc_carry() {
 
 #[test]
 fn test_rrc_zero() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RRC_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -541,7 +541,7 @@ fn test_rrc_zero() {
 
 #[test]
 fn test_rr() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RR_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -563,7 +563,7 @@ fn test_rr() {
 
 #[test]
 fn test_rr_carry() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RR_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -586,7 +586,7 @@ fn test_rr_carry() {
 
 #[test]
 fn test_rr_carry_present() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RR_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -610,7 +610,7 @@ fn test_rr_carry_present() {
 
 #[test]
 fn test_rr_carry_and_carry_present() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RR_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -634,7 +634,7 @@ fn test_rr_carry_and_carry_present() {
 
 #[test]
 fn test_rr_zero() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RR_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
@@ -657,7 +657,7 @@ fn test_rr_zero() {
 
 #[test]
 fn test_rr_zero_and_carry() {
-    for register_info in REGISTERS_8_BITS_WITHOUT_A {
+    for register_info in REGISTERS_8_BITS {
         let opcode = register_info.index + RR_BASE_OPCODE;
         let mut register = Registers::new();
         let mut memory = FakeMemory::new();
