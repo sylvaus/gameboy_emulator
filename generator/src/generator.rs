@@ -917,6 +917,21 @@ pub fn create_bit(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, get_used_params(instruction), code);
 }
 
+pub fn create_res(instruction: &Instruction, language: &Language) -> Function {
+    let argument_value = instruction.first_argument.as_ref().unwrap().value.unwrap();
+    let reset_mask = 0xFF - (1 << argument_value);
+
+    let argument = instruction.second_argument.as_ref().unwrap();
+    let value = language.bitwise_and_int(
+        &create_get_code(language, argument),
+        reset_mask,
+        IntFormat::Bin,
+    );
+    let code = create_set_code(language, argument, &value);
+
+    return create_function(instruction, language, get_used_params(instruction), code);
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -968,7 +983,7 @@ pub fn create_instruction_function(
         }
         InstructionType::SWAP => Some(create_swap(instruction, language)),
         InstructionType::BIT => Some(create_bit(instruction, language)),
-        // InstructionType::RES => {}
+        InstructionType::RES => Some(create_res(instruction, language)),
         // InstructionType::SET => {}
         // InstructionType::STOP => {}
         // InstructionType::RETI => {}
