@@ -1994,6 +1994,16 @@ pub fn add_0c6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &m
     return 8;
 }
 
+/// 0xc7 RST 00H
+pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x0u16;
+    return 16u16;
+}
+
 /// 0xc8 RET Z
 pub fn ret_0c8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     if (registers.get_zero_flag()) {
@@ -2067,6 +2077,16 @@ pub fn adc_0ce(registers: &mut Registers, _memory: &mut dyn Memory, argument: &m
     registers.a = (result & 0xFFi32) as u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xcf RST 08H
+pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x8u16;
+    return 16u16;
 }
 
 /// 0xd0 RET NC
@@ -2147,6 +2167,16 @@ pub fn sub_0d6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &m
     return 8;
 }
 
+/// 0xd7 RST 10H
+pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x10u16;
+    return 16u16;
+}
+
 /// 0xd8 RET C
 pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     if (registers.get_carry_flag()) {
@@ -2213,6 +2243,16 @@ pub fn sbc_0de(registers: &mut Registers, _memory: &mut dyn Memory, argument: &m
     return 8;
 }
 
+/// 0xdf RST 18H
+pub fn rst_0df(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x18u16;
+    return 16u16;
+}
+
 /// 0xe0 LDH (a8) A
 pub fn ldh_0e0(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     memory.set((argument.get() as u16) + 0xFF00u16, registers.a);
@@ -2261,6 +2301,16 @@ pub fn and_0e6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &m
     registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xe7 RST 20H
+pub fn rst_0e7(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x20u16;
+    return 16u16;
 }
 
 /// 0xe8 ADD SP r8
@@ -2313,6 +2363,16 @@ pub fn xor_0ee(registers: &mut Registers, _memory: &mut dyn Memory, argument: &m
     return 8;
 }
 
+/// 0xef RST 28H
+pub fn rst_0ef(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x28u16;
+    return 16u16;
+}
+
 /// 0xf0 LDH A (a8)
 pub fn ldh_0f0(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     registers.a = memory.get((argument.get() as u16) + 0xFF00u16);
@@ -2356,6 +2416,16 @@ pub fn or_0f6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
     registers.flags = ((registers.a == 0u8) as u8) << 7u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xf7 RST 30H
+pub fn rst_0f7(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x30u16;
+    return 16u16;
 }
 
 /// 0xf8 LDHL SP r8
@@ -2408,6 +2478,16 @@ pub fn cp_0fe(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (carry_flag << 4u8) + 0b1000000u8;
     registers.pc = registers.pc + 2;
     return 8;
+}
+
+/// 0xff RST 38H
+pub fn rst_0ff(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
+    registers.pc = registers.pc + 1u16;
+    memory.set(registers.sp - 1u16, ((registers.pc >> 8u16) & 0xFFu16) as u8);
+    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    registers.sp = registers.sp - 2u16;
+    registers.pc = 0x38u16;
+    return 16u16;
 }
 
 /// 0x100 RLC B

@@ -740,6 +740,54 @@ pub fn create_push(instruction: &Instruction, language: &Language) -> Function {
     return create_function(instruction, language, USE_REGISTER_AND_MEMORY, code);
 }
 
+pub fn create_rst(instruction: &Instruction, language: &Language) -> Function {
+    let program_counter = language.registers.program_counter.as_ref();
+
+    let lower_pc_value = language.bitwise_and_int(&program_counter.get(), 0xFF, IntFormat::Hex);
+    let lower_pc_value = language.operations.cast(&lower_pc_value, Type::Uint8);
+    let upper_pc_value = language.bitwise_and_int(
+        &language.shift_right_int(&program_counter.get(), 8, IntFormat::Decimal),
+        0xFF,
+        IntFormat::Hex,
+    );
+    let upper_pc_value = language.operations.cast(&upper_pc_value, Type::Uint8);
+
+    let stack_pointer = language.registers.stack_pointer.as_ref();
+    let update_stack = decrement_register_int(language, stack_pointer, 2, IntFormat::Decimal);
+
+    let update_pc = language.hex_literal(
+        instruction.first_argument.as_ref().unwrap().value.unwrap(),
+        Type::Uint16,
+    );
+    let code = language
+        .increment_pc_with_int(instruction.length)
+        .append(create_set_memory_code(
+            language,
+            &language.sub_int(stack_pointer.get(), 1, IntFormat::Decimal),
+            &upper_pc_value,
+        ))
+        .append(create_set_memory_code(
+            language,
+            &language.sub_int(stack_pointer.get(), 2, IntFormat::Decimal),
+            &lower_pc_value,
+        ))
+        .append(update_stack)
+        .append(program_counter.set(&update_pc))
+        .append(language.return_duration(instruction.duration));
+
+    return create_function_custom(
+        instruction,
+        language,
+        USE_ALL_PARAMETERS,
+        code,
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: None,
+        },
+    );
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -781,7 +829,7 @@ pub fn create_instruction_function(
         InstructionType::JP => Some(create_jump(instruction, language)),
         InstructionType::CALL => Some(create_call(instruction, language)),
         InstructionType::PUSH => Some(create_push(instruction, language)),
-        // InstructionType::RST => {}
+        InstructionType::RST => Some(create_rst(instruction, language)),
         // InstructionType::PREFIX => {}
         // InstructionType::DI => {}
         // InstructionType::EI => {}
