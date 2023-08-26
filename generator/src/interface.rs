@@ -141,12 +141,10 @@ pub trait Flags {
     fn get_non_zero_flag(&self) -> Expression;
 }
 
-pub trait FlagsRegister: Register + Flags {}
-
 pub struct Registers {
     pub name: String,
     pub a: Box<dyn Register>,
-    pub flags: Box<dyn FlagsRegister>,
+    pub f: Box<dyn Register>,
     pub b: Box<dyn Register>,
     pub c: Box<dyn Register>,
     pub d: Box<dyn Register>,
@@ -162,6 +160,7 @@ pub struct Registers {
     pub halted: Box<dyn Register>,
     pub stopped: Box<dyn Register>,
     pub ime_flag: Box<dyn Register>,
+    pub flags: Box<dyn Flags>,
 }
 
 pub trait Memory {

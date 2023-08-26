@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::interface::{
-    ArgumentGetters, Code, Expression, Flags, FlagsRegister, Function, FunctionTableCall,
+    ArgumentGetters, Code, Expression, Flags, Function, FunctionTableCall,
     IntFormat, Language, Memory, Operations, Parameter, Register, Registers, Statements, Type,
     Variable,
 };
@@ -96,27 +96,9 @@ impl Register for GetterSetterRegister {
     }
 }
 
-struct FlagsRegisterImpl {}
+struct FlagsImpl {}
 
-impl FlagsRegister for FlagsRegisterImpl {}
-
-impl Register for FlagsRegisterImpl {
-    fn get(&self) -> Expression {
-        Expression::from_str("registers.flags", Type::Uint8)
-    }
-
-    fn set(&self, value: &Expression) -> Code {
-        assert_eq!(
-            value.type_,
-            Type::Uint8,
-            "Cannot set a 8 bit register with type: {:?}",
-            value.type_
-        );
-        Code::from_str(&format!("registers.flags = {};", value.text))
-    }
-}
-
-impl Flags for FlagsRegisterImpl {
+impl Flags for FlagsImpl {
     fn get_carry_flag(&self) -> Expression {
         Expression::from_str("registers.get_carry_flag()", Type::Bool)
     }
@@ -522,7 +504,10 @@ pub fn get_rust_language() -> Language {
             name: "a".to_string(),
             type_: Type::Uint8,
         }),
-        flags: Box::new(FlagsRegisterImpl {}),
+        f: Box::new(AttributeRegister {
+            name: "flags".to_string(),
+            type_: Type::Uint8,
+        }),
         b: Box::new(AttributeRegister {
             name: "b".to_string(),
             type_: Type::Uint8,
@@ -579,6 +564,7 @@ pub fn get_rust_language() -> Language {
             name: "ime_flag".to_string(),
             type_: Type::Bool,
         }),
+        flags: Box::new(FlagsImpl {}),
     };
 
     Language {

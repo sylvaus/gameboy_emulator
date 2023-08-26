@@ -127,7 +127,7 @@ pub fn create_set_flags(
 
     if current_flag_mask > 0 {
         values.push(language.bitwise_and_int(
-            &language.registers.flags.get(),
+            &language.registers.f.get(),
             current_flag_mask,
             IntFormat::Bin,
         ));
@@ -138,7 +138,7 @@ pub fn create_set_flags(
     } else {
         language
             .registers
-            .flags
+            .f
             .set(&language.operations.add(&values))
     }
 }
