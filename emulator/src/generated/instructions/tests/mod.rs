@@ -14,3 +14,4 @@ mod daa_test;
 mod general_purpose_arithmetic_test;
 mod dec_test;
 mod inc_test;
+mod jump_test;
