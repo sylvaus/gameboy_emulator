@@ -880,13 +880,39 @@ pub fn create_swap(instruction: &Instruction, language: &Language) -> Function {
     let result = language.statements.variable("result", &result);
 
     let zero_flag = language.equals_int(&result.name, 0, IntFormat::Decimal);
-    let zero_flag = language.operations.cast(&zero_flag, Type::Uint8);
+    let zero_flag =
+        create_zero_flag_value(language, &language.operations.cast(&zero_flag, Type::Uint8));
 
     let code = Code::create_empty()
         .append(value.code)
         .append(result.code)
         .append(create_set_flags(instruction, language, &[zero_flag]))
         .append(create_set_code(language, argument, &result.name));
+
+    return create_function(instruction, language, get_used_params(instruction), code);
+}
+
+pub fn create_bit(instruction: &Instruction, language: &Language) -> Function {
+    let argument_value = instruction.first_argument.as_ref().unwrap().value.unwrap();
+    let argument = instruction.second_argument.as_ref().unwrap();
+    let value = create_get_code(language, argument);
+
+    let zero_flag = language.bitwise_and_int(
+        &language.shift_right_int(&value, argument_value, IntFormat::Decimal),
+        1,
+        IntFormat::Bin,
+    );
+    let zero_flag = language.equals_int(&zero_flag, 0, IntFormat::Decimal);
+    let zero_flag = language.operations.cast(&zero_flag, Type::Uint8);
+    let zero_flag = language.statements.variable("zero_flag", &zero_flag);
+
+    let code = Code::create_empty()
+        .append(zero_flag.code)
+        .append(create_set_flags(
+            instruction,
+            language,
+            &[create_zero_flag_value(language, &zero_flag.name)],
+        ));
 
     return create_function(instruction, language, get_used_params(instruction), code);
 }
@@ -941,7 +967,7 @@ pub fn create_instruction_function(
             Some(create_shift(instruction, language))
         }
         InstructionType::SWAP => Some(create_swap(instruction, language)),
-        // InstructionType::BIT => {}
+        InstructionType::BIT => Some(create_bit(instruction, language)),
         // InstructionType::RES => {}
         // InstructionType::SET => {}
         // InstructionType::STOP => {}

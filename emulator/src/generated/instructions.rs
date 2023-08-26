@@ -3105,7 +3105,7 @@ pub fn sra_12f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 pub fn swap_130(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.b;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.b = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3115,7 +3115,7 @@ pub fn swap_130(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 pub fn swap_131(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.c;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.c = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3125,7 +3125,7 @@ pub fn swap_131(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 pub fn swap_132(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.d;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.d = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3135,7 +3135,7 @@ pub fn swap_132(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 pub fn swap_133(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.e;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.e = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3145,7 +3145,7 @@ pub fn swap_133(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 pub fn swap_134(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.h;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.h = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3155,7 +3155,7 @@ pub fn swap_134(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 pub fn swap_135(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.l;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.l = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3165,7 +3165,7 @@ pub fn swap_135(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 pub fn swap_136(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = memory.get(registers.get_hl());
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     memory.set(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
@@ -3175,7 +3175,7 @@ pub fn swap_136(registers: &mut Registers, memory: &mut dyn Memory, _argument: &
 pub fn swap_137(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
     let value: u8 = registers.a;
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
-    registers.flags = (result == 0u8) as u8;
+    registers.flags = ((result == 0u8) as u8) << 7u8;
     registers.a = result;
     registers.pc = registers.pc + 2;
     return 8;
@@ -3265,6 +3265,518 @@ pub fn srl_13f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
     let carry_flag: u8 = value & 0b1u8;
     registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
     registers.a = result;
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x140 BIT 0 B
+pub fn bit_140(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x141 BIT 0 C
+pub fn bit_141(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x142 BIT 0 D
+pub fn bit_142(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x143 BIT 0 E
+pub fn bit_143(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x144 BIT 0 H
+pub fn bit_144(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x145 BIT 0 L
+pub fn bit_145(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x146 BIT 0 (HL)
+pub fn bit_146(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x147 BIT 0 A
+pub fn bit_147(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 0u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x148 BIT 1 B
+pub fn bit_148(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x149 BIT 1 C
+pub fn bit_149(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x14a BIT 1 D
+pub fn bit_14a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x14b BIT 1 E
+pub fn bit_14b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x14c BIT 1 H
+pub fn bit_14c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x14d BIT 1 L
+pub fn bit_14d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x14e BIT 1 (HL)
+pub fn bit_14e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x14f BIT 1 A
+pub fn bit_14f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 1u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x150 BIT 2 B
+pub fn bit_150(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x151 BIT 2 C
+pub fn bit_151(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x152 BIT 2 D
+pub fn bit_152(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x153 BIT 2 E
+pub fn bit_153(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x154 BIT 2 H
+pub fn bit_154(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x155 BIT 2 L
+pub fn bit_155(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x156 BIT 2 (HL)
+pub fn bit_156(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x157 BIT 2 A
+pub fn bit_157(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 2u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x158 BIT 3 B
+pub fn bit_158(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x159 BIT 3 C
+pub fn bit_159(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x15a BIT 3 D
+pub fn bit_15a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x15b BIT 3 E
+pub fn bit_15b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x15c BIT 3 H
+pub fn bit_15c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x15d BIT 3 L
+pub fn bit_15d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x15e BIT 3 (HL)
+pub fn bit_15e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x15f BIT 3 A
+pub fn bit_15f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 3u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x160 BIT 4 B
+pub fn bit_160(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x161 BIT 4 C
+pub fn bit_161(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x162 BIT 4 D
+pub fn bit_162(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x163 BIT 4 E
+pub fn bit_163(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x164 BIT 4 H
+pub fn bit_164(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x165 BIT 4 L
+pub fn bit_165(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x166 BIT 4 (HL)
+pub fn bit_166(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x167 BIT 4 A
+pub fn bit_167(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 4u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x168 BIT 5 B
+pub fn bit_168(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x169 BIT 5 C
+pub fn bit_169(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x16a BIT 5 D
+pub fn bit_16a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x16b BIT 5 E
+pub fn bit_16b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x16c BIT 5 H
+pub fn bit_16c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x16d BIT 5 L
+pub fn bit_16d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x16e BIT 5 (HL)
+pub fn bit_16e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x16f BIT 5 A
+pub fn bit_16f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 5u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x170 BIT 6 B
+pub fn bit_170(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x171 BIT 6 C
+pub fn bit_171(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x172 BIT 6 D
+pub fn bit_172(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x173 BIT 6 E
+pub fn bit_173(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x174 BIT 6 H
+pub fn bit_174(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x175 BIT 6 L
+pub fn bit_175(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x176 BIT 6 (HL)
+pub fn bit_176(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x177 BIT 6 A
+pub fn bit_177(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 6u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x178 BIT 7 B
+pub fn bit_178(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.b >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x179 BIT 7 C
+pub fn bit_179(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.c >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x17a BIT 7 D
+pub fn bit_17a(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.d >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x17b BIT 7 E
+pub fn bit_17b(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.e >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x17c BIT 7 H
+pub fn bit_17c(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.h >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x17d BIT 7 L
+pub fn bit_17d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.l >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 8;
+}
+
+/// 0x17e BIT 7 (HL)
+pub fn bit_17e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
+    registers.pc = registers.pc + 2;
+    return 12;
+}
+
+/// 0x17f BIT 7 A
+pub fn bit_17f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    let zero_flag: u8 = (((registers.a >> 7u8) & 0b1u8) == 0u8) as u8;
+    registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 8;
 }
