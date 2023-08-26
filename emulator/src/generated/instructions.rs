@@ -5232,3 +5232,6 @@ pub fn get_instruction(opcode: u16) -> Instruction {
         _ => panic!("Unknown opcode {:?}", opcode)
     }
 }
+
+#[cfg(test)]
+mod tests;

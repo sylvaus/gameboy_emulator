@@ -227,13 +227,17 @@ impl Instruction {
     }
 }";
 
+const FOOTER: &str = "
+#[cfg(test)]
+mod tests;";
+
 impl Statements for StatementsImpl {
     fn header(&self) -> Option<Code> {
         Some(Code::from_str(HEADER))
     }
 
     fn footer(&self) -> Option<Code> {
-        None
+        Some(Code::from_str(FOOTER))
     }
 
     fn comment(&self, text: &str) -> Code {
