@@ -12,7 +12,7 @@ struct Timer {
 }
 
 impl Timer {
-    pub fn set(&mut self, address: u16, value: u8) {
+    pub fn write(&mut self, address: u16, value: u8) {
         match address {
             // Divide register is reset when written to:
             // https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff04--div-divider-register
@@ -24,7 +24,7 @@ impl Timer {
         }
     }
 
-    pub fn get(&mut self, address: u16) -> u8 {
+    pub fn read(&mut self, address: u16) -> u8 {
         match address {
             DIVIDE_REGISTER_ADDRESS => self.divide_register,
             TIME_COUNTER_ADDRESS => self.timer_counter,

@@ -1,6 +1,7 @@
 pub(crate) mod argument;
 pub(crate) mod mbc;
 pub(crate) mod registers;
+pub(crate) mod ram;
 
 pub trait Memory {
     fn get(&self, address: u16) -> u8;

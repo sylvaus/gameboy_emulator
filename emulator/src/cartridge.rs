@@ -248,15 +248,15 @@ fn get_memory_controller(
 /// Source: https://gbdev.io/pandocs/The_Cartridge_Header.html#0143--cgb-flag
 #[derive(Clone, Debug, PartialEq, AddEnumName)]
 pub enum CGBFlag {
-    NON_CGB_COMPATIBLE,
-    CGB_COMPATIBLE,
-    CGB_ONLY,
+    NonCgbCompatible,
+    CgbCompatible,
+    CgbOnly,
 }
 
 fn get_cgb_flag(rom: &[u8]) -> CGBFlag {
     match rom[ADDRESS_CGB_FLAG] {
-        0x80 => CGBFlag::CGB_COMPATIBLE,
-        0xC0 => CGBFlag::CGB_ONLY,
-        _ => CGBFlag::NON_CGB_COMPATIBLE,
+        0x80 => CGBFlag::CgbCompatible,
+        0xC0 => CGBFlag::CgbOnly,
+        _ => CGBFlag::NonCgbCompatible,
     }
 }
