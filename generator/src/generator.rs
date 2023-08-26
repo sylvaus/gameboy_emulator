@@ -728,18 +728,20 @@ pub fn create_push(instruction: &Instruction, language: &Language) -> Function {
     let stack = language.registers.stack_pointer.as_ref();
     let (lower, upper) =
         get_sub_registers_from_name(language, &instruction.first_argument.as_ref().unwrap().name);
+    let upper_address = language.sub_int(stack.get(), 1, IntFormat::Decimal);
+    let lower_address = language.sub_int(stack.get(), 2, IntFormat::Decimal);
 
     let code = Code::create_empty()
-        .append(upper.set(&language.get_from_address(&language.sub_int(
-            stack.get(),
-            1,
-            IntFormat::Decimal,
-        ))))
-        .append(lower.set(&language.get_from_address(&language.sub_int(
-            stack.get(),
-            2,
-            IntFormat::Decimal,
-        ))))
+        .append(create_set_memory_code(
+            language,
+            &upper_address,
+            &upper.get(),
+        ))
+        .append(create_set_memory_code(
+            language,
+            &lower_address,
+            &lower.get(),
+        ))
         .append(decrement_register_int(
             language,
             stack,

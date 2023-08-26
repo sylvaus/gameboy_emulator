@@ -1991,8 +1991,8 @@ pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 
 /// 0xc5 PUSH BC
 pub fn push_0c5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.b = memory.get(registers.sp - 1u16);
-    registers.c = memory.get(registers.sp - 2u16);
+    memory.set(registers.sp - 1u16, registers.b);
+    memory.set(registers.sp - 2u16, registers.c);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2169,8 +2169,8 @@ pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 
 /// 0xd5 PUSH DE
 pub fn push_0d5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.d = memory.get(registers.sp - 1u16);
-    registers.e = memory.get(registers.sp - 2u16);
+    memory.set(registers.sp - 1u16, registers.d);
+    memory.set(registers.sp - 2u16, registers.e);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2321,8 +2321,8 @@ pub fn unknown_0e4(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 
 /// 0xe5 PUSH HL
 pub fn push_0e5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.h = memory.get(registers.sp - 1u16);
-    registers.l = memory.get(registers.sp - 2u16);
+    memory.set(registers.sp - 1u16, registers.h);
+    memory.set(registers.sp - 2u16, registers.l);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2443,8 +2443,8 @@ pub fn unknown_0f4(_registers: &mut Registers, _memory: &mut dyn Memory, _argume
 
 /// 0xf5 PUSH AF
 pub fn push_0f5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = memory.get(registers.sp - 1u16);
-    registers.flags = memory.get(registers.sp - 2u16);
+    memory.set(registers.sp - 1u16, registers.a);
+    memory.set(registers.sp - 2u16, registers.flags);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
