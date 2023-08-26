@@ -22,3 +22,4 @@ mod ret_test;
 mod rotate_test;
 mod rst_test;
 mod shift_test;
+mod swap_test;

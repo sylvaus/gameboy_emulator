@@ -1,7 +1,7 @@
 /// Tests for the SBC instruction
 /// The SBC instruction is described in chapter 4: page 103-104 of https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
 use crate::generated::instructions::tests::fixture::{
-    FakeMemory, REGISTERS_8_BITS, REGISTERS_8_BITS_WITHOUT_A, REGISTER_A,
+    FakeMemory, REGISTERS_8_BITS_WITHOUT_A, REGISTER_A,
 };
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::memory::argument::Argument;
