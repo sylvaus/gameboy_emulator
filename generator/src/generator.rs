@@ -8,6 +8,7 @@ use crate::common::getset::{
     create_get_code, create_get_code_no_address, create_get_code_with_offset, create_set_code,
     create_set_code_with_offset, get_flag_from_name,
 };
+use crate::common::operation;
 use crate::common::operation::{
     create_op_with_flag_code, create_op_with_flag_code_3_custom_values,
 };
@@ -527,6 +528,25 @@ fn create_bitwise_operation(instruction: &Instruction, language: &Language) -> F
     );
 }
 
+pub fn create_comparison(instruction: &Instruction, language: &Language) -> Function {
+    // Comparison is implemented by subtracting the input to the register a.
+    let operation = create_op_with_flag_code_3_custom_values(
+        language,
+        instruction,
+        Operation::Sub,
+        &language.registers.a.get(),
+        &create_get_code(language, instruction.first_argument.as_ref().unwrap()),
+        None
+    );
+
+    return create_function(
+        instruction,
+        language,
+        get_used_params(instruction),
+        operation.code,
+    );
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -562,7 +582,7 @@ pub fn create_instruction_function(
         InstructionType::XOR | InstructionType::OR | InstructionType::AND => {
             Some(create_bitwise_operation(instruction, language))
         }
-        // InstructionType::CP => {}
+        InstructionType::CP => Some(create_comparison(instruction, language)),
         // InstructionType::RET => {}
         // InstructionType::POP => {}
         // InstructionType::JP => {}
