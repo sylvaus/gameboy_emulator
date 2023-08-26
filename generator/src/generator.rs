@@ -788,6 +788,20 @@ pub fn create_rst(instruction: &Instruction, language: &Language) -> Function {
     );
 }
 
+pub fn create_prefix(instruction: &Instruction, language: &Language) -> Function {
+    return create_function_custom(
+        instruction,
+        language,
+        NO_USED_PARAMS,
+        language.statements.stop_with_message("Opcode 0xCB should be handled separately, something bad must have happened"),
+        FunctionDetails {
+            doc: None,
+            pc_increment: None,
+            return_value: None,
+        },
+    );
+}
+
 pub fn create_instruction_function(
     instruction: &Instruction,
     language: &Language,
@@ -830,7 +844,7 @@ pub fn create_instruction_function(
         InstructionType::CALL => Some(create_call(instruction, language)),
         InstructionType::PUSH => Some(create_push(instruction, language)),
         InstructionType::RST => Some(create_rst(instruction, language)),
-        // InstructionType::PREFIX => {}
+        InstructionType::PREFIX => Some(create_prefix(instruction, language)),
         // InstructionType::DI => {}
         // InstructionType::EI => {}
         // InstructionType::SLA => {}

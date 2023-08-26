@@ -2038,6 +2038,11 @@ pub fn jp_0ca(registers: &mut Registers, _memory: &mut dyn Memory, argument: &mu
     }
 }
 
+/// 0xcb PREFIX CB
+pub fn prefix_0cb(_registers: &mut Registers, _memory: &mut dyn Memory, _argument: &mut Argument) -> u16 {
+    panic!("Opcode 0xCB should be handled separately, something bad must have happened");
+}
+
 /// 0xcc CALL Z a16
 pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &mut Argument) -> u16 {
     if (registers.get_zero_flag()) {
