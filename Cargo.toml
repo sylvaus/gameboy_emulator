@@ -3,5 +3,5 @@
 members = [
     "generator",
     "emulator",
-    "macros_derive",
+    "macros",
 ]

@@ -1,6 +1,6 @@
 use crate::memory::mbc::interface::MemoryBankController;
 use crate::memory::mbc::no_controller::NoMemoryBankController;
-use macros_derive::AddEnumName;
+use macros::AddEnumName;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{BufReader, Read};

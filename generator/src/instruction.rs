@@ -1,4 +1,4 @@
-use macros_derive::AddEnumName;
+use macros::AddEnumName;
 use serde::Deserialize;
 use serde::Serialize;
 
