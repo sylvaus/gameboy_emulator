@@ -242,7 +242,7 @@ fn test_sbc_8bits_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     register.a = 0x3C;
-    memory.set(0xD1C7, 0x12);
+    memory.write(0xD1C7, 0x12);
     register.set_hl(0xD1C7);
     let mut expected = register.clone();
 

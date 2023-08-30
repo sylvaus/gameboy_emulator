@@ -37,35 +37,35 @@ mod tests {
 
     #[test]
     fn lcd_control_bg_window_enable() {
-        let value = LcdControl{value: 0xFE};
+        let value = LcdControl { value: 0xFE };
         assert_eq!(value.read_bg_window_enable(), 0);
-        let value = LcdControl{value: 0x01};
+        let value = LcdControl { value: 0x01 };
         assert_eq!(value.read_bg_window_enable(), 1);
     }
 
     #[test]
     fn lcd_control_lcd_enable() {
-        let value = LcdControl{value: 0x7F};
+        let value = LcdControl { value: 0x7F };
         assert_eq!(value.read_lcd_enable(), 0);
-        let value = LcdControl{value: 0x80};
+        let value = LcdControl { value: 0x80 };
         assert_eq!(value.read_lcd_enable(), 1);
     }
 
     #[test]
     fn lcd_status_mode() {
-        let value = LcdStatus{value: 0xFC};
+        let value = LcdStatus { value: 0xFC };
         assert_eq!(value.read_mode(), 0);
-        let value = LcdStatus{value: 0x01};
+        let value = LcdStatus { value: 0x01 };
         assert_eq!(value.read_mode(), 1);
-        let value = LcdStatus{value: 0x02};
+        let value = LcdStatus { value: 0x02 };
         assert_eq!(value.read_mode(), 2);
     }
 
     #[test]
     fn lcd_status_enable_lyc_stat_interrupt() {
-        let value = LcdStatus{value: 0b10111111};
+        let value = LcdStatus { value: 0b10111111 };
         assert_eq!(value.read_enable_lyc_stat_interrupt(), 0);
-        let value = LcdStatus{value: 0b01000000};
+        let value = LcdStatus { value: 0b01000000 };
         assert_eq!(value.read_enable_lyc_stat_interrupt(), 1);
     }
 }

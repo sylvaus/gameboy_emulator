@@ -121,7 +121,7 @@ impl Memory for MemoryImpl {
             address.type_
         );
         Expression::new(
-            format!("{}.get({})", MEMORY_VAR_NAME, address.text),
+            format!("{}.read({})", MEMORY_VAR_NAME, address.text),
             Type::Uint8,
         )
     }
@@ -134,7 +134,7 @@ impl Memory for MemoryImpl {
             address.type_
         );
         Expression::new(
-            format!("{}.get_signed({})", MEMORY_VAR_NAME, address.text),
+            format!("{}.read_signed({})", MEMORY_VAR_NAME, address.text),
             Type::Int8,
         )
     }
@@ -147,7 +147,7 @@ impl Memory for MemoryImpl {
             address.type_
         );
         Expression::new(
-            format!("{}.get_16_bits({})", MEMORY_VAR_NAME, address.text),
+            format!("{}.read_16_bits({})", MEMORY_VAR_NAME, address.text),
             Type::Uint16,
         )
     }
@@ -166,7 +166,7 @@ impl Memory for MemoryImpl {
             value.type_
         );
         Code::from_str(&format!(
-            "{}.set({}, {});",
+            "{}.write({}, {});",
             MEMORY_VAR_NAME, address.text, value.text
         ))
     }
@@ -185,7 +185,7 @@ impl Memory for MemoryImpl {
             value.type_
         );
         Code::from_str(&format!(
-            "{}.set_16_bits({}, {});",
+            "{}.write_16_bits({}, {});",
             MEMORY_VAR_NAME, address.text, value.text
         ))
     }

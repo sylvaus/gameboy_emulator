@@ -2,9 +2,9 @@
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 
 const WORK_RAM_SIZE: usize = 0x1000;
-const WORK_RAM_START_ADDRESS:u16 = 0xC000;
+const WORK_RAM_START_ADDRESS: u16 = 0xC000;
 const ECHO_RAM_SIZE: usize = 0x1E00;
-const ECHO_RAM_START_ADDRESS:u16 = 0xE000;
+const ECHO_RAM_START_ADDRESS: u16 = 0xE000;
 
 const HIGH_RAM_SIZE: usize = 0x7F;
 const HIGH_RAM_START_ADDRESS: u16 = 0xFF80;

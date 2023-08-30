@@ -16,8 +16,8 @@ fn test_ret_conditional_true() {
         register.sp = 0x1234;
         register.pc = 0x2458;
         (flag_info.setter)(&mut register, true);
-        memory.set(0x1234, 0xFE);
-        memory.set(0x1235, 0xCA);
+        memory.write(0x1234, 0xFE);
+        memory.write(0x1235, 0xCA);
         let mut expected = register.clone();
 
         let (instruction, argument_type) = get_instruction(opcode);
@@ -63,8 +63,8 @@ fn test_ret_unconditional() {
     let argument = Argument::new_empty();
     register.sp = 0x1234;
     register.pc = 0x2458;
-    memory.set(0x1234, 0xFE);
-    memory.set(0x1235, 0xCA);
+    memory.write(0x1234, 0xFE);
+    memory.write(0x1235, 0xCA);
     let mut expected = register.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -86,8 +86,8 @@ fn test_reti() {
     let argument = Argument::new_empty();
     register.sp = 0x1234;
     register.pc = 0x2458;
-    memory.set(0x1234, 0xFE);
-    memory.set(0x1235, 0xCA);
+    memory.write(0x1234, 0xFE);
+    memory.write(0x1235, 0xCA);
     let mut expected = register.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);

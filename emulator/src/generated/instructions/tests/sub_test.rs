@@ -137,7 +137,7 @@ fn test_sub_8bits_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     register.a = 0x45;
-    memory.set(0xD1C7, 0xAA);
+    memory.write(0xD1C7, 0xAA);
     register.set_hl(0xD1C7);
     let mut expected = register.clone();
 

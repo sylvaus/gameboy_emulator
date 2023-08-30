@@ -30,15 +30,15 @@ impl FakeMemory {
 }
 
 impl Memory for FakeMemory {
-    fn get(&self, address: u16) -> u8 {
+    fn read(&self, address: u16) -> u8 {
         *self.memory.get(&address).unwrap()
     }
 
-    fn get_signed(&self, address: u16) -> i8 {
+    fn read_signed(&self, address: u16) -> i8 {
         *self.memory.get(&address).unwrap() as i8
     }
 
-    fn set(&mut self, address: u16, value: u8) {
+    fn write(&mut self, address: u16, value: u8) {
         self.num_writes += 1;
         self.memory.insert(address, value);
     }

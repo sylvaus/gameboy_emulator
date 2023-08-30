@@ -1,7 +1,7 @@
-use macros::{BitAccessor};
+use macros::BitAccessor;
 
 #[derive(BitAccessor)]
-struct Value{
+struct Value {
     #[bit_offset_size(value_lower_bits, 0, 4)]
     #[bit_offset_size(value_higher_bits, 4, 4)]
     pub value: u8,
@@ -12,7 +12,10 @@ struct Value{
 
 #[test]
 fn bit_accessor_read() {
-    let result = Value {value: 0b10101110, other_value: 0b11000011 };
+    let result = Value {
+        value: 0b10101110,
+        other_value: 0b11000011,
+    };
 
     assert_eq!(result.read_value_lower_bits(), 0b1110);
     assert_eq!(result.read_value_higher_bits(), 0b1010);
@@ -22,7 +25,10 @@ fn bit_accessor_read() {
 
 #[test]
 fn bit_accessor_write() {
-    let mut result = Value {value: 0b10101110, other_value: 0b11000011 };
+    let mut result = Value {
+        value: 0b10101110,
+        other_value: 0b11000011,
+    };
 
     result.write_value_lower_bits(0b0001);
     assert_eq!(result.value, 0b10100001);

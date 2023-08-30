@@ -60,7 +60,7 @@ fn test_swap_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_hl(0x6F54);
-    memory.set(0x6F54, 0b01101100);
+    memory.write(0x6F54, 0b01101100);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);

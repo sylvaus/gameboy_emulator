@@ -1,8 +1,7 @@
-
 const DIVIDE_REGISTER_ADDRESS: u16 = 0xFF04;
 const TIME_COUNTER_ADDRESS: u16 = 0xFF05;
 const TIMER_MODULO_ADDRESS: u16 = 0xFF06;
-const  TIMER_CONTROL_ADDRESS: u16 = 0xFF07;
+const TIMER_CONTROL_ADDRESS: u16 = 0xFF07;
 
 struct Timer {
     divide_register: u8,
@@ -20,7 +19,7 @@ impl Timer {
             TIME_COUNTER_ADDRESS => self.timer_counter = value,
             TIMER_MODULO_ADDRESS => self.timer_modulo = value,
             TIMER_CONTROL_ADDRESS => self.timer_control = value,
-            _ => panic!("Invalid address for timer {}", address)
+            _ => panic!("Invalid address for timer {}", address),
         }
     }
 
@@ -30,7 +29,7 @@ impl Timer {
             TIME_COUNTER_ADDRESS => self.timer_counter,
             TIMER_MODULO_ADDRESS => self.timer_modulo,
             TIMER_CONTROL_ADDRESS => self.timer_control,
-            _ => panic!("Invalid address for timer {}", address)
+            _ => panic!("Invalid address for timer {}", address),
         }
     }
 }

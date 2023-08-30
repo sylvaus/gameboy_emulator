@@ -686,7 +686,7 @@ fn test_rlc_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     register.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0b01101100);
+    memory.write(0xD1C7, 0b01101100);
     let mut expected = register.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -707,7 +707,7 @@ fn test_rl_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     register.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0b01101100);
+    memory.write(0xD1C7, 0b01101100);
     let mut expected = register.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -728,7 +728,7 @@ fn test_rrc_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     register.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0b01101100);
+    memory.write(0xD1C7, 0b01101100);
     let mut expected = register.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -749,7 +749,7 @@ fn test_rr_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     register.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0b01101100);
+    memory.write(0xD1C7, 0b01101100);
     let mut expected = register.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);

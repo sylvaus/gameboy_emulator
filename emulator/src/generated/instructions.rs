@@ -28,7 +28,7 @@ pub fn ld_001(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 
 /// 0x2 LD (BC) A
 pub fn ld_002(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_bc(), registers.a);
+    memory.write(registers.get_bc(), registers.a);
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -93,7 +93,7 @@ pub fn rlca_007(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 
 /// 0x8 LD (a16) SP
 pub fn ld_008(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    memory.set_16_bits(argument.get_16_bits(), registers.sp);
+    memory.write_16_bits(argument.get_16_bits(), registers.sp);
     registers.pc = registers.pc + 3;
     return 20;
 }
@@ -114,7 +114,7 @@ pub fn add_009(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0xa LD A (BC)
 pub fn ld_00a(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = memory.get(registers.get_bc());
+    registers.a = memory.read(registers.get_bc());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -193,7 +193,7 @@ pub fn ld_011(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 
 /// 0x12 LD (DE) A
 pub fn ld_012(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_de(), registers.a);
+    memory.write(registers.get_de(), registers.a);
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -279,7 +279,7 @@ pub fn add_019(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1a LD A (DE)
 pub fn ld_01a(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = memory.get(registers.get_de());
+    registers.a = memory.read(registers.get_de());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -366,7 +366,7 @@ pub fn ld_021(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 
 /// 0x22 LDI (HL) A
 pub fn ldi_022(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.a);
+    memory.write(registers.get_hl(), registers.a);
     registers.set_hl(registers.get_hl() + 1u16);
     registers.pc = registers.pc + 1;
     return 8;
@@ -473,7 +473,7 @@ pub fn add_029(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x2a LDI A (HL)
 pub fn ldi_02a(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = memory.get(registers.get_hl());
+    registers.a = memory.read(registers.get_hl());
     registers.set_hl(registers.get_hl() + 1u16);
     registers.pc = registers.pc + 1;
     return 8;
@@ -556,7 +556,7 @@ pub fn ld_031(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 
 /// 0x32 LDD (HL) A
 pub fn ldd_032(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.a);
+    memory.write(registers.get_hl(), registers.a);
     registers.set_hl(registers.get_hl() - 1u16);
     registers.pc = registers.pc + 1;
     return 8;
@@ -574,21 +574,21 @@ pub fn inc_033(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x34 INC (HL)
 pub fn inc_034(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let lhs: u8 = memory.get(registers.get_hl());
+    let lhs: u8 = memory.read(registers.get_hl());
     let rhs: i32 = 1i32;
     let result: i32 = (lhs as i32) + rhs;
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) + (rhs & 0xFi32);
     let half_flag: u8 = (half_value > 0xFi32) as u8;
     registers.flags = (zero_flag << 7u8) + (half_flag << 5u8) + (registers.flags & 0b10000u8);
-    memory.set(registers.get_hl(), (result & 0xFFi32) as u8);
+    memory.write(registers.get_hl(), (result & 0xFFi32) as u8);
     registers.pc = registers.pc + 1;
     return 12;
 }
 
 /// 0x35 DEC (HL)
 pub fn dec_035(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let lhs: u8 = memory.get(registers.get_hl());
+    let lhs: u8 = memory.read(registers.get_hl());
     let rhs: i32 = 1i32;
     let result: i32 = (lhs as i32) - rhs;
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
@@ -596,14 +596,14 @@ pub fn dec_035(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
     let half_flag: u8 = (half_value < 0x0i32) as u8;
     registers.flags =
         (zero_flag << 7u8) + (half_flag << 5u8) + 0b1000000u8 + (registers.flags & 0b10000u8);
-    memory.set(registers.get_hl(), (result & 0xFFi32) as u8);
+    memory.write(registers.get_hl(), (result & 0xFFi32) as u8);
     registers.pc = registers.pc + 1;
     return 12;
 }
 
 /// 0x36 LD (HL) d8
 pub fn ld_036(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), argument.get());
+    memory.write(registers.get_hl(), argument.get());
     registers.pc = registers.pc + 2;
     return 12;
 }
@@ -645,7 +645,7 @@ pub fn add_039(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x3a LDD A (HL)
 pub fn ldd_03a(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = memory.get(registers.get_hl());
+    registers.a = memory.read(registers.get_hl());
     registers.set_hl(registers.get_hl() - 1u16);
     registers.pc = registers.pc + 1;
     return 8;
@@ -749,7 +749,7 @@ pub fn ld_045(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x46 LD B (HL)
 pub fn ld_046(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.b = memory.get(registers.get_hl());
+    registers.b = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -805,7 +805,7 @@ pub fn ld_04d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x4e LD C (HL)
 pub fn ld_04e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.c = memory.get(registers.get_hl());
+    registers.c = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -861,7 +861,7 @@ pub fn ld_055(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x56 LD D (HL)
 pub fn ld_056(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.d = memory.get(registers.get_hl());
+    registers.d = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -917,7 +917,7 @@ pub fn ld_05d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x5e LD E (HL)
 pub fn ld_05e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.e = memory.get(registers.get_hl());
+    registers.e = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -973,7 +973,7 @@ pub fn ld_065(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x66 LD H (HL)
 pub fn ld_066(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.h = memory.get(registers.get_hl());
+    registers.h = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -1029,7 +1029,7 @@ pub fn ld_06d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x6e LD L (HL)
 pub fn ld_06e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.l = memory.get(registers.get_hl());
+    registers.l = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -1043,42 +1043,42 @@ pub fn ld_06f(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x70 LD (HL) B
 pub fn ld_070(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.b);
+    memory.write(registers.get_hl(), registers.b);
     registers.pc = registers.pc + 1;
     return 8;
 }
 
 /// 0x71 LD (HL) C
 pub fn ld_071(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.c);
+    memory.write(registers.get_hl(), registers.c);
     registers.pc = registers.pc + 1;
     return 8;
 }
 
 /// 0x72 LD (HL) D
 pub fn ld_072(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.d);
+    memory.write(registers.get_hl(), registers.d);
     registers.pc = registers.pc + 1;
     return 8;
 }
 
 /// 0x73 LD (HL) E
 pub fn ld_073(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.e);
+    memory.write(registers.get_hl(), registers.e);
     registers.pc = registers.pc + 1;
     return 8;
 }
 
 /// 0x74 LD (HL) H
 pub fn ld_074(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.h);
+    memory.write(registers.get_hl(), registers.h);
     registers.pc = registers.pc + 1;
     return 8;
 }
 
 /// 0x75 LD (HL) L
 pub fn ld_075(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.l);
+    memory.write(registers.get_hl(), registers.l);
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -1092,7 +1092,7 @@ pub fn halt_076(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 
 /// 0x77 LD (HL) A
 pub fn ld_077(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), registers.a);
+    memory.write(registers.get_hl(), registers.a);
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -1141,7 +1141,7 @@ pub fn ld_07d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x7e LD A (HL)
 pub fn ld_07e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = memory.get(registers.get_hl());
+    registers.a = memory.read(registers.get_hl());
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -1246,7 +1246,7 @@ pub fn add_085(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x86 ADD A (HL)
 pub fn add_086(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     let lhs: u8 = registers.a;
-    let rhs: u8 = memory.get(registers.get_hl());
+    let rhs: u8 = memory.read(registers.get_hl());
     let result: i32 = (lhs as i32) + (rhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) + ((rhs as i32) & 0xFi32);
@@ -1378,7 +1378,7 @@ pub fn adc_08d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x8e ADC A (HL)
 pub fn adc_08e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     let lhs: u8 = registers.a;
-    let rhs: u8 = memory.get(registers.get_hl());
+    let rhs: u8 = memory.read(registers.get_hl());
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) + (rhs as i32) + (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
@@ -1502,7 +1502,7 @@ pub fn sub_095(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x96 SUB A (HL)
 pub fn sub_096(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     let lhs: u8 = registers.a;
-    let rhs: u8 = memory.get(registers.get_hl());
+    let rhs: u8 = memory.read(registers.get_hl());
     let result: i32 = (lhs as i32) - (rhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32);
@@ -1634,7 +1634,7 @@ pub fn sbc_09d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 /// 0x9e SBC A (HL)
 pub fn sbc_09e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     let lhs: u8 = registers.a;
-    let rhs: u8 = memory.get(registers.get_hl());
+    let rhs: u8 = memory.read(registers.get_hl());
     let rrhs: bool = registers.get_carry_flag();
     let result: i32 = (lhs as i32) - (rhs as i32) - (rrhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
@@ -1715,7 +1715,7 @@ pub fn and_0a5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0xa6 AND (HL)
 pub fn and_0a6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = registers.a & memory.get(registers.get_hl());
+    registers.a = registers.a & memory.read(registers.get_hl());
     registers.flags = (((registers.a == 0u8) as u8) << 7u8) + 0b100000u8;
     registers.pc = registers.pc + 1;
     return 8;
@@ -1779,7 +1779,7 @@ pub fn xor_0ad(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0xae XOR (HL)
 pub fn xor_0ae(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = registers.a ^ memory.get(registers.get_hl());
+    registers.a = registers.a ^ memory.read(registers.get_hl());
     registers.flags = ((registers.a == 0u8) as u8) << 7u8;
     registers.pc = registers.pc + 1;
     return 8;
@@ -1843,7 +1843,7 @@ pub fn or_0b5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0xb6 OR (HL)
 pub fn or_0b6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.a = registers.a | memory.get(registers.get_hl());
+    registers.a = registers.a | memory.read(registers.get_hl());
     registers.flags = ((registers.a == 0u8) as u8) << 7u8;
     registers.pc = registers.pc + 1;
     return 8;
@@ -1944,7 +1944,7 @@ pub fn cp_0bd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 /// 0xbe CP (HL)
 pub fn cp_0be(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     let lhs: u8 = registers.a;
-    let rhs: u8 = memory.get(registers.get_hl());
+    let rhs: u8 = memory.read(registers.get_hl());
     let result: i32 = (lhs as i32) - (rhs as i32);
     let zero_flag: u8 = ((result & 0xFFi32) == 0i32) as u8;
     let half_value: i32 = ((lhs as i32) & 0xFi32) - ((rhs as i32) & 0xFi32);
@@ -1972,8 +1972,8 @@ pub fn cp_0bf(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 /// 0xc0 RET NZ
 pub fn ret_0c0(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     if registers.get_non_zero_flag() {
-        let lower_pc: u16 = memory.get(registers.sp) as u16;
-        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        let lower_pc: u16 = memory.read(registers.sp) as u16;
+        let upper_pc: u16 = (memory.read(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
         registers.sp = registers.sp + 2u16;
         return 20u16;
@@ -1985,8 +1985,8 @@ pub fn ret_0c0(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xc1 POP BC
 pub fn pop_0c1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.c = memory.get(registers.sp);
-    registers.b = memory.get(registers.sp + 1u16);
+    registers.c = memory.read(registers.sp);
+    registers.b = memory.read(registers.sp + 1u16);
     registers.sp = registers.sp + 2u16;
     registers.pc = registers.pc + 1;
     return 12;
@@ -2013,11 +2013,11 @@ pub fn jp_0c3(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_non_zero_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(
+        memory.write(
             registers.sp - 1u16,
             ((registers.pc >> 8u16) & 0xFFu16) as u8,
         );
-        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+        memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2029,8 +2029,8 @@ pub fn call_0c4(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 
 /// 0xc5 PUSH BC
 pub fn push_0c5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.sp - 1u16, registers.b);
-    memory.set(registers.sp - 2u16, registers.c);
+    memory.write(registers.sp - 1u16, registers.b);
+    memory.write(registers.sp - 2u16, registers.c);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2054,11 +2054,11 @@ pub fn add_0c6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xc7 RST 00H
 pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x0u16;
     return 16u16;
@@ -2067,8 +2067,8 @@ pub fn rst_0c7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 /// 0xc8 RET Z
 pub fn ret_0c8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     if registers.get_zero_flag() {
-        let lower_pc: u16 = memory.get(registers.sp) as u16;
-        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        let lower_pc: u16 = memory.read(registers.sp) as u16;
+        let upper_pc: u16 = (memory.read(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
         registers.sp = registers.sp + 2u16;
         return 20u16;
@@ -2080,8 +2080,8 @@ pub fn ret_0c8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xc9 RET
 pub fn ret_0c9(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let lower_pc: u16 = memory.get(registers.sp) as u16;
-    let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+    let lower_pc: u16 = memory.read(registers.sp) as u16;
+    let upper_pc: u16 = (memory.read(registers.sp + 1u16)) as u16;
     registers.pc = lower_pc + (upper_pc << 8u16);
     registers.sp = registers.sp + 2u16;
     return 16u16;
@@ -2111,11 +2111,11 @@ pub fn prefix_0cb(
 pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_zero_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(
+        memory.write(
             registers.sp - 1u16,
             ((registers.pc >> 8u16) & 0xFFu16) as u8,
         );
-        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+        memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2128,11 +2128,11 @@ pub fn call_0cc(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 /// 0xcd CALL a16
 pub fn call_0cd(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     registers.pc = registers.pc + 3u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = argument.get_16_bits();
     return 24u16;
@@ -2158,11 +2158,11 @@ pub fn adc_0ce(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xcf RST 08H
 pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x8u16;
     return 16u16;
@@ -2171,8 +2171,8 @@ pub fn rst_0cf(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 /// 0xd0 RET NC
 pub fn ret_0d0(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     if registers.get_non_carry_flag() {
-        let lower_pc: u16 = memory.get(registers.sp) as u16;
-        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        let lower_pc: u16 = memory.read(registers.sp) as u16;
+        let upper_pc: u16 = (memory.read(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
         registers.sp = registers.sp + 2u16;
         return 20u16;
@@ -2184,8 +2184,8 @@ pub fn ret_0d0(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xd1 POP DE
 pub fn pop_0d1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.e = memory.get(registers.sp);
-    registers.d = memory.get(registers.sp + 1u16);
+    registers.e = memory.read(registers.sp);
+    registers.d = memory.read(registers.sp + 1u16);
     registers.sp = registers.sp + 2u16;
     registers.pc = registers.pc + 1;
     return 12;
@@ -2215,11 +2215,11 @@ pub fn unknown_0d3(
 pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_non_carry_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(
+        memory.write(
             registers.sp - 1u16,
             ((registers.pc >> 8u16) & 0xFFu16) as u8,
         );
-        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+        memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2231,8 +2231,8 @@ pub fn call_0d4(registers: &mut Registers, memory: &mut dyn Memory, argument: &A
 
 /// 0xd5 PUSH DE
 pub fn push_0d5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.sp - 1u16, registers.d);
-    memory.set(registers.sp - 2u16, registers.e);
+    memory.write(registers.sp - 1u16, registers.d);
+    memory.write(registers.sp - 2u16, registers.e);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2256,11 +2256,11 @@ pub fn sub_0d6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xd7 RST 10H
 pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x10u16;
     return 16u16;
@@ -2269,8 +2269,8 @@ pub fn rst_0d7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 /// 0xd8 RET C
 pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     if registers.get_carry_flag() {
-        let lower_pc: u16 = memory.get(registers.sp) as u16;
-        let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+        let lower_pc: u16 = memory.read(registers.sp) as u16;
+        let upper_pc: u16 = (memory.read(registers.sp + 1u16)) as u16;
         registers.pc = lower_pc + (upper_pc << 8u16);
         registers.sp = registers.sp + 2u16;
         return 20u16;
@@ -2282,8 +2282,8 @@ pub fn ret_0d8(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xd9 RETI
 pub fn reti_0d9(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let lower_pc: u16 = memory.get(registers.sp) as u16;
-    let upper_pc: u16 = (memory.get(registers.sp + 1u16)) as u16;
+    let lower_pc: u16 = memory.read(registers.sp) as u16;
+    let upper_pc: u16 = (memory.read(registers.sp + 1u16)) as u16;
     registers.pc = lower_pc + (upper_pc << 8u16);
     registers.sp = registers.sp + 2u16;
     registers.ime_flag = true;
@@ -2314,11 +2314,11 @@ pub fn unknown_0db(
 pub fn call_0dc(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
     if registers.get_carry_flag() {
         registers.pc = registers.pc + 3u16;
-        memory.set(
+        memory.write(
             registers.sp - 1u16,
             ((registers.pc >> 8u16) & 0xFFu16) as u8,
         );
-        memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+        memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
         registers.sp = registers.sp - 2u16;
         registers.pc = argument.get_16_bits();
         return 24u16;
@@ -2357,11 +2357,11 @@ pub fn sbc_0de(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xdf RST 18H
 pub fn rst_0df(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x18u16;
     return 16u16;
@@ -2369,15 +2369,15 @@ pub fn rst_0df(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xe0 LDH (a8) A
 pub fn ldh_0e0(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    memory.set((argument.get() as u16) + 0xFF00u16, registers.a);
+    memory.write((argument.get() as u16) + 0xFF00u16, registers.a);
     registers.pc = registers.pc + 2;
     return 12;
 }
 
 /// 0xe1 POP HL
 pub fn pop_0e1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.l = memory.get(registers.sp);
-    registers.h = memory.get(registers.sp + 1u16);
+    registers.l = memory.read(registers.sp);
+    registers.h = memory.read(registers.sp + 1u16);
     registers.sp = registers.sp + 2u16;
     registers.pc = registers.pc + 1;
     return 12;
@@ -2389,7 +2389,7 @@ pub fn ldspecial_0e2(
     memory: &mut dyn Memory,
     _argument: &Argument,
 ) -> u16 {
-    memory.set((registers.c as u16) + 0xFF00u16, registers.a);
+    memory.write((registers.c as u16) + 0xFF00u16, registers.a);
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -2414,8 +2414,8 @@ pub fn unknown_0e4(
 
 /// 0xe5 PUSH HL
 pub fn push_0e5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.sp - 1u16, registers.h);
-    memory.set(registers.sp - 2u16, registers.l);
+    memory.write(registers.sp - 1u16, registers.h);
+    memory.write(registers.sp - 2u16, registers.l);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2432,11 +2432,11 @@ pub fn and_0e6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xe7 RST 20H
 pub fn rst_0e7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x20u16;
     return 16u16;
@@ -2464,7 +2464,7 @@ pub fn jp_0e9(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0xea LD (a16) A
 pub fn ld_0ea(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    memory.set(argument.get_16_bits(), registers.a);
+    memory.write(argument.get_16_bits(), registers.a);
     registers.pc = registers.pc + 3;
     return 16;
 }
@@ -2507,11 +2507,11 @@ pub fn xor_0ee(registers: &mut Registers, _memory: &mut dyn Memory, argument: &A
 /// 0xef RST 28H
 pub fn rst_0ef(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x28u16;
     return 16u16;
@@ -2519,15 +2519,15 @@ pub fn rst_0ef(registers: &mut Registers, memory: &mut dyn Memory, _argument: &A
 
 /// 0xf0 LDH A (a8)
 pub fn ldh_0f0(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    registers.a = memory.get((argument.get() as u16) + 0xFF00u16);
+    registers.a = memory.read((argument.get() as u16) + 0xFF00u16);
     registers.pc = registers.pc + 2;
     return 12;
 }
 
 /// 0xf1 POP AF
 pub fn pop_0f1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    registers.flags = memory.get(registers.sp);
-    registers.a = memory.get(registers.sp + 1u16);
+    registers.flags = memory.read(registers.sp);
+    registers.a = memory.read(registers.sp + 1u16);
     registers.sp = registers.sp + 2u16;
     registers.pc = registers.pc + 1;
     return 12;
@@ -2539,7 +2539,7 @@ pub fn ldspecial_0f2(
     memory: &mut dyn Memory,
     _argument: &Argument,
 ) -> u16 {
-    registers.a = memory.get((registers.c as u16) + 0xFF00u16);
+    registers.a = memory.read((registers.c as u16) + 0xFF00u16);
     registers.pc = registers.pc + 1;
     return 8;
 }
@@ -2562,8 +2562,8 @@ pub fn unknown_0f4(
 
 /// 0xf5 PUSH AF
 pub fn push_0f5(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.sp - 1u16, registers.a);
-    memory.set(registers.sp - 2u16, registers.flags);
+    memory.write(registers.sp - 1u16, registers.a);
+    memory.write(registers.sp - 2u16, registers.flags);
     registers.sp = registers.sp - 2u16;
     registers.pc = registers.pc + 1;
     return 16;
@@ -2580,11 +2580,11 @@ pub fn or_0f6(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 /// 0xf7 RST 30H
 pub fn rst_0f7(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x30u16;
     return 16u16;
@@ -2613,7 +2613,7 @@ pub fn ld_0f9(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0xfa LD A (a16)
 pub fn ld_0fa(registers: &mut Registers, memory: &mut dyn Memory, argument: &Argument) -> u16 {
-    registers.a = memory.get(argument.get_16_bits());
+    registers.a = memory.read(argument.get_16_bits());
     registers.pc = registers.pc + 3;
     return 16;
 }
@@ -2660,11 +2660,11 @@ pub fn cp_0fe(registers: &mut Registers, _memory: &mut dyn Memory, argument: &Ar
 /// 0xff RST 38H
 pub fn rst_0ff(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
     registers.pc = registers.pc + 1u16;
-    memory.set(
+    memory.write(
         registers.sp - 1u16,
         ((registers.pc >> 8u16) & 0xFFu16) as u8,
     );
-    memory.set(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
+    memory.write(registers.sp - 2u16, (registers.pc & 0xFFu16) as u8);
     registers.sp = registers.sp - 2u16;
     registers.pc = 0x38u16;
     return 16u16;
@@ -2750,13 +2750,13 @@ pub fn rlc_105(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x106 RLC (HL)
 pub fn rlc_106(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value_u8: u8 = memory.get(registers.get_hl());
+    let value_u8: u8 = memory.read(registers.get_hl());
     let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
     let value: u16 = value_u8 as u16;
     let result: u8 = (((value << 1u16) + (carried_value as u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -2854,13 +2854,13 @@ pub fn rrc_10d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x10e RRC (HL)
 pub fn rrc_10e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value_u8: u8 = memory.get(registers.get_hl());
+    let value_u8: u8 = memory.read(registers.get_hl());
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
     let result: u8 = (((value >> 1u16) + ((carried_value as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -2958,13 +2958,13 @@ pub fn rl_115(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x116 RL (HL)
 pub fn rl_116(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value_u8: u8 = memory.get(registers.get_hl());
+    let value_u8: u8 = memory.read(registers.get_hl());
     let carried_value: u8 = (value_u8 >> 7u8) & 0b1u8;
     let value: u16 = value_u8 as u16;
     let result: u8 = (((value << 1u16) + (registers.get_carry_flag() as u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3068,14 +3068,14 @@ pub fn rr_11d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &A
 
 /// 0x11e RR (HL)
 pub fn rr_11e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value_u8: u8 = memory.get(registers.get_hl());
+    let value_u8: u8 = memory.read(registers.get_hl());
     let carried_value: u8 = value_u8 & 0b1u8;
     let value: u16 = value_u8 as u16;
     let result: u8 =
         (((value >> 1u16) + ((registers.get_carry_flag() as u16) << 7u16)) & 0xFFu16) as u8;
     let zero_flag: u8 = ((result & 0xFFu8) == 0u8) as u8;
     registers.flags = (carried_value << 4u8) + (zero_flag << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3162,11 +3162,11 @@ pub fn sla_125(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x126 SLA (HL)
 pub fn sla_126(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value: u8 = memory.get(registers.get_hl());
+    let value: u8 = memory.read(registers.get_hl());
     let result: u8 = value << 1u8;
     let carry_flag: u8 = (value >> 7u8) & 0b1u8;
     registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3250,11 +3250,11 @@ pub fn sra_12d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x12e SRA (HL)
 pub fn sra_12e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value: u8 = memory.get(registers.get_hl());
+    let value: u8 = memory.read(registers.get_hl());
     let result: u8 = (value >> 1u8) + (value & 0x80u8);
     let carry_flag: u8 = value & 0b1u8;
     registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3332,10 +3332,10 @@ pub fn swap_135(registers: &mut Registers, _memory: &mut dyn Memory, _argument: 
 
 /// 0x136 SWAP (HL)
 pub fn swap_136(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value: u8 = memory.get(registers.get_hl());
+    let value: u8 = memory.read(registers.get_hl());
     let result: u8 = (value >> 4u8) + ((value & 0b1111u8) << 4u8);
     registers.flags = ((result == 0u8) as u8) << 7u8;
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3418,11 +3418,11 @@ pub fn srl_13d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x13e SRL (HL)
 pub fn srl_13e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let value: u8 = memory.get(registers.get_hl());
+    let value: u8 = memory.read(registers.get_hl());
     let result: u8 = value >> 1u8;
     let carry_flag: u8 = value & 0b1u8;
     registers.flags = (carry_flag << 4u8) + (((result == 0u8) as u8) << 7u8);
-    memory.set(registers.get_hl(), result);
+    memory.write(registers.get_hl(), result);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -3488,7 +3488,7 @@ pub fn bit_145(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x146 BIT 0 (HL)
 pub fn bit_146(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 0u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 0u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3552,7 +3552,7 @@ pub fn bit_14d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x14e BIT 1 (HL)
 pub fn bit_14e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 1u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 1u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3616,7 +3616,7 @@ pub fn bit_155(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x156 BIT 2 (HL)
 pub fn bit_156(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 2u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 2u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3680,7 +3680,7 @@ pub fn bit_15d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x15e BIT 3 (HL)
 pub fn bit_15e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 3u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 3u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3744,7 +3744,7 @@ pub fn bit_165(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x166 BIT 4 (HL)
 pub fn bit_166(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 4u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 4u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3808,7 +3808,7 @@ pub fn bit_16d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x16e BIT 5 (HL)
 pub fn bit_16e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 5u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 5u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3872,7 +3872,7 @@ pub fn bit_175(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x176 BIT 6 (HL)
 pub fn bit_176(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 6u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 6u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3936,7 +3936,7 @@ pub fn bit_17d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x17e BIT 7 (HL)
 pub fn bit_17e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    let zero_flag: u8 = (((memory.get(registers.get_hl()) >> 7u8) & 0b1u8) == 0u8) as u8;
+    let zero_flag: u8 = (((memory.read(registers.get_hl()) >> 7u8) & 0b1u8) == 0u8) as u8;
     registers.flags = (zero_flag << 7u8) + 0b100000u8 + (registers.flags & 0b10000u8);
     registers.pc = registers.pc + 2;
     return 12;
@@ -3994,9 +3994,9 @@ pub fn res_185(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x186 RES 0 (HL)
 pub fn res_186(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b11111110u8,
+        memory.read(registers.get_hl()) & 0b11111110u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4053,9 +4053,9 @@ pub fn res_18d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x18e RES 1 (HL)
 pub fn res_18e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b11111101u8,
+        memory.read(registers.get_hl()) & 0b11111101u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4112,9 +4112,9 @@ pub fn res_195(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x196 RES 2 (HL)
 pub fn res_196(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b11111011u8,
+        memory.read(registers.get_hl()) & 0b11111011u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4171,9 +4171,9 @@ pub fn res_19d(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x19e RES 3 (HL)
 pub fn res_19e(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b11110111u8,
+        memory.read(registers.get_hl()) & 0b11110111u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4230,9 +4230,9 @@ pub fn res_1a5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1a6 RES 4 (HL)
 pub fn res_1a6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b11101111u8,
+        memory.read(registers.get_hl()) & 0b11101111u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4289,9 +4289,9 @@ pub fn res_1ad(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1ae RES 5 (HL)
 pub fn res_1ae(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b11011111u8,
+        memory.read(registers.get_hl()) & 0b11011111u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4348,9 +4348,9 @@ pub fn res_1b5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1b6 RES 6 (HL)
 pub fn res_1b6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b10111111u8,
+        memory.read(registers.get_hl()) & 0b10111111u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4407,9 +4407,9 @@ pub fn res_1bd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1be RES 7 (HL)
 pub fn res_1be(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) & 0b1111111u8,
+        memory.read(registers.get_hl()) & 0b1111111u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4466,7 +4466,7 @@ pub fn set_1c5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1c6 SET 0 (HL)
 pub fn set_1c6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b1u8);
+    memory.write(registers.get_hl(), memory.read(registers.get_hl()) | 0b1u8);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4522,7 +4522,7 @@ pub fn set_1cd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1ce SET 1 (HL)
 pub fn set_1ce(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b10u8);
+    memory.write(registers.get_hl(), memory.read(registers.get_hl()) | 0b10u8);
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4578,7 +4578,10 @@ pub fn set_1d5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1d6 SET 2 (HL)
 pub fn set_1d6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(registers.get_hl(), memory.get(registers.get_hl()) | 0b100u8);
+    memory.write(
+        registers.get_hl(),
+        memory.read(registers.get_hl()) | 0b100u8,
+    );
     registers.pc = registers.pc + 2;
     return 16;
 }
@@ -4634,9 +4637,9 @@ pub fn set_1dd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1de SET 3 (HL)
 pub fn set_1de(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) | 0b1000u8,
+        memory.read(registers.get_hl()) | 0b1000u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4693,9 +4696,9 @@ pub fn set_1e5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1e6 SET 4 (HL)
 pub fn set_1e6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) | 0b10000u8,
+        memory.read(registers.get_hl()) | 0b10000u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4752,9 +4755,9 @@ pub fn set_1ed(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1ee SET 5 (HL)
 pub fn set_1ee(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) | 0b100000u8,
+        memory.read(registers.get_hl()) | 0b100000u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4811,9 +4814,9 @@ pub fn set_1f5(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1f6 SET 6 (HL)
 pub fn set_1f6(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) | 0b1000000u8,
+        memory.read(registers.get_hl()) | 0b1000000u8,
     );
     registers.pc = registers.pc + 2;
     return 16;
@@ -4870,9 +4873,9 @@ pub fn set_1fd(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
 
 /// 0x1fe SET 7 (HL)
 pub fn set_1fe(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u16 {
-    memory.set(
+    memory.write(
         registers.get_hl(),
-        memory.get(registers.get_hl()) | 0b10000000u8,
+        memory.read(registers.get_hl()) | 0b10000000u8,
     );
     registers.pc = registers.pc + 2;
     return 16;

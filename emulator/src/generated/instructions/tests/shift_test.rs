@@ -109,7 +109,7 @@ fn test_sla_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0x6A);
+    memory.write(0xD1C7, 0x6A);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -244,7 +244,7 @@ fn test_sra_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0x6A);
+    memory.write(0xD1C7, 0x6A);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -379,7 +379,7 @@ fn test_srl_address() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_hl(0xD1C7);
-    memory.set(0xD1C7, 0x6A);
+    memory.write(0xD1C7, 0x6A);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);

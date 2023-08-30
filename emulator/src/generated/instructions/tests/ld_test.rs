@@ -61,7 +61,7 @@ fn test_ld_hl_address_to_8bits_register() {
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
         registers.set_hl(0x12DF);
-        memory.set(0x12DF, 0xE5);
+        memory.write(0x12DF, 0xE5);
         let mut expected = registers.clone();
 
         let (instruction, argument_type) = get_instruction(opcode);
@@ -130,7 +130,7 @@ fn test_ld_bc_address_to_register_a() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_bc(0x13DF);
-    memory.set(0x13DF, 0xAB);
+    memory.write(0x13DF, 0xAB);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -172,7 +172,7 @@ fn test_ld_de_address_to_register_a() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_de(0x1ADF);
-    memory.set(0x1ADF, 0xA1);
+    memory.write(0x1ADF, 0xA1);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -214,7 +214,7 @@ fn test_ld_c_address_to_register_a() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.c = 0xDF;
-    memory.set(0xFF00 + 0xDF, 0xA1);
+    memory.write(0xFF00 + 0xDF, 0xA1);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -255,7 +255,7 @@ fn test_ld_immediate_8bits_address_to_register_a() {
     let mut registers = Registers::new();
     let mut memory = FakeMemory::new();
     let argument = Argument::new_u8(0xDF);
-    memory.set(0xFF00 + 0xDF, 0xA1);
+    memory.write(0xFF00 + 0xDF, 0xA1);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -295,7 +295,7 @@ fn test_ld_immediate_16bits_address_to_register_a() {
     let mut registers = Registers::new();
     let mut memory = FakeMemory::new();
     let argument = Argument::new_u16(0x6598);
-    memory.set(0x6598, 0xA1);
+    memory.write(0x6598, 0xA1);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -336,7 +336,7 @@ fn test_ld_hl_address_to_register_a_increment() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_hl(0x12DF);
-    memory.set(0x12DF, 0xE5);
+    memory.write(0x12DF, 0xE5);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -380,7 +380,7 @@ fn test_ld_hl_address_to_register_a_decrement() {
     let mut memory = FakeMemory::new();
     let argument = Argument::new_empty();
     registers.set_hl(0x12DF);
-    memory.set(0x12DF, 0xE5);
+    memory.write(0x12DF, 0xE5);
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);

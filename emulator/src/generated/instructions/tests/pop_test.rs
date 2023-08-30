@@ -14,8 +14,8 @@ fn test_pop_16bits() {
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
         register.sp = 0x1245;
-        memory.set(0x1245, 0xD1);
-        memory.set(0x1246, 0x5C);
+        memory.write(0x1245, 0xD1);
+        memory.write(0x1246, 0x5C);
         let mut expected = register.clone();
 
         let (instruction, argument_type) = get_instruction(opcode);
