@@ -6,6 +6,8 @@ mod generated;
 mod memory;
 mod timer;
 mod video;
+mod joypad;
+mod serial;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
