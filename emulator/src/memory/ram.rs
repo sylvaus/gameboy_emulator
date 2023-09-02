@@ -1,17 +1,20 @@
 /// TODO: Implement the CGB variant
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 
-const WORK_RAM_SIZE: usize = 0x1000;
-const WORK_RAM_START_ADDRESS: u16 = 0xC000;
-const ECHO_RAM_SIZE: usize = 0x1E00;
-const ECHO_RAM_START_ADDRESS: u16 = 0xE000;
+pub const WORK_RAM_SIZE: usize = 0x1000;
+pub const WORK_RAM_START_ADDRESS: u16 = 0xC000;
+pub const WORK_RAM_END_ADDRESS: u16 = 0xDFFF;
+pub const ECHO_RAM_SIZE: usize = 0x1E00;
+pub const ECHO_RAM_START_ADDRESS: u16 = 0xE000;
+pub const ECHO_RAM_END_ADDRESS: u16 = 0xFDFF;
 
-const HIGH_RAM_SIZE: usize = 0x7F;
-const HIGH_RAM_START_ADDRESS: u16 = 0xFF80;
+pub const HIGH_RAM_SIZE: usize = 0x7F;
+pub const HIGH_RAM_START_ADDRESS: u16 = 0xFF80;
+pub const HIGH_RAM_END_ADDRESS: u16 = 0xFFFE;
 /// Information from: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
-const SELECT_WORK_RAM_BANK_ADDRESS: u16 = 0xFF70;
+pub const SELECT_WORK_RAM_BANK_ADDRESS: u16 = 0xFF70;
 
-struct RamController {
+pub struct RamController {
     work_ram: Vec<u8>,
     high_ram: Vec<u8>,
 }
@@ -28,16 +31,16 @@ impl RamController {
         self.work_ram[(address - WORK_RAM_START_ADDRESS) as usize] = value;
     }
 
-    pub fn read_work_ram(&mut self, address: u16) -> u8 {
+    pub fn read_work_ram(&self, address: u16) -> u8 {
         self.work_ram[(address - WORK_RAM_START_ADDRESS) as usize]
     }
 
     pub fn write_echo_ram(&mut self, address: u16, value: u8) {
-        /// Just echo work ram
+        // Just echo work ram
         self.write_work_ram(address - 0x2000, value)
     }
 
-    pub fn read_echo_ram(&mut self, address: u16) -> u8 {
+    pub fn read_echo_ram(&self, address: u16) -> u8 {
         self.read_work_ram(address - 0x2000)
     }
 
@@ -45,18 +48,18 @@ impl RamController {
         self.high_ram[(address - WORK_RAM_START_ADDRESS) as usize] = value;
     }
 
-    pub fn read_high_ram(&mut self, address: u16) -> u8 {
+    pub fn read_high_ram(&self, address: u16) -> u8 {
         self.high_ram[(address - WORK_RAM_START_ADDRESS) as usize]
     }
 
-    pub fn select_work_ram_bank() {
-        /// see: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
-        todo!("Implement CGB variant where this should select the ram bank");
+    pub fn write_selected_work_ram_bank(&mut self, _value: u8) {
+        // see: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
+        // TODO: Implement CGB variant where this should select the ram bank;
     }
 
-    pub fn get_selected_work_ram_bank() -> u8 {
-        /// see: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
-        todo!("Implement CGB variant where this should return the selected ram bank");
+    pub fn read_selected_work_ram_bank(&self) -> u8 {
+        // see: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
+        // TODO: Implement CGB variant where this should return the selected ram bank ;
         return 0;
     }
 }

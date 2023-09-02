@@ -1,37 +1,42 @@
 use crate::video::memory::{LcdControl, LcdStatus};
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
-const VRAM_SIZE: usize = 0x2000;
-const VRAM_START_ADDRESS: usize = 0x8000;
-const VRAM_END_ADDRESS: usize = 0x9FFF;
-const OAM_SIZE: usize = 0xA0;
-const OAM_START_ADDRESS: usize = 0xFE00;
-const OAM_END_ADDRESS: usize = 0xFE9F;
+pub const VRAM_SIZE: usize = 0x2000;
+pub const VRAM_START_ADDRESS: u16 = 0x8000;
+pub const VRAM_END_ADDRESS: u16 = 0x9FFF;
+pub const OAM_SIZE: usize = 0xA0;
+pub const OAM_START_ADDRESS: u16 = 0xFE00;
+pub const OAM_END_ADDRESS: u16 = 0xFE9F;
 
 /// Information from:  https://gbdev.io/pandocs/Memory_Map.html#io-ranges
-const START_IO_LCD: u16 = 0xFF40;
+pub const IO_LCD_START_ADDRESS : u16 = 0xFF40;
 /// Information from: https://gbdev.io/pandocs/LCDC.html
-const LCD_CONTROL_ADDRESS: u16 = 0xFF40;
+pub const LCD_CONTROL_ADDRESS: u16 = 0xFF40;
 /// Information from: https://gbdev.io/pandocs/STAT.html
-const LCD_STATUS_ADDRESS: u16 = 0xFF41;
+pub const LCD_STATUS_ADDRESS: u16 = 0xFF41;
 /// Information from: https://gbdev.io/pandocs/Scrolling.html#lcd-position-and-scrolling
-const LCD_SCROLL_Y_ADDRESS: u16 = 0xFF42;
-const LCD_SCROLL_X_ADDRESS: u16 = 0xFF43;
+pub const LCD_SCROLL_Y_ADDRESS: u16 = 0xFF42;
+pub const LCD_SCROLL_X_ADDRESS: u16 = 0xFF43;
 /// Information from: https://gbdev.io/pandocs/STAT.html
-const LCD_COORDINATE_Y_ADDRESS: u16 = 0xFF44;
-const LCD_LY_COMPARE_ADDRESS: u16 = 0xFF45;
+pub const LCD_COORDINATE_Y_ADDRESS: u16 = 0xFF44;
+pub const LCD_LY_COMPARE_ADDRESS: u16 = 0xFF45;
 /// Information from: https://gbdev.io/pandocs/OAM_DMA_Transfer.html
-const OAM_DMA_ADDRESS: u16 = 0xFF46;
+pub const OAM_DMA_ADDRESS: u16 = 0xFF46;
 /// Information from: https://gbdev.io/pandocs/Palettes.html
-const BGP_PALETTE_DATA_ADDRESS: u16 = 0xFF47;
-const OBJ_PALETTE_DATA_0_ADDRESS: u16 = 0xFF48;
-const OBJ_PALETTE_DATA_1_ADDRESS: u16 = 0xFF49;
+pub const BGP_PALETTE_DATA_ADDRESS: u16 = 0xFF47;
+pub const OBJ_PALETTE_DATA_0_ADDRESS: u16 = 0xFF48;
+pub const OBJ_PALETTE_DATA_1_ADDRESS: u16 = 0xFF49;
 /// Information from: https://gbdev.io/pandocs/Scrolling.html#ff4aff4b--wy-wx-window-y-position-x-position-plus-7
-const LCD_WINDOWS_Y_ADDRESS: u16 = 0xFF4A;
-const LCD_WINDOWS_X_ADDRESS: u16 = 0xFF4B;
-const END_IO_LCD: u16 = 0xFF4B;
+pub const LCD_WINDOWS_Y_ADDRESS: u16 = 0xFF4A;
+pub const LCD_WINDOWS_X_ADDRESS: u16 = 0xFF4B;
+pub const IO_LCD_END_ADDRESS: u16 = 0xFF4B;
+pub const VRAM_BANK_SELECT: u16 = 0xFF4F;
 
-struct VideoController {
+/// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
+pub const BG_OBJ_PALETTES_START_ADDRESS: u16 = 0xFF68;
+pub const BG_OBJ_PALETTES__END_ADDRESS: u16 = 0xFF6B;
+
+pub struct VideoController {
     vram: Vec<u8>,
     oam: Vec<u8>,
     control: LcdControl,
@@ -81,24 +86,25 @@ impl VideoController {
             && self.control.read_lcd_enable() == 0
         {
         }
+        self.previous_control = self.control;
 
         todo!("Finish implementation")
     }
 
     pub fn write_vram(&mut self, address: u16, value: u8) {
-        self.vram[address as usize - VRAM_START_ADDRESS] = value;
+        self.vram[(address - VRAM_START_ADDRESS) as usize] = value;
     }
 
     pub fn read_vram(&self, address: u16) -> u8 {
-        self.vram[address as usize - VRAM_START_ADDRESS]
+        self.vram[(address - VRAM_START_ADDRESS) as usize]
     }
 
     pub fn write_oam(&mut self, address: u16, value: u8) {
-        self.oam[address as usize - OAM_START_ADDRESS] = value;
+        self.oam[(address - OAM_START_ADDRESS) as usize] = value;
     }
 
     pub fn read_oam(&self, address: u16) -> u8 {
-        self.oam[address as usize - OAM_START_ADDRESS]
+        self.oam[(address - OAM_START_ADDRESS) as usize]
     }
 
     pub fn write_lcd(&mut self, address: u16, value: u8) {
@@ -118,12 +124,9 @@ impl VideoController {
         }
     }
 
-    pub fn read_lcd(&mut self, address: u16) -> u8 {
+    pub fn read_lcd(&self, address: u16) -> u8 {
         match address {
-            LCD_CONTROL_ADDRESS => {
-                self.previous_control = self.control;
-                self.control.value
-            }
+            LCD_CONTROL_ADDRESS => self.control.value,
             LCD_STATUS_ADDRESS => self.status.value,
             LCD_SCROLL_Y_ADDRESS => self.scroll_y,
             LCD_SCROLL_X_ADDRESS => self.scroll_x,
@@ -138,11 +141,11 @@ impl VideoController {
         }
     }
 
-    pub fn write_vram_bank(&mut self, _address: u16, _value: u8) {
+    pub fn write_vram_bank(&mut self, _value: u8) {
         // TODO: implement CGB mode https://gbdev.io/pandocs/CGB_Registers.html#ff4f--vbk-cgb-mode-only-vram-bank
     }
 
-    pub fn read_vram_bank(&self, _address: u16) -> u8 {
+    pub fn read_vram_bank(&self) -> u8 {
         // TODO: implement CGB mode https://gbdev.io/pandocs/CGB_Registers.html#ff4f--vbk-cgb-mode-only-vram-bank
         0
     }

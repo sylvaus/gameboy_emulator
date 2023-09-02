@@ -1,4 +1,4 @@
-use crate::memory::mbc::interface::MemoryBankController;
+use crate::memory::mbc::interface::{EXT_RAM_START_ADDRESS, MemoryBankController};
 use std::fs::File;
 use std::io::{BufReader, Read, Seek};
 
@@ -29,18 +29,18 @@ impl NoMemoryBankController {
 
 impl MemoryBankController for NoMemoryBankController {
     fn write_rom(&mut self, address: u16, value: u8) {
-        todo!()
+        self.rom[address as usize] = value;
     }
 
-    fn read_rom(&self, address: u16) {
-        todo!()
+    fn read_rom(&self, address: u16) -> u8 {
+        self.rom[address as usize]
     }
 
     fn write_ext_ram(&mut self, address: u16, value: u8) {
-        todo!()
+        self.rom[(address - EXT_RAM_START_ADDRESS) as usize] = value;
     }
 
-    fn read_ext_ram(&self, address: u16) {
-        todo!()
+    fn read_ext_ram(&self, address: u16) -> u8 {
+        self.rom[(address - EXT_RAM_START_ADDRESS) as usize]
     }
 }

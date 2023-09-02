@@ -1,9 +1,11 @@
-const DIVIDE_REGISTER_ADDRESS: u16 = 0xFF04;
-const TIME_COUNTER_ADDRESS: u16 = 0xFF05;
-const TIMER_MODULO_ADDRESS: u16 = 0xFF06;
-const TIMER_CONTROL_ADDRESS: u16 = 0xFF07;
+pub const TIMER_START_ADDRESS: u16 = 0xFF04;
+pub const DIVIDE_REGISTER_ADDRESS: u16 = 0xFF04;
+pub const TIME_COUNTER_ADDRESS: u16 = 0xFF05;
+pub const TIMER_MODULO_ADDRESS: u16 = 0xFF06;
+pub const TIMER_CONTROL_ADDRESS: u16 = 0xFF07;
+pub const TIMER_END_ADDRESS: u16 = 0xFF07;
 
-struct Timer {
+pub struct Timer {
     divide_register: u8,
     timer_counter: u8,
     timer_modulo: u8,
@@ -23,7 +25,7 @@ impl Timer {
         }
     }
 
-    pub fn read(&mut self, address: u16) -> u8 {
+    pub fn read(&self, address: u16) -> u8 {
         match address {
             DIVIDE_REGISTER_ADDRESS => self.divide_register,
             TIME_COUNTER_ADDRESS => self.timer_counter,
