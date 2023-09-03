@@ -17,7 +17,6 @@ use crate::video::controller::{
     IO_LCD_END_ADDRESS, IO_LCD_START_ADDRESS, OAM_DMA_ADDRESS, OAM_END_ADDRESS, OAM_SIZE,
     OAM_START_ADDRESS, VRAM_BANK_SELECT, VRAM_END_ADDRESS, VRAM_START_ADDRESS,
 };
-use std::rc::Rc;
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const NOT_USABLE_START_ADDRESS: u16 = 0xFEA0;
@@ -77,12 +76,12 @@ impl GBMemory {
         }
     }
 
-    fn read_vram_dma(&self, address: u16) -> u8 {
+    fn read_vram_dma(&self, _address: u16) -> u8 {
         // TODO implement vram dma for CGB: https://gbdev.io/pandocs/CGB_Registers.html#lcd-vram-dma-transfers
         0
     }
 
-    fn write_vram_dma(&mut self, address: u16, value: u8) {
+    fn write_vram_dma(&mut self, _address: u16, _value: u8) {
         // TODO implement vram dma for CGB: https://gbdev.io/pandocs/CGB_Registers.html#lcd-vram-dma-transfers
     }
 }

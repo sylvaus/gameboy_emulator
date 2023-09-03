@@ -9,6 +9,7 @@ mod serial;
 mod sound;
 mod timer;
 mod video;
+mod interrupts;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
