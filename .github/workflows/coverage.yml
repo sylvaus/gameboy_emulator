@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Install llvm tools reuired for coverage
+    - name: Install llvm tools required for coverage
       run: rustup component add llvm-tools-preview
     - name: Build
       run: |
@@ -30,8 +30,8 @@ jobs:
       run: |
         curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
         ./grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
-        cat lcov.info
-        bash <(curl -s https://codecov.io/bash) -f lcov.info
-#    - uses: codecov/codecov-action@v3
-#      with:
-#        files: ./lcov.info
+        apt install -y lcov
+        genhtml -o ./target/debug/coverage/ --show-details --highlight --ignore-errors source --legend lcov.info
+    - uses: codecov/codecov-action@v3
+      with:
+        files: ./lcov.info
