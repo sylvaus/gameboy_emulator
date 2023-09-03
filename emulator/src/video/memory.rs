@@ -14,11 +14,6 @@ pub struct LcdControl {
     pub value: u8,
 }
 
-pub const MODE_0_HBLANK: u8 = 0;
-pub const MODE_1_VBLANK: u8 = 1;
-pub const MODE_2_SEARCH_OAM: u8 = 2;
-pub const MODE_3_TRANSFER: u8 = 3;
-
 /// Structure defined here: https://gbdev.io/pandocs/STAT.html
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct LcdStatus {

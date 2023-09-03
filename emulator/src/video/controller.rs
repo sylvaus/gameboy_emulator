@@ -1,3 +1,4 @@
+use crate::interrupts::Interrupt;
 use crate::video::memory::{LcdControl, LcdStatus};
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
@@ -36,6 +37,48 @@ pub const VRAM_BANK_SELECT: u16 = 0xFF4F;
 pub const BG_OBJ_PALETTES_START_ADDRESS: u16 = 0xFF68;
 pub const BG_OBJ_PALETTES__END_ADDRESS: u16 = 0xFF6B;
 
+pub const MODE_0_HBLANK_VALUE: u8 = 0;
+pub const MODE_1_VBLANK_VALUE: u8 = 1;
+pub const MODE_2_SEARCH_OAM_VALUE: u8 = 2;
+pub const MODE_3_TRANSFER_VALUE: u8 = 3;
+
+/// As according to https://gbdev.io/pandocs/STAT.html
+/// Mode 2 + 3 + 0: 456
+/// Full frame time: 70224
+/// * Mode 2 + 3 + 0 for 144 lines (0-143): (173 + 80 + 203) * 144
+/// * Mode 1 for 10 lines (144-153): 456 * 10
+/// (173 + 80 + 203) * 144 + 456 * 10 = 70224
+pub const MODE_0_HBLANK_CYCLES: u64 = 173;
+pub const MODE_1_VBLANK_CYCLES: u64 = 456;
+pub const MODE_2_SEARCH_OAM_CYCLES: u64 = 80;
+pub const MODE_3_TRANSFER_CYCLES: u64 = 203;
+
+pub const MODE_0_HBLANK: VideoMode = VideoMode {
+    value: MODE_0_HBLANK_VALUE,
+    nb_cycles: MODE_0_HBLANK_CYCLES,
+};
+pub const MODE_1_VBLANK: VideoMode = VideoMode {
+    value: MODE_1_VBLANK_VALUE,
+    nb_cycles: MODE_1_VBLANK_CYCLES,
+};
+pub const MODE_2_SEARCH_OAM: VideoMode = VideoMode {
+    value: MODE_2_SEARCH_OAM_VALUE,
+    nb_cycles: MODE_2_SEARCH_OAM_CYCLES,
+};
+pub const MODE_3_TRANSFER: VideoMode = VideoMode {
+    value: MODE_3_TRANSFER_VALUE,
+    nb_cycles: MODE_3_TRANSFER_CYCLES,
+};
+
+pub const MAX_MOD_0_2_3_Y: u8 = 143;
+
+pub const MAX_MOD_1_Y: u8 = 153;
+
+pub struct VideoMode {
+    pub value: u8,
+    pub nb_cycles: u64,
+}
+
 pub struct VideoController {
     vram: Vec<u8>,
     oam: Vec<u8>,
@@ -53,6 +96,9 @@ pub struct VideoController {
     obj_palette_data_1: u8,
     window_position_y: u8,
     window_position_x: u8,
+
+    cycles: u64,
+    next_cycles_event: u64,
 }
 
 impl VideoController {
@@ -74,21 +120,81 @@ impl VideoController {
             obj_palette_data_1: Default::default(),
             window_position_y: Default::default(),
             window_position_x: Default::default(),
+            cycles: Default::default(),
+            next_cycles_event: Default::default(),
         }
     }
 
-    pub fn tick(&mut self, nb_cycles: usize) {
-        // Enable LCD
-        if self.previous_control.read_lcd_enable() == 0 && self.control.read_lcd_enable() == 1 {
-
-            // Disable LCD
-        } else if self.previous_control.read_lcd_enable() == 1
-            && self.control.read_lcd_enable() == 0
-        {
+    pub fn update(&mut self, nb_cycles: u64) -> Vec<Interrupt> {
+        // Change from Enable/Disable LCD
+        if (self.previous_control.read_lcd_enable() ^ self.control.read_lcd_enable()) == 1 {
+            // According to Gameboy Programming Manual page 59:
+            // Writing a value of 0 to bit 7 of the LCDC register when its value is 1 stops the LCD controller, and
+            // the value of register LY immediately becomes 0
+            self.coordinate_y = 0;
+            // According to https://www.reddit.com/r/Gameboy/comments/a1c8h0/what_happens_when_a_gameboy_screen_is_disabled/
+            // Clock is reset to zero
+            self.cycles = 0;
+            self.next_cycles_event = MODE_2_SEARCH_OAM_CYCLES;
+            self.status.write_mode(MODE_2_SEARCH_OAM_VALUE)
         }
         self.previous_control = self.control;
 
-        todo!("Finish implementation")
+        // LCD not enabled
+        if self.control.read_lcd_enable() != 0 {
+            return Vec::default();
+        }
+
+        self.cycles += nb_cycles;
+        // TODO: Probably should need to have a loop handling all the events if nb_cycles is big
+        // Nothing to process
+        if self.cycles < self.next_cycles_event {
+            return Vec::default();
+        }
+        self.cycles -= self.next_cycles_event;
+
+        // https://gbdev.io/pandocs/STAT.html
+        //        Mode 2  2_____2_____2_____2_____2_____2___________________2____
+        //        Mode 3  _33____33____33____33____33____33__________________3___
+        //        Mode 0  ___000___000___000___000___000___000________________000
+        //        Mode 1  ____________________________________11111111111111_____
+        let previous_y = self.coordinate_y;
+        let previous_mode = self.status.read_mode();
+        match previous_mode {
+            MODE_2_SEARCH_OAM_VALUE => self.update_mode(MODE_3_TRANSFER),
+            MODE_3_TRANSFER_VALUE => self.update_mode(MODE_0_HBLANK),
+            MODE_0_HBLANK_VALUE => {
+                self.coordinate_y += 1;
+                if self.coordinate_y <= MAX_MOD_0_2_3_Y {
+                    self.update_mode(MODE_2_SEARCH_OAM);
+                } else {
+                    self.update_mode(MODE_1_VBLANK);
+                }
+            }
+            MODE_1_VBLANK_VALUE => {
+                self.coordinate_y += 1;
+                if self.coordinate_y <= MAX_MOD_1_Y {
+                    self.update_mode(MODE_1_VBLANK);
+                } else {
+                    self.coordinate_y = 0;
+                    self.update_mode(MODE_2_SEARCH_OAM);
+                }
+            }
+            _ => unreachable!("There are only 4 video modes"),
+        }
+
+        self.status
+            .write_lyc_ly_flag((self.coordinate_y == self.compare_y) as u8);
+
+        let mut interrupts = Vec::new();
+        if self.is_stat_interrupt_triggered(previous_y, previous_mode) {
+            interrupts.push(Interrupt::LCDStat);
+        }
+        if (previous_mode != self.status.read_mode()) && (self.status.read_mode() == MODE_1_VBLANK_VALUE) {
+            interrupts.push(Interrupt::VBlank);
+        }
+
+        interrupts
     }
 
     pub fn write_vram(&mut self, address: u16, value: u8) {
@@ -157,5 +263,27 @@ impl VideoController {
     pub fn read_cgb_lcd_color_palette(&self, _address: u16) -> u8 {
         // TODO: implement CGB mode https://gbdev.io/pandocs/Palettes.html#lcd-color-palettes-cgb-only
         0
+    }
+
+    fn update_mode(&mut self, mode: VideoMode) {
+        self.status.write_mode(mode.value);
+        self.next_cycles_event = mode.nb_cycles;
+    }
+
+    fn is_stat_interrupt_triggered(&self, previous_y: u8, previous_mode: u8) -> bool {
+        // https://gbdev.io/pandocs/Interrupt_Sources.html#int-48---stat-interrupt
+        if (previous_y != self.coordinate_y) && (self.status.read_lyc_ly_flag() == 1) {
+            return true;
+        }
+        let current_mode = self.status.read_mode();
+        if previous_mode != current_mode {
+            return match current_mode {
+                MODE_0_HBLANK_VALUE => self.status.read_mode0_interrupt_source() == 1,
+                MODE_1_VBLANK_VALUE => self.status.read_mode1_interrupt_source() == 1,
+                MODE_2_SEARCH_OAM_VALUE => self.status.read_mode2_interrupt_source() == 1,
+                _ => false,
+            };
+        }
+        false
     }
 }
