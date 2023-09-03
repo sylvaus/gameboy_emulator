@@ -1,6 +1,8 @@
 GameBoy Emulator
 ================
 [![Build and Test Multi OS](https://github.com/sylvaus/gameboy_emulator/actions/workflows/build_and_test_multi_os.yml/badge.svg)](https://github.com/sylvaus/gameboy_emulator/actions/workflows/build_and_test_multi_os.yml)
+[![Rust](https://github.com/sylvaus/gameboy_emulator/actions/workflows/coverage.yml/badge.svg)](https://github.com/sylvaus/gameboy_emulator/actions/workflows/coverage.yml)
+[![codecov](https://codecov.io/gh/sylvaus/gameboy_emulator/graph/badge.svg?token=ytstiuuAmR)](https://codecov.io/gh/sylvaus/gameboy_emulator)
 
 Goal
 ----
