@@ -1,6 +1,8 @@
 use crate::instruction::Instruction;
 use std::fmt::Display;
 
+pub const NB_CYCLE_TYPE: Type = Type::Uint64;
+
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Type {
@@ -387,7 +389,7 @@ impl Language {
     }
 
     pub fn return_duration(&self, value: i64) -> Code {
-        self.return_int(value, Type::Uint16, IntFormat::Decimal)
+        self.return_int(value, NB_CYCLE_TYPE, IntFormat::Decimal)
     }
 
     pub fn return_int(&self, value: i64, type_: Type, format: IntFormat) -> Code {

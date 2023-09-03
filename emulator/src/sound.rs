@@ -1,7 +1,6 @@
 pub const AUDIO_WAVE_START_ADDRESS: u16 = 0xFF10;
 pub const AUDIO_WAVE_END_ADDRESS: u16 = 0xFF3F;
 
-
 pub struct SoundController {}
 
 impl SoundController {

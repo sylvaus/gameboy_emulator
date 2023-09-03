@@ -206,7 +206,7 @@ pub enum ImmediateArgumentType {
     Unsigned16Bits,
 }
 
-type InstructionFn = fn(&mut Registers, &mut dyn Memory, &Argument) -> u16;
+type InstructionFn = fn(&mut Registers, &mut dyn Memory, &Argument) -> u64;
 
 ";
 

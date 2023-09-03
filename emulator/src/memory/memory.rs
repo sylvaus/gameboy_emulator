@@ -12,7 +12,11 @@ use crate::memory::Memory;
 use crate::serial::{SerialTransfer, SERIAL_TRANSFER_END_ADDRESS, SERIAL_TRANSFER_START_ADDRESS};
 use crate::sound::SoundController;
 use crate::timer::{Timer, TIMER_END_ADDRESS, TIMER_START_ADDRESS};
-use crate::video::controller::{VideoController, BG_OBJ_PALETTES_START_ADDRESS, BG_OBJ_PALETTES__END_ADDRESS, IO_LCD_END_ADDRESS, IO_LCD_START_ADDRESS, OAM_DMA_ADDRESS, OAM_END_ADDRESS, OAM_START_ADDRESS, VRAM_BANK_SELECT, VRAM_END_ADDRESS, VRAM_START_ADDRESS, OAM_SIZE};
+use crate::video::controller::{
+    VideoController, BG_OBJ_PALETTES_START_ADDRESS, BG_OBJ_PALETTES__END_ADDRESS,
+    IO_LCD_END_ADDRESS, IO_LCD_START_ADDRESS, OAM_DMA_ADDRESS, OAM_END_ADDRESS, OAM_SIZE,
+    OAM_START_ADDRESS, VRAM_BANK_SELECT, VRAM_END_ADDRESS, VRAM_START_ADDRESS,
+};
 use std::rc::Rc;
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
@@ -122,13 +126,16 @@ impl Memory for GBMemory {
     }
 
     fn write(&mut self, address: u16, value: u8) {
-
         match address {
             ROM_START_ADDRESS..=ROM_END_ADDRESS => self.mbc.write_rom(address, value),
             VRAM_START_ADDRESS..=VRAM_END_ADDRESS => self.video.write_vram(address, value),
             EXT_RAM_START_ADDRESS..=EXT_RAM_END_ADDRESS => self.mbc.write_ext_ram(address, value),
-            WORK_RAM_START_ADDRESS..=WORK_RAM_END_ADDRESS => self.ram.write_work_ram(address, value),
-            ECHO_RAM_START_ADDRESS..=ECHO_RAM_END_ADDRESS => self.ram.write_echo_ram(address, value),
+            WORK_RAM_START_ADDRESS..=WORK_RAM_END_ADDRESS => {
+                self.ram.write_work_ram(address, value)
+            }
+            ECHO_RAM_START_ADDRESS..=ECHO_RAM_END_ADDRESS => {
+                self.ram.write_echo_ram(address, value)
+            }
             OAM_START_ADDRESS..=OAM_END_ADDRESS => self.video.write_oam(address, value),
             NOT_USABLE_START_ADDRESS..=NOT_USABLE_END_ADDRESS => {
                 panic!("Trying to write to unusable address {:?}", address)
@@ -148,8 +155,10 @@ impl Memory for GBMemory {
                 self.video.write_cgb_lcd_color_palette(address, value)
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.write_selected_work_ram_bank(value),
-            HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => self.ram.write_high_ram(address, value),
-            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable_register =value,
+            HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => {
+                self.ram.write_high_ram(address, value)
+            }
+            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable_register = value,
 
             address => panic!("Trying to write unknown address {:?}", address),
         }

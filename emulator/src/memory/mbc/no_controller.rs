@@ -1,4 +1,4 @@
-use crate::memory::mbc::interface::{EXT_RAM_START_ADDRESS, MemoryBankController};
+use crate::memory::mbc::interface::{MemoryBankController, EXT_RAM_START_ADDRESS};
 use std::fs::File;
 use std::io::{BufReader, Read, Seek};
 

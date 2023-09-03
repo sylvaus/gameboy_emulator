@@ -3,12 +3,12 @@ use clap::Parser;
 
 mod cartridge;
 mod generated;
-mod memory;
-mod timer;
-mod video;
 mod joypad;
+mod memory;
 mod serial;
 mod sound;
+mod timer;
+mod video;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

@@ -1,5 +1,5 @@
 use crate::instruction::{Argument, Instruction};
-use crate::interface::{Code, Expression, Function, Language, Parameter, Type};
+use crate::interface::{Code, Expression, Function, Language, Parameter, Type, NB_CYCLE_TYPE};
 
 #[derive(Debug, Clone)]
 pub struct UsedFnParams {
@@ -106,7 +106,7 @@ pub fn create_function_custom(
 
     language
         .statements
-        .function(&name, &parameters, &code, &complete_doc, Type::Uint16)
+        .function(&name, &parameters, &code, &complete_doc, NB_CYCLE_TYPE)
 }
 
 pub fn increment_pc(increment: i64, language: &Language) -> Code {
@@ -119,7 +119,7 @@ pub fn increment_pc(increment: i64, language: &Language) -> Code {
 }
 
 pub fn get_duration(instruction: &Instruction) -> Expression {
-    Expression::from(&instruction.duration, Type::Uint16)
+    Expression::from(&instruction.duration, NB_CYCLE_TYPE)
 }
 
 pub fn get_used_params(instruction: &Instruction) -> UsedFnParams {

@@ -9,7 +9,7 @@ pub const OAM_START_ADDRESS: u16 = 0xFE00;
 pub const OAM_END_ADDRESS: u16 = 0xFE9F;
 
 /// Information from:  https://gbdev.io/pandocs/Memory_Map.html#io-ranges
-pub const IO_LCD_START_ADDRESS : u16 = 0xFF40;
+pub const IO_LCD_START_ADDRESS: u16 = 0xFF40;
 /// Information from: https://gbdev.io/pandocs/LCDC.html
 pub const LCD_CONTROL_ADDRESS: u16 = 0xFF40;
 /// Information from: https://gbdev.io/pandocs/STAT.html

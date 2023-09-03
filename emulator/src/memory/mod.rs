@@ -1,8 +1,8 @@
 pub(crate) mod argument;
 pub(crate) mod mbc;
+mod memory;
 pub(crate) mod ram;
 pub(crate) mod registers;
-mod memory;
 
 pub trait Memory {
     fn read(&self, address: u16) -> u8;
