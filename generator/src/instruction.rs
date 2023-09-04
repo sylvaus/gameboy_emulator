@@ -198,14 +198,14 @@ impl Argument {
     }
 
     pub fn is_immediate(&self) -> bool {
-        match self.type_field {
+        matches!(
+            self.type_field,
             ArgumentType::Immediate8Bits
-            | ArgumentType::Immediate16Bits
-            | ArgumentType::Unsigned8Bit
-            | ArgumentType::Address16Bit
-            | ArgumentType::PCIncrement8Bit => true,
-            _ => false,
-        }
+                | ArgumentType::Immediate16Bits
+                | ArgumentType::Unsigned8Bit
+                | ArgumentType::Address16Bit
+                | ArgumentType::PCIncrement8Bit
+        )
     }
 
     pub fn new_register(name: &str) -> Self {

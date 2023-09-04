@@ -1,7 +1,5 @@
 use proc_macro::TokenStream;
-use proc_macro2;
 use quote::{quote, ToTokens};
-use syn;
 
 #[proc_macro_derive(AddEnumName)]
 pub fn add_enum_names(input: TokenStream) -> TokenStream {
@@ -32,11 +30,8 @@ pub fn bit_accessor(input: TokenStream) -> TokenStream {
 
     if let syn::Data::Struct(data_struct) = &ast.data {
         let struct_name = &ast.ident;
-        let accessors: Vec<proc_macro2::TokenStream> = data_struct
-            .fields
-            .iter()
-            .flat_map(|field| get_bit_infos(field))
-            .collect();
+        let accessors: Vec<proc_macro2::TokenStream> =
+            data_struct.fields.iter().flat_map(get_bit_infos).collect();
 
         let result = quote! {
             impl #struct_name {

@@ -1,6 +1,5 @@
 use crate::interrupts::Interrupt;
 use macros::BitAccessor;
-use std::ops::RemAssign;
 
 // Information from: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
 pub const TIMER_START_ADDRESS: u16 = 0xFF04;
@@ -112,7 +111,7 @@ mod tests {
     fn divider_wrap() {
         let mut timer = Timer::new();
 
-        timer.update(255*256 + 255);
+        timer.update(255 * 256 + 255);
         assert_eq!(timer.divide_register, 255);
 
         timer.update(1);

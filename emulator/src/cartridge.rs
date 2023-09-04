@@ -240,7 +240,7 @@ fn get_memory_controller(
     ram_info: &RAMSizeInfo,
 ) -> Result<Box<dyn MemoryBankController>, String> {
     match &info.bank_type {
-        MBCType::RomOnly => NoMemoryBankController::new(rom_reader, ram_info.num_banks),
+        MBCType::RomOnly => NoMemoryBankController::create(rom_reader, ram_info.num_banks),
         value => Err(format!("Unsupported bank type {:?}", value.get_name())),
     }
 }

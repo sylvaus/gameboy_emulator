@@ -1,6 +1,6 @@
 pub(crate) mod argument;
+pub(crate) mod gbmemory;
 pub(crate) mod mbc;
-mod memory;
 pub(crate) mod ram;
 pub(crate) mod registers;
 

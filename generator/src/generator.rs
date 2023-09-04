@@ -15,8 +15,7 @@ use crate::common::operation::{
     create_op_with_flag_code, create_op_with_flag_code_3_custom_values,
 };
 use crate::common::register::{
-    decrement_register, decrement_register_int, get_sub_registers_from_name, increment_register,
-    increment_register_int,
+    decrement_register_int, get_sub_registers_from_name, increment_register_int,
 };
 use crate::instruction;
 use crate::instruction::{Argument, FlagAction, Instruction, InstructionType};
@@ -44,7 +43,7 @@ fn create_unknown(instruction: &Instruction, language: &Language) -> Function {
 }
 
 fn create_ld(instruction: &Instruction, language: &Language) -> Function {
-    let get_code = create_get_code(language, &instruction.second_argument.as_ref().unwrap());
+    let get_code = create_get_code(language, instruction.second_argument.as_ref().unwrap());
 
     let code = create_set_code(
         language,
@@ -52,29 +51,29 @@ fn create_ld(instruction: &Instruction, language: &Language) -> Function {
         &get_code,
     );
 
-    create_function(&instruction, &language, get_used_params(instruction), code)
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 fn create_ldh_special(instruction: &Instruction, language: &Language) -> Function {
     let offset = language.hex_literal(0xFF00, Type::Uint16);
     let get_code = &create_get_code_with_offset(
         language,
-        &instruction.second_argument.as_ref().unwrap(),
+        instruction.second_argument.as_ref().unwrap(),
         Some(&offset),
     );
 
     let code = create_set_code_with_offset(
         language,
         instruction.first_argument.as_ref().unwrap(),
-        &get_code,
+        get_code,
         Some(&offset),
     );
 
-    create_function(&instruction, &language, get_used_params(instruction), code)
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 fn create_ldid(instruction: &Instruction, language: &Language) -> Function {
-    let get_code = create_get_code(language, &instruction.second_argument.as_ref().unwrap());
+    let get_code = create_get_code(language, instruction.second_argument.as_ref().unwrap());
 
     let mut code = create_set_code(
         language,
@@ -90,7 +89,7 @@ fn create_ldid(instruction: &Instruction, language: &Language) -> Function {
         code = code.append(hl.set(&language.operations.sub(&hl_one)));
     }
 
-    create_function(&instruction, &language, get_used_params(instruction), code)
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 fn create_ldhl(instruction: &Instruction, language: &Language) -> Function {
@@ -275,9 +274,9 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
     let increment = instruction
         .second_argument
         .as_ref()
-        .unwrap_or(&instruction.first_argument.as_ref().unwrap());
+        .unwrap_or(instruction.first_argument.as_ref().unwrap());
     let increment = language.operations.cast(
-        &create_get_code_no_address(&language, &increment),
+        &create_get_code_no_address(language, increment),
         Type::Int32,
     );
     let instruction_length = language.operations.cast(
@@ -287,13 +286,13 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
         Type::Int32,
     );
     let no_jump_pc = language.statements.variable(
-        &"no_jump_pc",
+        "no_jump_pc",
         &language
             .operations
             .add(&[program_counter_value.clone(), instruction_length.clone()]),
     );
     let jump_pc = language.statements.variable(
-        &"no_jump_pc",
+        "no_jump_pc",
         &language
             .operations
             .add(&[program_counter_value, instruction_length, increment]),
@@ -317,7 +316,7 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
             &no_jump,
         )
     };
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         USE_REGISTER_AND_ARGUMENT,
@@ -327,11 +326,11 @@ fn create_jr(instruction: &Instruction, language: &Language) -> Function {
             pc_increment: None,
             return_value: None,
         },
-    );
+    )
 }
 
 fn create_daa(instruction: &Instruction, language: &Language) -> Function {
-    return create_function(
+    create_function(
         instruction,
         language,
         ONLY_USE_REGISTER,
@@ -340,7 +339,7 @@ fn create_daa(instruction: &Instruction, language: &Language) -> Function {
             &create_daa_sub(instruction, language),
             &create_daa_add(instruction, language),
         ),
-    );
+    )
 }
 
 fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
@@ -438,16 +437,16 @@ fn create_cpl(instruction: &Instruction, language: &Language) -> Function {
         .set(&language.operations.bitwise_not(&a.get()))
         .append(create_set_flags(instruction, language, &[]));
 
-    return create_function(instruction, language, ONLY_USE_REGISTER, code);
+    create_function(instruction, language, ONLY_USE_REGISTER, code)
 }
 
 fn create_scf(instruction: &Instruction, language: &Language) -> Function {
-    return create_function(
+    create_function(
         instruction,
         language,
         ONLY_USE_REGISTER,
         create_set_flags(instruction, language, &[]),
-    );
+    )
 }
 
 fn create_ccf(instruction: &Instruction, language: &Language) -> Function {
@@ -461,16 +460,16 @@ fn create_ccf(instruction: &Instruction, language: &Language) -> Function {
         .statements
         .variable("carry_flag", &create_carry_flag_value(language, carry));
 
-    return create_function(
+    create_function(
         instruction,
         language,
         ONLY_USE_REGISTER,
         create_set_flags(instruction, language, &[carry.name]).prepend(carry.code),
-    );
+    )
 }
 
 fn create_halt(instruction: &Instruction, language: &Language) -> Function {
-    return create_function(
+    create_function(
         instruction,
         language,
         ONLY_USE_REGISTER,
@@ -478,7 +477,7 @@ fn create_halt(instruction: &Instruction, language: &Language) -> Function {
             .registers
             .halted
             .set(&language.statements.bool_literal(true)),
-    );
+    )
 }
 
 fn create_add_sub_with_carry(instruction: &Instruction, language: &Language) -> Function {
@@ -502,7 +501,7 @@ fn create_add_sub_with_carry(instruction: &Instruction, language: &Language) -> 
     )
     .prepend(operation.code);
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 fn create_bitwise_operation(instruction: &Instruction, language: &Language) -> Function {
@@ -524,12 +523,12 @@ fn create_bitwise_operation(instruction: &Instruction, language: &Language) -> F
     let zero_flag =
         create_zero_flag_value(language, &language.operations.cast(&zero_flag, Type::Uint8));
 
-    return create_function(
+    create_function(
         instruction,
         language,
         get_used_params(instruction),
         operation.append(create_set_flags(instruction, language, &[zero_flag])),
-    );
+    )
 }
 
 pub fn create_comparison(instruction: &Instruction, language: &Language) -> Function {
@@ -543,12 +542,12 @@ pub fn create_comparison(instruction: &Instruction, language: &Language) -> Func
         None,
     );
 
-    return create_function(
+    create_function(
         instruction,
         language,
         get_used_params(instruction),
         operation.code,
-    );
+    )
 }
 
 pub fn create_return(instruction: &Instruction, language: &Language) -> Function {
@@ -592,7 +591,7 @@ pub fn create_return(instruction: &Instruction, language: &Language) -> Function
         code
     };
 
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         USE_REGISTER_AND_MEMORY,
@@ -602,7 +601,7 @@ pub fn create_return(instruction: &Instruction, language: &Language) -> Function
             pc_increment: None,
             return_value: None,
         },
-    );
+    )
 }
 
 pub fn create_pop(instruction: &Instruction, language: &Language) -> Function {
@@ -625,7 +624,7 @@ pub fn create_pop(instruction: &Instruction, language: &Language) -> Function {
             IntFormat::Decimal,
         ));
 
-    return create_function(instruction, language, USE_REGISTER_AND_MEMORY, code);
+    create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
 }
 
 pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
@@ -637,7 +636,7 @@ pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
         .unwrap_or(instruction.first_argument.as_ref().unwrap());
 
     let code = program_counter
-        .set(&create_get_code(language, &pc_argument))
+        .set(&create_get_code(language, pc_argument))
         .append(language.return_duration(instruction.duration));
 
     let code = if instruction.second_argument.is_some() {
@@ -653,7 +652,7 @@ pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
         code
     };
 
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         get_used_params(instruction),
@@ -663,7 +662,7 @@ pub fn create_jump(instruction: &Instruction, language: &Language) -> Function {
             pc_increment: None,
             return_value: None,
         },
-    );
+    )
 }
 
 pub fn create_call(instruction: &Instruction, language: &Language) -> Function {
@@ -710,7 +709,7 @@ pub fn create_call(instruction: &Instruction, language: &Language) -> Function {
         code
     };
 
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         USE_ALL_PARAMETERS,
@@ -720,7 +719,7 @@ pub fn create_call(instruction: &Instruction, language: &Language) -> Function {
             pc_increment: None,
             return_value: None,
         },
-    );
+    )
 }
 
 pub fn create_push(instruction: &Instruction, language: &Language) -> Function {
@@ -749,7 +748,7 @@ pub fn create_push(instruction: &Instruction, language: &Language) -> Function {
             IntFormat::Decimal,
         ));
 
-    return create_function(instruction, language, USE_REGISTER_AND_MEMORY, code);
+    create_function(instruction, language, USE_REGISTER_AND_MEMORY, code)
 }
 
 pub fn create_rst(instruction: &Instruction, language: &Language) -> Function {
@@ -787,7 +786,7 @@ pub fn create_rst(instruction: &Instruction, language: &Language) -> Function {
         .append(program_counter.set(&update_pc))
         .append(language.return_duration(instruction.duration));
 
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         USE_REGISTER_AND_MEMORY,
@@ -797,11 +796,11 @@ pub fn create_rst(instruction: &Instruction, language: &Language) -> Function {
             pc_increment: None,
             return_value: None,
         },
-    );
+    )
 }
 
 pub fn create_prefix(instruction: &Instruction, language: &Language) -> Function {
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         NO_USED_PARAMS,
@@ -813,12 +812,12 @@ pub fn create_prefix(instruction: &Instruction, language: &Language) -> Function
             pc_increment: None,
             return_value: None,
         },
-    );
+    )
 }
 
 pub fn create_ime_operation(instruction: &Instruction, language: &Language) -> Function {
     let value = instruction.type_field == InstructionType::EI;
-    return create_function(
+    create_function(
         instruction,
         language,
         ONLY_USE_REGISTER,
@@ -826,7 +825,7 @@ pub fn create_ime_operation(instruction: &Instruction, language: &Language) -> F
             .registers
             .ime_flag
             .set(&language.statements.bool_literal(value)),
-    );
+    )
 }
 
 pub fn create_shift(instruction: &Instruction, language: &Language) -> Function {
@@ -873,7 +872,7 @@ pub fn create_shift(instruction: &Instruction, language: &Language) -> Function 
         .append(create_set_flags(instruction, language, &flags))
         .append(create_set_code(language, argument, &result.name));
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 pub fn create_swap(instruction: &Instruction, language: &Language) -> Function {
@@ -901,7 +900,7 @@ pub fn create_swap(instruction: &Instruction, language: &Language) -> Function {
         .append(create_set_flags(instruction, language, &[zero_flag]))
         .append(create_set_code(language, argument, &result.name));
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 pub fn create_bit(instruction: &Instruction, language: &Language) -> Function {
@@ -926,7 +925,7 @@ pub fn create_bit(instruction: &Instruction, language: &Language) -> Function {
             &[create_zero_flag_value(language, &zero_flag.name)],
         ));
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 pub fn create_res(instruction: &Instruction, language: &Language) -> Function {
@@ -941,7 +940,7 @@ pub fn create_res(instruction: &Instruction, language: &Language) -> Function {
     );
     let code = create_set_code(language, argument, &value);
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 pub fn create_set(instruction: &Instruction, language: &Language) -> Function {
@@ -955,7 +954,7 @@ pub fn create_set(instruction: &Instruction, language: &Language) -> Function {
     );
     let code = create_set_code(language, argument, &value);
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 pub fn create_stop(instruction: &Instruction, language: &Language) -> Function {
@@ -964,7 +963,7 @@ pub fn create_stop(instruction: &Instruction, language: &Language) -> Function {
         .stopped
         .set(&language.statements.bool_literal(true));
 
-    return create_function(instruction, language, get_used_params(instruction), code);
+    create_function(instruction, language, get_used_params(instruction), code)
 }
 
 pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Function {
@@ -999,7 +998,7 @@ pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Func
         .append(update_stack)
         .append(set_ime);
 
-    return create_function_custom(
+    create_function_custom(
         instruction,
         language,
         USE_REGISTER_AND_MEMORY,
@@ -1007,9 +1006,9 @@ pub fn create_return_ime(instruction: &Instruction, language: &Language) -> Func
         FunctionDetails {
             doc: None,
             pc_increment: None,
-            return_value: Some(get_duration(&instruction)),
+            return_value: Some(get_duration(instruction)),
         },
-    );
+    )
 }
 
 pub fn create_instruction_function(instruction: &Instruction, language: &Language) -> Function {
@@ -1062,6 +1061,5 @@ pub fn create_instruction_function(instruction: &Instruction, language: &Languag
         InstructionType::SET => create_set(instruction, language),
         InstructionType::STOP => create_stop(instruction, language),
         InstructionType::RETI => create_return_ime(instruction, language),
-        _ => panic!("Unsupported instruction type {:?}", instruction.type_field),
     }
 }

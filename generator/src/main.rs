@@ -43,9 +43,9 @@ fn main() {
     });
 
     if let Some(header) = language.statements.header() {
-        file.write(header.to_string().as_bytes()).unwrap();
+        file.write_all(header.to_string().as_bytes()).unwrap();
     }
-    file.write(b"\n\n").unwrap();
+    file.write_all(b"\n\n").unwrap();
 
     let instruction_functions: Vec<(Instruction, Function)> = instructions
         .into_iter()
@@ -56,20 +56,20 @@ fn main() {
         .collect();
 
     for (_, function) in &instruction_functions {
-        file.write(function.definition.to_string().as_bytes())
+        file.write_all(function.definition.to_string().as_bytes())
             .unwrap();
-        file.write(b"\n").unwrap();
+        file.write_all(b"\n").unwrap();
     }
 
     let function_by_opcode = language
         .statements
         .get_function_by_opcode(&instruction_functions);
-    file.write(function_by_opcode.definition.to_string().as_bytes())
+    file.write_all(function_by_opcode.definition.to_string().as_bytes())
         .unwrap();
-    file.write(b"\n").unwrap();
+    file.write_all(b"\n").unwrap();
 
     if let Some(footer) = language.statements.footer() {
-        file.write(footer.to_string().as_bytes()).unwrap();
-        file.write(b"\n").unwrap();
+        file.write_all(footer.to_string().as_bytes()).unwrap();
+        file.write_all(b"\n").unwrap();
     }
 }

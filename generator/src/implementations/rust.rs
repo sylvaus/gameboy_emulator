@@ -370,17 +370,17 @@ impl Statements for StatementsImpl {
             .append_line(format!("{}}}", INDENT))
             .append_line(String::from("}"));
 
-        Function::new(String::from(name), signature, code)
+        Function::new(name, signature, code)
     }
 }
 
 fn make_function_match_case(instruction: &Instruction, function: &Function) -> String {
-    String::from(format!(
+    format!(
         "{} => ({}, {}),",
         instruction.value,
         function.name,
         get_immediate_argument(instruction)
-    ))
+    )
 }
 
 fn get_immediate_argument(instruction: &Instruction) -> &'static str {
@@ -458,7 +458,7 @@ fn generic_bool_operation(
 fn generic_operations(values: &[Expression], symbol: &str, name: &str) -> Expression {
     assert!(!values.is_empty(), "Values cannot be empty");
     let type_ = values[0].type_;
-    let all_same_type = values.into_iter().all(|expr| expr.type_ == type_);
+    let all_same_type = values.iter().all(|expr| expr.type_ == type_);
     assert!(
         all_same_type,
         "Cannot {:?} values of different types, values {:?}",
@@ -470,7 +470,7 @@ fn generic_operations(values: &[Expression], symbol: &str, name: &str) -> Expres
     }
 
     let text = values
-        .into_iter()
+        .iter()
         .map(|expr| expr.op_safe_text())
         .collect::<Vec<String>>()
         .join(&format!(" {} ", symbol));
@@ -527,7 +527,7 @@ impl Operations for OperationsImpl {
         } else {
             Expression::new(
                 format!("{} as {}", value.op_safe_text(), get_type_str(type_)),
-                type_.clone(),
+                type_,
             )
         }
     }
@@ -535,14 +535,14 @@ impl Operations for OperationsImpl {
     fn shift_left(&self, value: &Expression, shift: &Expression) -> Expression {
         Expression::new(
             format!("{} << {}", value.op_safe_text(), shift.op_safe_text()),
-            value.type_.clone(),
+            value.type_,
         )
     }
 
     fn shift_right(&self, value: &Expression, shift: &Expression) -> Expression {
         Expression::new(
             format!("{} >> {}", value.op_safe_text(), shift.op_safe_text()),
-            value.type_.clone(),
+            value.type_,
         )
     }
 

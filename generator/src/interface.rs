@@ -47,7 +47,7 @@ impl Expression {
     }
 
     pub fn op_safe_text(&self) -> String {
-        if self.text.contains("\n") || self.text.contains(" ") {
+        if self.text.contains('\n') || self.text.contains(' ') {
             format!("({})", self.text)
         } else {
             self.text.clone()
@@ -66,6 +66,7 @@ impl ToString for Code {
     }
 }
 
+#[allow(dead_code)]
 impl Code {
     pub fn create_empty() -> Self {
         Code { lines: vec![] }
@@ -272,6 +273,7 @@ pub struct Language {
     pub operations: Box<dyn Operations>,
 }
 
+#[allow(dead_code)]
 impl Language {
     pub fn equals_int(&self, lhs: &Expression, rhs: i64, int_format: IntFormat) -> Expression {
         self.operations.equals(
@@ -433,7 +435,7 @@ impl Language {
     }
 
     pub fn get_from_address(&self, address: &Expression) -> Expression {
-        self.memory.get(&address)
+        self.memory.get(address)
     }
 
     pub fn increment_pc_with_int(&self, increment: i64) -> Code {

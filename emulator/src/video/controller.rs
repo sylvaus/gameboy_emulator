@@ -190,7 +190,9 @@ impl VideoController {
         if self.is_stat_interrupt_triggered(previous_y, previous_mode) {
             interrupts.push(Interrupt::LCDStat);
         }
-        if (previous_mode != self.status.read_mode()) && (self.status.read_mode() == MODE_1_VBLANK_VALUE) {
+        if (previous_mode != self.status.read_mode())
+            && (self.status.read_mode() == MODE_1_VBLANK_VALUE)
+        {
             interrupts.push(Interrupt::VBlank);
         }
 

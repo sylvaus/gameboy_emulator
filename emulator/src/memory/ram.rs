@@ -60,6 +60,6 @@ impl RamController {
     pub fn read_selected_work_ram_bank(&self) -> u8 {
         // see: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
         // TODO: Implement CGB variant where this should return the selected ram bank ;
-        return 0;
+        0
     }
 }

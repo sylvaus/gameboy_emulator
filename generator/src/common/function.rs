@@ -60,7 +60,7 @@ pub fn create_function(
         FunctionDetails {
             doc: None,
             pc_increment: Some(instruction.length),
-            return_value: Some(get_duration(&instruction)),
+            return_value: Some(get_duration(instruction)),
         },
     )
 }
