@@ -1,4 +1,5 @@
 use crate::interrupts::Interrupt;
+use crate::video::controller;
 use crate::video::memory::{LcdControl, LcdStatus};
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
@@ -103,7 +104,7 @@ pub struct VideoController {
 
 impl VideoController {
     pub fn new() -> Self {
-        Self {
+        let mut controller = Self {
             vram: vec![0u8; VRAM_SIZE],
             oam: vec![0u8; OAM_SIZE],
 
@@ -122,7 +123,9 @@ impl VideoController {
             window_position_x: Default::default(),
             cycles: Default::default(),
             next_cycles_event: Default::default(),
-        }
+        };
+        controller.status.write_mode(MODE_2_SEARCH_OAM_VALUE);
+        controller
     }
 
     pub fn update(&mut self, nb_cycles: u64) -> Vec<Interrupt> {
@@ -141,7 +144,7 @@ impl VideoController {
         self.previous_control = self.control;
 
         // LCD not enabled
-        if self.control.read_lcd_enable() != 0 {
+        if self.control.read_lcd_enable() == 0 {
             return Vec::default();
         }
 
@@ -274,7 +277,10 @@ impl VideoController {
 
     fn is_stat_interrupt_triggered(&self, previous_y: u8, previous_mode: u8) -> bool {
         // https://gbdev.io/pandocs/Interrupt_Sources.html#int-48---stat-interrupt
-        if (previous_y != self.coordinate_y) && (self.status.read_lyc_ly_flag() == 1) {
+        if (previous_y != self.coordinate_y)
+            && (self.status.read_lyc_ly_flag() == 1)
+            && (self.status.read_enable_lyc_stat_interrupt() == 1)
+        {
             return true;
         }
         let current_mode = self.status.read_mode();
@@ -287,5 +293,191 @@ impl VideoController {
             };
         }
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn update_cycles_through_modes() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+
+        // Mode 2  2_____2_____2_____2_____2_____2___________________2____
+        // Mode 3  _33____33____33____33____33____33__________________3___
+        // Mode 0  ___000___000___000___000___000___000________________000
+        // Mode 1  ____________________________________11111111111111_____
+        for i in 0..=143 {
+            assert_eq!(controller.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
+            assert_eq!(controller.coordinate_y, i);
+            controller.update(MODE_2_SEARCH_OAM_CYCLES);
+            assert_eq!(controller.status.read_mode(), MODE_3_TRANSFER_VALUE);
+            assert_eq!(controller.coordinate_y, i);
+            controller.update(MODE_3_TRANSFER_CYCLES);
+            assert_eq!(controller.status.read_mode(), MODE_0_HBLANK_VALUE);
+            assert_eq!(controller.coordinate_y, i);
+            controller.update(MODE_0_HBLANK_CYCLES);
+        }
+        for i in 144..=153 {
+            assert_eq!(controller.status.read_mode(), MODE_1_VBLANK_VALUE);
+            assert_eq!(controller.coordinate_y, i);
+            controller.update(MODE_1_VBLANK_CYCLES);
+        }
+        assert_eq!(controller.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
+        assert_eq!(controller.coordinate_y, 0);
+    }
+
+    #[test]
+    fn vblank_interrupt_is_triggered() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+
+        for i in 0..143 {
+            assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
+            assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
+            assert_eq!(controller.update(MODE_0_HBLANK_CYCLES).len(), 0);
+        }
+
+        assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
+        assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
+        // interrupt is only triggered once.
+        let interrupt = controller.update(MODE_0_HBLANK_CYCLES);
+        assert_eq!(interrupt.len(), 1);
+        assert_eq!(interrupt[0], Interrupt::VBlank);
+        for i in 144..=153 {
+            assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
+        }
+    }
+
+    #[test]
+    fn mode_0_interrupt_is_triggered() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+        controller.status.write_mode0_interrupt_source(1);
+
+        for i in 0..=143 {
+            assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
+            let interrupt = controller.update(MODE_3_TRANSFER_CYCLES);
+            assert_eq!(interrupt.len(), 1);
+            assert_eq!(interrupt[0], Interrupt::LCDStat);
+            assert_eq!(
+                controller.update(MODE_0_HBLANK_CYCLES).len(),
+                /* vblank interrupt */ (i == 143) as usize
+            );
+        }
+
+        for i in 144..=153 {
+            assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
+        }
+    }
+
+    #[test]
+    fn mode_1_interrupt_is_triggered() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+        controller.status.write_mode1_interrupt_source(1);
+
+        for i in 0..=143 {
+            assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
+            assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
+            let interrupts = controller.update(MODE_0_HBLANK_CYCLES);
+            assert_eq!(
+                interrupts.len(),
+                /* stat + vblank interrupt */ (i == 143) as usize * 2
+            );
+            assert_eq!((i == 143), interrupts.contains(&Interrupt::VBlank));
+            assert_eq!((i == 143), interrupts.contains(&Interrupt::LCDStat));
+        }
+
+        for i in 144..=153 {
+            assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
+        }
+    }
+
+    #[test]
+    fn mode_2_interrupt_is_triggered() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+        controller.status.write_mode2_interrupt_source(1);
+
+        for i in 0..=143 {
+            assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
+            assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
+            let interrupts = controller.update(MODE_0_HBLANK_CYCLES);
+            assert_eq!(interrupts.len(), /* stat or vblank interrupt */ 1);
+            assert_eq!((i == 143), interrupts.contains(&Interrupt::VBlank));
+            assert_eq!((i != 143), interrupts.contains(&Interrupt::LCDStat));
+        }
+
+        for i in 144..=152 {
+            assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
+        }
+        // interrupt is only triggered once.
+        let interrupt = controller.update(MODE_1_VBLANK_CYCLES);
+        assert_eq!(interrupt.len(), 1);
+        assert_eq!(interrupt[0], Interrupt::LCDStat);
+    }
+
+    #[test]
+    fn lcy_lc_interrupt_is_triggered() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+        controller.status.write_enable_lyc_stat_interrupt(1);
+        controller.compare_y = 125;
+
+        for i in 0..=143 {
+            assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
+            assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
+            let interrupts = controller.update(MODE_0_HBLANK_CYCLES);
+            assert_eq!(
+                interrupts.len(),
+                /* stat or vblank interrupt */ ((i == 143) || (i == 124)) as usize
+            );
+            assert_eq!((i == 143), interrupts.contains(&Interrupt::VBlank));
+            assert_eq!((i == 124), interrupts.contains(&Interrupt::LCDStat));
+        }
+
+        for i in 144..=153 {
+            assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
+        }
+    }
+
+    #[test]
+    fn nothing_should_happen_lc_is_disabled() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(0);
+
+        assert_eq!(controller.coordinate_y, 0);
+        controller.control.write_lcd_enable(0);
+        assert_eq!(controller.coordinate_y, 0);
+        controller.update(MODE_2_SEARCH_OAM_CYCLES);
+        assert_eq!(controller.coordinate_y, 0);
+        controller.update(MODE_3_TRANSFER_CYCLES);
+        assert_eq!(controller.coordinate_y, 0);
+        controller.update(MODE_0_HBLANK_CYCLES);
+        assert_eq!(controller.coordinate_y, 0);
+    }
+
+    #[test]
+    fn disabling_lcd_reset_coordinate_and_mode() {
+        let mut controller = VideoController::new();
+        controller.control.write_lcd_enable(1);
+
+        for i in 0..=3 {
+            controller.update(MODE_2_SEARCH_OAM_CYCLES);
+            controller.update(MODE_3_TRANSFER_CYCLES);
+            controller.update(MODE_0_HBLANK_CYCLES);
+        }
+        controller.update(MODE_2_SEARCH_OAM_CYCLES);
+        assert_eq!(controller.status.read_mode(), MODE_3_TRANSFER_VALUE);
+        assert_eq!(controller.coordinate_y, 4);
+
+        controller.control.write_lcd_enable(0);
+
+        controller.update(1);
+        assert_eq!(controller.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
+        assert_eq!(controller.coordinate_y, 0);
     }
 }
