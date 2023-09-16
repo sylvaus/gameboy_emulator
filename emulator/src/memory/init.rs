@@ -1,5 +1,5 @@
 use crate::cartridge::CGBFlag;
-use crate::memory::gbmemory::GBMemory;
+use crate::memory::gbmemory::{DISABLE_BOOT_ROM_ADDRESS, GBMemory};
 use crate::memory::registers::Registers;
 use crate::memory::Memory;
 
@@ -183,10 +183,12 @@ const CGB_INIT_MEMORY_VALUES: &[(u16, u8)] = &[
 pub fn init_memory(cgb_flag: CGBFlag, memory: &mut GBMemory) {
     let init_values = match cgb_flag {
         CGBFlag::NonCgbCompatible => DMG_INIT_MEMORY_VALUES,
-        CGBFlag::CgbCompatible | CGBFlag::CgbOnly => CGB_REGISTER_INIT_VALUES,
+        CGBFlag::CgbCompatible | CGBFlag::CgbOnly => CGB_INIT_MEMORY_VALUES,
     };
 
     for (address, value) in init_values.iter().cloned() {
         memory.write(address, value);
     }
+    /// Disable boot rom: https://gbdev.io/pandocs/Power_Up_Sequence.html?highlight=ff50#monochrome-models-dmg0-dmg-mgb
+    memory.write(DISABLE_BOOT_ROM_ADDRESS, 1);
 }

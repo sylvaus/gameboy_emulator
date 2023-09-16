@@ -1,3 +1,4 @@
+use crate::interrupts::{Interrupt, ALL_INTERRUPTS};
 use crate::joypad::{JoypadInput, JOYPAD_INPUT_ADDRESS};
 use crate::memory::mbc::interface::{
     MemoryBankController, EXT_RAM_END_ADDRESS, EXT_RAM_START_ADDRESS, ROM_END_ADDRESS,
@@ -21,12 +22,19 @@ use crate::video::controller::{
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const NOT_USABLE_START_ADDRESS: u16 = 0xFEA0;
 pub const NOT_USABLE_END_ADDRESS: u16 = 0xFEFF;
+
+/// Information from: https://gbdev.io/pandocs/Audio_Registers.html
+pub const SOUND_START_ADDRESS: u16 = 0xFF10;
+pub const SOUND_END_ADDRESS: u16 = 0xFF3F;
 pub const BEFORE_OAM_DMA_ADDRESS: u16 = OAM_DMA_ADDRESS - 1;
 pub const AFTER_OAM_DMA_ADDRESS: u16 = OAM_DMA_ADDRESS + 1;
 pub const DISABLE_BOOT_ROM_ADDRESS: u16 = 0xFF50;
 pub const VRAM_DMA_START_ADDRESS: u16 = 0xFF51;
 pub const VRAM_DMA_END_ADDRESS: u16 = 0xFF55;
-pub const INTERRUPT_ENABLE_REGISTER_ADDRESS: u16 = 0xFFFF;
+
+/// Information from: https://gbdev.io/pandocs/Interrupts.html#interrupts
+pub const INTERRUPT_FLAG_ADDRESS: u16 = 0xFF0F;
+pub const INTERRUPT_ENABLE_ADDRESS: u16 = 0xFFFF;
 
 pub struct GBMemory {
     mbc: Box<dyn MemoryBankController>,
@@ -37,8 +45,9 @@ pub struct GBMemory {
     sound: SoundController,
     timer: Timer,
 
-    oam_dma_high_bits: u8,
-    interrupt_enable: u8,
+    oam_dma_high_bits: u8, // https://gbdev.io/pandocs/OAM_DMA_Transfer.html?highlight=oam%20dma%20high#ff46--dma-oam-dma-source-address--start
+    interrupt_flag: u8,    // https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable
+    interrupt_enable: u8,  // https://gbdev.io/pandocs/Interrupts.html#ff0f--if-interrupt-flag
     boot_rom_disabled: u8,
 }
 
@@ -61,8 +70,32 @@ impl GBMemory {
             sound,
             timer,
             oam_dma_high_bits: 0,
+            interrupt_flag: 0,
             interrupt_enable: 0,
             boot_rom_disabled: 0,
+        }
+    }
+
+    /// Function to call before starting the emulator if data was written to the VideoController
+    ///
+    /// This function ensures that the change detection works as expected.
+    pub fn init(&mut self) {
+        self.video.init();
+    }
+
+    /// Update all memory controllers and update interrupt flags
+    ///
+    /// Memory controllers: video, timer
+    /// # Returns: number of cycles consumed by
+    pub fn update(&mut self, nb_cycles: u64) {
+        let mut interrupts = self.video.update(nb_cycles);
+        if let Some(interrupt) = self.timer.update(nb_cycles) {
+            interrupts.push(interrupt);
+        }
+
+        // Update interrupt flag
+        for interrupt in interrupts {
+            self.interrupt_flag = interrupt.set(self.interrupt_flag);
         }
     }
 
@@ -103,6 +136,8 @@ impl Memory for GBMemory {
                 self.serial.read(address)
             }
             TIMER_START_ADDRESS..=TIMER_END_ADDRESS => self.timer.read(address),
+            INTERRUPT_FLAG_ADDRESS => self.interrupt_flag,
+            SOUND_START_ADDRESS..=SOUND_END_ADDRESS => self.sound.read(address),
             IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.read_lcd(address),
             OAM_DMA_ADDRESS => self.oam_dma_high_bits,
             AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.read_lcd(address),
@@ -114,7 +149,7 @@ impl Memory for GBMemory {
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.read_selected_work_ram_bank(),
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => self.ram.read_high_ram(address),
-            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable,
+            INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable,
 
             address => panic!("Trying to read unknown address {:?}", address),
         }
@@ -144,6 +179,8 @@ impl Memory for GBMemory {
                 self.serial.write(address, value)
             }
             TIMER_START_ADDRESS..=TIMER_END_ADDRESS => self.timer.write(address, value),
+            INTERRUPT_FLAG_ADDRESS => self.interrupt_flag = value,
+            SOUND_START_ADDRESS..=SOUND_END_ADDRESS => self.sound.write(address, value),
             IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.write_lcd(address, value),
             OAM_DMA_ADDRESS => self.write_oam_dma(value),
             AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.write_lcd(address, value),
@@ -157,7 +194,7 @@ impl Memory for GBMemory {
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => {
                 self.ram.write_high_ram(address, value)
             }
-            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable = value,
+            INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable = value,
 
             address => panic!("Trying to write unknown address {:?}", address),
         }

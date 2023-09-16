@@ -87,6 +87,7 @@ pub struct VideoController {
     // This is necessary to handle enabling/disabling lcd.
     previous_control: LcdControl,
     status: LcdStatus,
+    previous_status: LcdStatus,
 
     scroll_y: u8,
     scroll_x: u8,
@@ -111,21 +112,30 @@ impl VideoController {
             control: Default::default(),
             previous_control: Default::default(),
             status: Default::default(),
-
-            scroll_y: Default::default(),
-            scroll_x: Default::default(),
-            coordinate_y: Default::default(),
-            compare_y: Default::default(),
-            bg_palette_data: Default::default(),
-            obj_palette_data_0: Default::default(),
-            obj_palette_data_1: Default::default(),
-            window_position_y: Default::default(),
-            window_position_x: Default::default(),
-            cycles: Default::default(),
-            next_cycles_event: Default::default(),
+            previous_status: Default::default(),
+            scroll_y: 0,
+            scroll_x: 0,
+            coordinate_y: 0,
+            compare_y: 0,
+            bg_palette_data: 0,
+            obj_palette_data_0: 0,
+            obj_palette_data_1: 0,
+            window_position_y: 0,
+            window_position_x: 0,
+            cycles: 0,
+            next_cycles_event: 0,
         };
         controller.status.write_mode(MODE_2_SEARCH_OAM_VALUE);
+        controller.previous_status = controller.status;
         controller
+    }
+
+    /// Function to call before starting the emulator if data was written to the VideoController
+    ///
+    /// This function ensures that the change detection works as expected.
+    pub fn init(&mut self) {
+        self.previous_control = self.control;
+        self.previous_status = self.status;
     }
 
     pub fn update(&mut self, nb_cycles: u64) -> Vec<Interrupt> {
@@ -142,6 +152,7 @@ impl VideoController {
             self.status.write_mode(MODE_2_SEARCH_OAM_VALUE)
         }
         self.previous_control = self.control;
+        self.previous_status = self.status;
 
         // LCD not enabled
         if self.control.read_lcd_enable() == 0 {

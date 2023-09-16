@@ -15,6 +15,14 @@ pub enum Interrupt {
     Joypad,
 }
 
+pub const ALL_INTERRUPTS: &[Interrupt] = &[
+    Interrupt::VBlank,
+    Interrupt::LCDStat,
+    Interrupt::Timer,
+    Interrupt::Serial,
+    Interrupt::Joypad,
+];
+
 impl Interrupt {
     pub fn get_address(&self) -> u16 {
         match self {
@@ -26,7 +34,7 @@ impl Interrupt {
         }
     }
 
-    pub fn is_enabled(&self, interrupt_enable: u8) -> bool {
+    pub fn is_set(&self, interrupt_enable: u8) -> bool {
         match self {
             Interrupt::VBlank => (VBLANK_ENABLE_FLAG & interrupt_enable) > 0,
             Interrupt::LCDStat => (LCD_STATS_ENABLE_FLAG & interrupt_enable) > 0,
@@ -36,13 +44,23 @@ impl Interrupt {
         }
     }
 
-    pub fn enable(&self, interrupt_enable: u8) -> u8 {
+    pub fn set(&self, interrupt_enable: u8) -> u8 {
         match self {
             Interrupt::VBlank => VBLANK_ENABLE_FLAG | interrupt_enable,
             Interrupt::LCDStat => LCD_STATS_ENABLE_FLAG | interrupt_enable,
             Interrupt::Timer => TIMER_ENABLE_FLAG | interrupt_enable,
             Interrupt::Serial => SERIAL_ENABLE_FLAG | interrupt_enable,
             Interrupt::Joypad => JOYPAD_ENABLE_FLAG | interrupt_enable,
+        }
+    }
+
+    pub fn unset(&self, interrupt_enable: u8) -> u8 {
+        match self {
+            Interrupt::VBlank => (!VBLANK_ENABLE_FLAG) & interrupt_enable,
+            Interrupt::LCDStat => (!LCD_STATS_ENABLE_FLAG) & interrupt_enable,
+            Interrupt::Timer => (!TIMER_ENABLE_FLAG) & interrupt_enable,
+            Interrupt::Serial => (!SERIAL_ENABLE_FLAG) & interrupt_enable,
+            Interrupt::Joypad => (!JOYPAD_ENABLE_FLAG) & interrupt_enable,
         }
     }
 }
