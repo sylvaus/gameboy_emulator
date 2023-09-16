@@ -38,7 +38,7 @@ pub struct GBMemory {
     timer: Timer,
 
     oam_dma_high_bits: u8,
-    interrupt_enable_register: u8,
+    interrupt_enable: u8,
     boot_rom_disabled: u8,
 }
 
@@ -61,7 +61,7 @@ impl GBMemory {
             sound,
             timer,
             oam_dma_high_bits: 0,
-            interrupt_enable_register: 0,
+            interrupt_enable: 0,
             boot_rom_disabled: 0,
         }
     }
@@ -114,7 +114,7 @@ impl Memory for GBMemory {
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.read_selected_work_ram_bank(),
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => self.ram.read_high_ram(address),
-            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable_register,
+            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable,
 
             address => panic!("Trying to read unknown address {:?}", address),
         }
@@ -157,7 +157,7 @@ impl Memory for GBMemory {
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => {
                 self.ram.write_high_ram(address, value)
             }
-            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable_register = value,
+            INTERRUPT_ENABLE_REGISTER_ADDRESS => self.interrupt_enable = value,
 
             address => panic!("Trying to write unknown address {:?}", address),
         }
