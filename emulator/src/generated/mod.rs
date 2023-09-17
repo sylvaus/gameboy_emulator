@@ -7,4 +7,4 @@
     clippy::self_assignment,
     dead_code
 )]
-mod instructions;
+pub(crate) mod instructions;

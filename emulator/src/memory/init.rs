@@ -1,5 +1,5 @@
 use crate::cartridge::CGBFlag;
-use crate::memory::gbmemory::{DISABLE_BOOT_ROM_ADDRESS, GBMemory};
+use crate::memory::gbmemory::{GBMemory, DISABLE_BOOT_ROM_ADDRESS};
 use crate::memory::registers::Registers;
 use crate::memory::Memory;
 

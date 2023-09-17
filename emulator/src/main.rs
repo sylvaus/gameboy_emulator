@@ -1,4 +1,5 @@
 use crate::cartridge::load_cartridge;
+use crate::emulator::Emulator;
 use clap::Parser;
 
 mod cartridge;
@@ -31,4 +32,7 @@ fn main() {
     });
 
     println!("Cartridge: {}", cartridge);
+
+    let mut emulator = Emulator::new(cartridge);
+    emulator.run();
 }

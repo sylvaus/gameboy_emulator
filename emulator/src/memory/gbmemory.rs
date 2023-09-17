@@ -1,5 +1,6 @@
 use crate::interrupts::{Interrupt, ALL_INTERRUPTS};
 use crate::joypad::{JoypadInput, JOYPAD_INPUT_ADDRESS};
+use crate::memory::cgb::{CGBRegisters, INFRARED_CONTROL_ADDRESS, KEY_1_ADDRESS};
 use crate::memory::mbc::interface::{
     MemoryBankController, EXT_RAM_END_ADDRESS, EXT_RAM_START_ADDRESS, ROM_END_ADDRESS,
     ROM_START_ADDRESS,
@@ -44,6 +45,7 @@ pub struct GBMemory {
     serial: SerialTransfer,
     sound: SoundController,
     timer: Timer,
+    cgb_registers: CGBRegisters,
 
     oam_dma_high_bits: u8, // https://gbdev.io/pandocs/OAM_DMA_Transfer.html?highlight=oam%20dma%20high#ff46--dma-oam-dma-source-address--start
     interrupt_flag: u8,    // https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable
@@ -60,6 +62,7 @@ impl GBMemory {
         serial: SerialTransfer,
         sound: SoundController,
         timer: Timer,
+        cgb_registers: CGBRegisters,
     ) -> Self {
         Self {
             mbc,
@@ -69,6 +72,7 @@ impl GBMemory {
             serial,
             sound,
             timer,
+            cgb_registers,
             oam_dma_high_bits: 0,
             interrupt_flag: 0,
             interrupt_enable: 0,
@@ -108,10 +112,18 @@ impl GBMemory {
         None
     }
 
+    pub fn reset_interrupt_flag(&mut self, interrupt: Interrupt) {
+        self.interrupt_flag = interrupt.unset(self.interrupt_flag);
+    }
+
     fn write_oam_dma(&mut self, value: u8) {
         // This should add some machine cycles somewhere
         // Source: https://gbdev.io/pandocs/OAM_DMA_Transfer.html
         self.oam_dma_high_bits = value;
+        if value > 0xDF {
+            // Value above 0xDF should only be for initialization.
+            return;
+        }
         let high_bits: u16 = (value as u16) << 8;
         for i in 0u16..(OAM_SIZE as u16) {
             self.write(OAM_START_ADDRESS + i, self.read(high_bits + i));
@@ -150,9 +162,11 @@ impl Memory for GBMemory {
             IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.read_lcd(address),
             OAM_DMA_ADDRESS => self.oam_dma_high_bits,
             AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.read_lcd(address),
+            KEY_1_ADDRESS => self.cgb_registers.read_key_1(),
             VRAM_BANK_SELECT => self.video.read_vram_bank(),
             DISABLE_BOOT_ROM_ADDRESS => self.boot_rom_disabled,
             VRAM_DMA_START_ADDRESS..=VRAM_DMA_END_ADDRESS => self.read_vram_dma(address),
+            INFRARED_CONTROL_ADDRESS => self.cgb_registers.read_infrared_control(),
             BG_OBJ_PALETTES_START_ADDRESS..=BG_OBJ_PALETTES__END_ADDRESS => {
                 self.video.read_cgb_lcd_color_palette(address)
             }
@@ -193,9 +207,11 @@ impl Memory for GBMemory {
             IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.write_lcd(address, value),
             OAM_DMA_ADDRESS => self.write_oam_dma(value),
             AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.write_lcd(address, value),
+            KEY_1_ADDRESS => self.cgb_registers.write_key_1(value),
             VRAM_BANK_SELECT => self.video.write_vram_bank(value),
             DISABLE_BOOT_ROM_ADDRESS => self.boot_rom_disabled = value,
             VRAM_DMA_START_ADDRESS..=VRAM_DMA_END_ADDRESS => self.write_vram_dma(address, value),
+            INFRARED_CONTROL_ADDRESS => self.cgb_registers.write_infrared_control(value),
             BG_OBJ_PALETTES_START_ADDRESS..=BG_OBJ_PALETTES__END_ADDRESS => {
                 self.video.write_cgb_lcd_color_palette(address, value)
             }

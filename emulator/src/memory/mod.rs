@@ -1,4 +1,5 @@
 pub(crate) mod argument;
+pub(crate) mod cgb;
 pub(crate) mod gbmemory;
 pub(crate) mod init;
 pub(crate) mod mbc;

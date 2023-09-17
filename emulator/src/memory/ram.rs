@@ -45,11 +45,11 @@ impl RamController {
     }
 
     pub fn write_high_ram(&mut self, address: u16, value: u8) {
-        self.high_ram[(address - WORK_RAM_START_ADDRESS) as usize] = value;
+        self.high_ram[(address - HIGH_RAM_START_ADDRESS) as usize] = value;
     }
 
     pub fn read_high_ram(&self, address: u16) -> u8 {
-        self.high_ram[(address - WORK_RAM_START_ADDRESS) as usize]
+        self.high_ram[(address - HIGH_RAM_START_ADDRESS) as usize]
     }
 
     pub fn write_selected_work_ram_bank(&mut self, _value: u8) {
