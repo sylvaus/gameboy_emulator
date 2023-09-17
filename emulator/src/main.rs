@@ -2,6 +2,7 @@ use crate::cartridge::load_cartridge;
 use clap::Parser;
 
 mod cartridge;
+mod emulator;
 mod generated;
 mod interrupts;
 mod joypad;

@@ -1,5 +1,4 @@
 use crate::interrupts::Interrupt;
-use crate::video::controller;
 use crate::video::memory::{LcdControl, LcdStatus};
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map

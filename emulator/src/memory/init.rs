@@ -189,6 +189,6 @@ pub fn init_memory(cgb_flag: CGBFlag, memory: &mut GBMemory) {
     for (address, value) in init_values.iter().cloned() {
         memory.write(address, value);
     }
-    /// Disable boot rom: https://gbdev.io/pandocs/Power_Up_Sequence.html?highlight=ff50#monochrome-models-dmg0-dmg-mgb
+    // Disable boot rom: https://gbdev.io/pandocs/Power_Up_Sequence.html?highlight=ff50#monochrome-models-dmg0-dmg-mgb
     memory.write(DISABLE_BOOT_ROM_ADDRESS, 1);
 }
