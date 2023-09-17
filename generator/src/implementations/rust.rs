@@ -6,7 +6,7 @@ use crate::interface::{
 };
 
 const ARGUMENT_VAR_NAME: &str = "argument";
-const REGISTER_VAR_NAME: &str = "registers";
+const REGISTERS_VAR_NAME: &str = "registers";
 const MEMORY_VAR_NAME: &str = "memory";
 const INDENT: &str = "    ";
 
@@ -37,7 +37,7 @@ struct AttributeRegister {
 
 impl Register for AttributeRegister {
     fn get(&self) -> Expression {
-        Expression::new(format!("{}.{}", REGISTER_VAR_NAME, self.name), self.type_)
+        Expression::new(format!("{}.{}", REGISTERS_VAR_NAME, self.name), self.type_)
     }
 
     fn set(&self, value: &Expression) -> Code {
@@ -48,7 +48,7 @@ impl Register for AttributeRegister {
         );
         Code::from_str(&format!(
             "{}.{} = {};",
-            REGISTER_VAR_NAME, self.name, value.text
+            REGISTERS_VAR_NAME, self.name, value.text
         ))
     }
 }
@@ -60,7 +60,7 @@ struct GetterSetterRegister {
 impl Register for GetterSetterRegister {
     fn get(&self) -> Expression {
         Expression::new(
-            format!("{}.get_{}()", REGISTER_VAR_NAME, self.name),
+            format!("{}.get_{}()", REGISTERS_VAR_NAME, self.name),
             Type::Uint16,
         )
     }
@@ -74,7 +74,7 @@ impl Register for GetterSetterRegister {
         );
         Code::from_str(&format!(
             "{}.set_{}({});",
-            REGISTER_VAR_NAME, self.name, value.text
+            REGISTERS_VAR_NAME, self.name, value.text
         ))
     }
 }
@@ -232,13 +232,14 @@ impl Statements for StatementsImpl {
     }
 
     fn log_trace(&self, text: &str) -> Code {
-        Code::from_str(&format!("trace!(\"{}\")", text))
+        Code::from_str(&format!("trace!(\"{}\");", text))
     }
 
     fn log_trace_registers(&self) -> Code {
         Code::from_str(&format!(
-            "trace!(\"registers: {{:?}}\", {})",
-            REGISTER_VAR_NAME
+            "trace!(\"registers: (AF: 0x{{:04X}}, BC: 0x{{:04X}}, DE: 0x{{:04X}}, HL: 0x{{:04X}}, SP: 0x{{:04X}}, PC: 0x{{:04X}})\",\
+             {registers}.get_af(), {registers}.get_bc(), {registers}.get_de(), {registers}.get_hl(), {registers}.sp, {registers}.pc);",
+            registers = REGISTERS_VAR_NAME
         ))
     }
 

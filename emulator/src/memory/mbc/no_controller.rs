@@ -37,10 +37,10 @@ impl MemoryBankController for NoMemoryBankController {
     }
 
     fn write_ext_ram(&mut self, address: u16, value: u8) {
-        self.rom[(address - EXT_RAM_START_ADDRESS) as usize] = value;
+        self.ram[(address - EXT_RAM_START_ADDRESS) as usize] = value;
     }
 
     fn read_ext_ram(&self, address: u16) -> u8 {
-        self.rom[(address - EXT_RAM_START_ADDRESS) as usize]
+        self.ram[(address - EXT_RAM_START_ADDRESS) as usize]
     }
 }

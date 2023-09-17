@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.4.0", features = ["derive"] }
-log = "0.4.17"
+clap = { version = "4.4.3", features = ["derive"] }
+log = { version = "0.4.20", features = ["std"] }
 macros = { path = "../macros" }

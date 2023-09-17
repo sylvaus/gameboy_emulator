@@ -96,6 +96,12 @@ pub fn create_function_custom(
             used_params.argument,
         ),
     ];
+    let mut trace_execution =
+        Code::create_empty().append(language.statements.log_trace(&complete_doc));
+    if used_params.register {
+        trace_execution.iappend(language.statements.log_trace_registers());
+    }
+    code.iprepend(trace_execution);
 
     if let Some(increment) = details.pc_increment {
         code.iappend(increment_pc(increment, language));
