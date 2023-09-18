@@ -1,7 +1,7 @@
 use crate::common::register::get_register_from_name;
 use crate::instruction;
 use crate::instruction::{Argument, ArgumentType};
-use crate::interface::{Code, Expression, Language, Register, Type};
+use crate::interface::{Code, Expression, Language, Type};
 
 pub fn create_set_code(language: &Language, argument: &Argument, value: &Expression) -> Code {
     create_set_code_with_offset(language, argument, value, None)

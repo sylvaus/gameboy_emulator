@@ -19,7 +19,7 @@ use crate::common::register::{
 };
 use crate::instruction;
 use crate::instruction::{Argument, FlagAction, Instruction, InstructionType};
-use crate::interface::{Code, Function, IntFormat, Language, Register, Type};
+use crate::interface::{Code, Function, IntFormat, Language, Type};
 
 fn create_nop(instruction: &Instruction, language: &Language) -> Function {
     create_function(

@@ -35,7 +35,7 @@ M-Cycles are used pretty often since all the instruction cycles are divisible by
 The current implementation uses cycle as the [Gameboy CPU (LR35902) instruction set](https://pastraiser.com/cpu/gameboy/gameboy_opcodes.html) uses it.
 
 ### Halt implementation
-Halt instruction will be implemented as follow:
+Halt instruction will be implemented as follows:
 * When HALT is called, the system clock will be stopped and only an interruption will allow the 
   clock to restart
 * If the [IME](https://gbdev.io/pandocs/#ime-interrupt-master-enable-flag-write-only) is not set, the interrupt code will 
@@ -43,7 +43,7 @@ Halt instruction will be implemented as follow:
   
 Sources:
 * [Gameboy Programming Manual](https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf) Page 124
-* [Github Documentation](https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf)
+* [GitHub Documentation](https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf)
 
 
 Errors in resources

@@ -344,7 +344,7 @@ mod tests {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
 
-        for i in 0..143 {
+        for _ in 0..143 {
             assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
             assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
             assert_eq!(controller.update(MODE_0_HBLANK_CYCLES).len(), 0);
@@ -356,7 +356,7 @@ mod tests {
         let interrupt = controller.update(MODE_0_HBLANK_CYCLES);
         assert_eq!(interrupt.len(), 1);
         assert_eq!(interrupt[0], Interrupt::VBlank);
-        for i in 144..=153 {
+        for _ in 144..=153 {
             assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
         }
     }
@@ -378,7 +378,7 @@ mod tests {
             );
         }
 
-        for i in 144..=153 {
+        for _ in 144..=153 {
             assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
         }
     }
@@ -401,7 +401,7 @@ mod tests {
             assert_eq!((i == 143), interrupts.contains(&Interrupt::LCDStat));
         }
 
-        for i in 144..=153 {
+        for _ in 144..=153 {
             assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
         }
     }
@@ -421,7 +421,7 @@ mod tests {
             assert_eq!((i != 143), interrupts.contains(&Interrupt::LCDStat));
         }
 
-        for i in 144..=152 {
+        for _ in 144..=152 {
             assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
         }
         // interrupt is only triggered once.
@@ -449,7 +449,7 @@ mod tests {
             assert_eq!((i == 124), interrupts.contains(&Interrupt::LCDStat));
         }
 
-        for i in 144..=153 {
+        for _ in 144..=153 {
             assert_eq!(controller.update(MODE_1_VBLANK_CYCLES).len(), 0);
         }
     }
@@ -475,7 +475,7 @@ mod tests {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
 
-        for i in 0..=3 {
+        for _ in 0..=3 {
             controller.update(MODE_2_SEARCH_OAM_CYCLES);
             controller.update(MODE_3_TRANSFER_CYCLES);
             controller.update(MODE_0_HBLANK_CYCLES);
