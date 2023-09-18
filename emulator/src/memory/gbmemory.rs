@@ -23,6 +23,9 @@ use crate::video::controller::{
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const NOT_USABLE_START_ADDRESS: u16 = 0xFEA0;
 pub const NOT_USABLE_END_ADDRESS: u16 = 0xFEFF;
+pub const IO_RANGE_START_ADDRESS: u16 = 0xFF00;
+pub const IO_RANGE_END_ADDRESS: u16 = 0xFF7F;
+pub const IO_RANGE_SIZE: usize = ((IO_RANGE_END_ADDRESS - IO_RANGE_START_ADDRESS) + 1) as usize;
 
 /// Information from: https://gbdev.io/pandocs/Audio_Registers.html
 pub const SOUND_START_ADDRESS: u16 = 0xFF10;
@@ -47,6 +50,7 @@ pub struct GBMemory {
     timer: Timer,
     cgb_registers: CGBRegisters,
 
+    io_range: Vec<u8>,
     oam_dma_high_bits: u8, // https://gbdev.io/pandocs/OAM_DMA_Transfer.html?highlight=oam%20dma%20high#ff46--dma-oam-dma-source-address--start
     interrupt_flag: u8,    // https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable
     interrupt_enable: u8,  // https://gbdev.io/pandocs/Interrupts.html#ff0f--if-interrupt-flag
@@ -73,6 +77,7 @@ impl GBMemory {
             sound,
             timer,
             cgb_registers,
+            io_range: vec![0u8; IO_RANGE_SIZE],
             oam_dma_high_bits: 0,
             interrupt_flag: 0,
             interrupt_enable: 0,
@@ -138,20 +143,9 @@ impl GBMemory {
     fn write_vram_dma(&mut self, _address: u16, _value: u8) {
         // TODO implement vram dma for CGB: https://gbdev.io/pandocs/CGB_Registers.html#lcd-vram-dma-transfers
     }
-}
 
-impl Memory for GBMemory {
-    fn read(&self, address: u16) -> u8 {
+    fn read_io(&self, address: u16) -> u8 {
         match address {
-            ROM_START_ADDRESS..=ROM_END_ADDRESS => self.mbc.read_rom(address),
-            VRAM_START_ADDRESS..=VRAM_END_ADDRESS => self.video.read_vram(address),
-            EXT_RAM_START_ADDRESS..=EXT_RAM_END_ADDRESS => self.mbc.read_ext_ram(address),
-            WORK_RAM_START_ADDRESS..=WORK_RAM_END_ADDRESS => self.ram.read_work_ram(address),
-            ECHO_RAM_START_ADDRESS..=ECHO_RAM_END_ADDRESS => self.ram.read_echo_ram(address),
-            OAM_START_ADDRESS..=OAM_END_ADDRESS => self.video.read_oam(address),
-            NOT_USABLE_START_ADDRESS..=NOT_USABLE_END_ADDRESS => {
-                panic!("Trying to read unusable address {:?}", address)
-            }
             JOYPAD_INPUT_ADDRESS => self.joypad.value,
             SERIAL_TRANSFER_START_ADDRESS..=SERIAL_TRANSFER_END_ADDRESS => {
                 self.serial.read(address)
@@ -171,6 +165,53 @@ impl Memory for GBMemory {
                 self.video.read_cgb_lcd_color_palette(address)
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.read_selected_work_ram_bank(),
+
+            address => self.io_range[(address - IO_RANGE_START_ADDRESS) as usize],
+        }
+    }
+
+    fn write_io(&mut self, address: u16, value: u8) {
+        match address {
+            JOYPAD_INPUT_ADDRESS => self.joypad.value = value,
+            SERIAL_TRANSFER_START_ADDRESS..=SERIAL_TRANSFER_END_ADDRESS => {
+                self.serial.write(address, value)
+            }
+            TIMER_START_ADDRESS..=TIMER_END_ADDRESS => self.timer.write(address, value),
+            INTERRUPT_FLAG_ADDRESS => self.interrupt_flag = value,
+            SOUND_START_ADDRESS..=SOUND_END_ADDRESS => self.sound.write(address, value),
+            IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.write_lcd(address, value),
+            OAM_DMA_ADDRESS => self.write_oam_dma(value),
+            AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.write_lcd(address, value),
+            KEY_1_ADDRESS => self.cgb_registers.write_key_1(value),
+            VRAM_BANK_SELECT => self.video.write_vram_bank(value),
+            DISABLE_BOOT_ROM_ADDRESS => self.boot_rom_disabled = value,
+            VRAM_DMA_START_ADDRESS..=VRAM_DMA_END_ADDRESS => self.write_vram_dma(address, value),
+            INFRARED_CONTROL_ADDRESS => self.cgb_registers.write_infrared_control(value),
+            BG_OBJ_PALETTES_START_ADDRESS..=BG_OBJ_PALETTES__END_ADDRESS => {
+                self.video.write_cgb_lcd_color_palette(address, value)
+            }
+            SELECT_WORK_RAM_BANK_ADDRESS => self.ram.write_selected_work_ram_bank(value),
+
+            address => self.io_range[(address - IO_RANGE_START_ADDRESS) as usize] = value,
+        }
+    }
+}
+
+impl Memory for GBMemory {
+    fn read(&self, address: u16) -> u8 {
+        match address {
+            ROM_START_ADDRESS..=ROM_END_ADDRESS => self.mbc.read_rom(address),
+            VRAM_START_ADDRESS..=VRAM_END_ADDRESS => self.video.read_vram(address),
+            EXT_RAM_START_ADDRESS..=EXT_RAM_END_ADDRESS => self.mbc.read_ext_ram(address),
+            WORK_RAM_START_ADDRESS..=WORK_RAM_END_ADDRESS => self.ram.read_work_ram(address),
+            ECHO_RAM_START_ADDRESS..=ECHO_RAM_END_ADDRESS => self.ram.read_echo_ram(address),
+            OAM_START_ADDRESS..=OAM_END_ADDRESS => self.video.read_oam(address),
+            NOT_USABLE_START_ADDRESS..=NOT_USABLE_END_ADDRESS => {
+                // TODO: Implement complete behavior
+                // Information from https://gbdev.io/pandocs/Memory_Map.html#fea0-feff-range
+                0
+            }
+            IO_RANGE_START_ADDRESS..=IO_RANGE_END_ADDRESS => self.read_io(address),
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => self.ram.read_high_ram(address),
             INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable,
 
@@ -195,33 +236,16 @@ impl Memory for GBMemory {
             }
             OAM_START_ADDRESS..=OAM_END_ADDRESS => self.video.write_oam(address, value),
             NOT_USABLE_START_ADDRESS..=NOT_USABLE_END_ADDRESS => {
-                panic!("Trying to write to unusable address {:?}", address)
+                // TODO: Implement complete behavior
+                // Information from https://gbdev.io/pandocs/Memory_Map.html#fea0-feff-range
             }
-            JOYPAD_INPUT_ADDRESS => self.joypad.value = value,
-            SERIAL_TRANSFER_START_ADDRESS..=SERIAL_TRANSFER_END_ADDRESS => {
-                self.serial.write(address, value)
-            }
-            TIMER_START_ADDRESS..=TIMER_END_ADDRESS => self.timer.write(address, value),
-            INTERRUPT_FLAG_ADDRESS => self.interrupt_flag = value,
-            SOUND_START_ADDRESS..=SOUND_END_ADDRESS => self.sound.write(address, value),
-            IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.write_lcd(address, value),
-            OAM_DMA_ADDRESS => self.write_oam_dma(value),
-            AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.write_lcd(address, value),
-            KEY_1_ADDRESS => self.cgb_registers.write_key_1(value),
-            VRAM_BANK_SELECT => self.video.write_vram_bank(value),
-            DISABLE_BOOT_ROM_ADDRESS => self.boot_rom_disabled = value,
-            VRAM_DMA_START_ADDRESS..=VRAM_DMA_END_ADDRESS => self.write_vram_dma(address, value),
-            INFRARED_CONTROL_ADDRESS => self.cgb_registers.write_infrared_control(value),
-            BG_OBJ_PALETTES_START_ADDRESS..=BG_OBJ_PALETTES__END_ADDRESS => {
-                self.video.write_cgb_lcd_color_palette(address, value)
-            }
-            SELECT_WORK_RAM_BANK_ADDRESS => self.ram.write_selected_work_ram_bank(value),
+            IO_RANGE_START_ADDRESS..=IO_RANGE_END_ADDRESS => self.write_io(address, value),
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => {
                 self.ram.write_high_ram(address, value)
             }
             INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable = value,
 
-            address => panic!("Trying to write unknown address {:?}", address),
+            address => panic!("Trying to write unknown address {:04X}", address),
         }
     }
 }
