@@ -1,3 +1,4 @@
+// TODO: add better logger.
 use log::{Level, LevelFilter, Metadata, Record};
 
 struct Logger {

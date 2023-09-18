@@ -19,3 +19,12 @@ impl JoypadInput {
         Self { value: 0 }
     }
 }
+
+pub trait InputProvider {
+    /// Updates the internal state
+    fn update(&mut self);
+
+    fn set_inputs(&self, input: &mut JoypadInput);
+
+    fn is_quit_pressed(&self) -> bool;
+}

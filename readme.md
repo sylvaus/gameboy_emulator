@@ -6,21 +6,20 @@ GameBoy Emulator
 
 Goal
 ----
-Being able to run a GameBoy game (sound optional)
-
+Being able to run a GameBoy game (sound optional).
 
 Compatibility
 -------------
 Tested on: Fedora 38
 
-Setup 
------
-TODO
-
-
 Installation
 ------------
-TODO
+### Dependencies
+
+* [rustup/cargo](https://www.rust-lang.org/tools/install)
+* sdl2 (for [rust bindings](https://github.com/Rust-SDL2/rust-sdl2)):
+  * Fedora: `sudo dnf install SDL2-devel`
+  * Ubuntu: `sudo apt-get install libsdl2-dev`
 
 Important Findings
 ------------------
