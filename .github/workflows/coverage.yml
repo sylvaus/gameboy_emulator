@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install dependency
+      run: sudo apt-get install libsdl2-dev
     - name: Update Rust
       run: rustup update
     - name: Install llvm tools and grcov required for coverage
