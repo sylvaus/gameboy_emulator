@@ -1,3 +1,4 @@
+use macros::BitAccessor;
 use crate::interrupts::Interrupt;
 use crate::video::memory::{LcdControl, LcdStatus};
 
@@ -79,6 +80,16 @@ pub struct VideoMode {
     pub nb_cycles: u64,
 }
 
+/// Structure defined here: https://gbdev.io/pandocs/Palettes.html
+#[derive(BitAccessor, Debug, Copy, Clone, Default)]
+pub struct MonochromePalette {
+    #[bit_offset_size(color_3, 6, 2)]
+    #[bit_offset_size(color_2, 4, 2)]
+    #[bit_offset_size(color_1, 2, 2)]
+    #[bit_offset_size(color_0, 0, 2)]
+    pub value: u8,
+}
+
 pub struct VideoController {
     pub vram: Vec<u8>,
     pub oam: Vec<u8>,
@@ -92,9 +103,9 @@ pub struct VideoController {
     pub scroll_x: u8,
     pub coordinate_y: u8,
     pub compare_y: u8,
-    pub bg_palette_data: u8,
-    pub obj_palette_data_0: u8,
-    pub obj_palette_data_1: u8,
+    pub bg_palette_data: MonochromePalette,
+    pub obj_palette_data_0: MonochromePalette,
+    pub obj_palette_data_1: MonochromePalette,
     pub window_position_y: u8,
     pub window_position_x: u8,
 
@@ -116,9 +127,9 @@ impl VideoController {
             scroll_x: 0,
             coordinate_y: 0,
             compare_y: 0,
-            bg_palette_data: 0,
-            obj_palette_data_0: 0,
-            obj_palette_data_1: 0,
+            bg_palette_data: Default::default(),
+            obj_palette_data_0: Default::default(),
+            obj_palette_data_1: Default::default(),
             window_position_y: 0,
             window_position_x: 0,
             cycles: 0,
@@ -236,9 +247,9 @@ impl VideoController {
             LCD_SCROLL_X_ADDRESS => self.scroll_x = value,
             LCD_COORDINATE_Y_ADDRESS => self.coordinate_y = value,
             LCD_LY_COMPARE_ADDRESS => self.compare_y = value,
-            BGP_PALETTE_DATA_ADDRESS => self.bg_palette_data = value,
-            OBJ_PALETTE_DATA_0_ADDRESS => self.obj_palette_data_0 = value,
-            OBJ_PALETTE_DATA_1_ADDRESS => self.obj_palette_data_1 = value,
+            BGP_PALETTE_DATA_ADDRESS => self.bg_palette_data.value = value,
+            OBJ_PALETTE_DATA_0_ADDRESS => self.obj_palette_data_0.value = value,
+            OBJ_PALETTE_DATA_1_ADDRESS => self.obj_palette_data_1.value = value,
             LCD_WINDOWS_Y_ADDRESS => self.window_position_y = value,
             LCD_WINDOWS_X_ADDRESS => self.window_position_x = value,
             _ => panic!("Address {} is not valid for the video controller", address),
@@ -253,9 +264,9 @@ impl VideoController {
             LCD_SCROLL_X_ADDRESS => self.scroll_x,
             LCD_COORDINATE_Y_ADDRESS => self.coordinate_y,
             LCD_LY_COMPARE_ADDRESS => self.compare_y,
-            BGP_PALETTE_DATA_ADDRESS => self.bg_palette_data,
-            OBJ_PALETTE_DATA_0_ADDRESS => self.obj_palette_data_0,
-            OBJ_PALETTE_DATA_1_ADDRESS => self.obj_palette_data_1,
+            BGP_PALETTE_DATA_ADDRESS => self.bg_palette_data.value,
+            OBJ_PALETTE_DATA_0_ADDRESS => self.obj_palette_data_0.value,
+            OBJ_PALETTE_DATA_1_ADDRESS => self.obj_palette_data_1.value,
             LCD_WINDOWS_Y_ADDRESS => self.window_position_y,
             LCD_WINDOWS_X_ADDRESS => self.window_position_x,
             _ => panic!("Address {} is not valid for the video controller", address),
