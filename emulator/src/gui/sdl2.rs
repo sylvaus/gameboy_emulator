@@ -1,6 +1,8 @@
 use crate::joypad::{InputProvider, JoypadInput};
 use crate::video::controller::VideoController;
 use crate::video::renderer::{VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH};
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 use sdl2::{EventPump, Sdl};
@@ -17,31 +19,51 @@ impl Sdl2VideoRenderer {
 
 impl VideoRenderer for Sdl2VideoRenderer {
     fn render(&mut self, video: &VideoController) {
-        todo!()
+        if video.control.read_lcd_enable() == 0 {
+            return;
+        }
+        // TODO: implement
     }
 }
 
 pub struct Sdl2InputProvider {
     events: EventPump,
+    quit_pressed: bool,
 }
 
 impl Sdl2InputProvider {
     pub fn new(events: EventPump) -> Self {
-        Self { events }
+        Self {
+            events,
+            quit_pressed: false,
+        }
     }
 }
 
 impl InputProvider for Sdl2InputProvider {
     fn update(&mut self) {
-        todo!()
+        for event in self.events.poll_iter() {
+            match event {
+                Event::Quit {..}
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => {
+                    self.quit_pressed = true;
+                    break;
+                }
+                _ => {}
+            }
+        }
     }
 
-    fn set_inputs(&self, input: &mut JoypadInput) {
-        todo!()
+    fn set_inputs(&self, input: &mut JoypadInput) -> bool {
+        // TODO: implement
+        false
     }
 
     fn is_quit_pressed(&self) -> bool {
-        todo!()
+        self.quit_pressed
     }
 }
 

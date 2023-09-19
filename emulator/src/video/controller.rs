@@ -80,23 +80,23 @@ pub struct VideoMode {
 }
 
 pub struct VideoController {
-    vram: Vec<u8>,
-    oam: Vec<u8>,
-    control: LcdControl,
+    pub vram: Vec<u8>,
+    pub oam: Vec<u8>,
+    pub control: LcdControl,
     // This is necessary to handle enabling/disabling lcd.
     previous_control: LcdControl,
-    status: LcdStatus,
+    pub status: LcdStatus,
     previous_status: LcdStatus,
 
-    scroll_y: u8,
-    scroll_x: u8,
-    coordinate_y: u8,
-    compare_y: u8,
-    bg_palette_data: u8,
-    obj_palette_data_0: u8,
-    obj_palette_data_1: u8,
-    window_position_y: u8,
-    window_position_x: u8,
+    pub scroll_y: u8,
+    pub scroll_x: u8,
+    pub coordinate_y: u8,
+    pub compare_y: u8,
+    pub bg_palette_data: u8,
+    pub obj_palette_data_0: u8,
+    pub obj_palette_data_1: u8,
+    pub window_position_y: u8,
+    pub window_position_x: u8,
 
     cycles: u64,
     next_cycles_event: u64,
@@ -278,6 +278,13 @@ impl VideoController {
     pub fn read_cgb_lcd_color_palette(&self, _address: u16) -> u8 {
         // TODO: implement CGB mode https://gbdev.io/pandocs/Palettes.html#lcd-color-palettes-cgb-only
         0
+    }
+
+    /// Indicates that the renderer can start generating the image for the current line.
+    pub fn start_generating_line(&self) -> bool {
+        // See: https://gbdev.io/pandocs/STAT.html#stat-modes
+        (self.previous_status.read_mode() == MODE_2_SEARCH_OAM_VALUE) &&
+            (self.status.read_mode() == MODE_3_TRANSFER_VALUE)
     }
 
     fn update_mode(&mut self, mode: VideoMode) {

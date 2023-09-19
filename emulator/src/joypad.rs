@@ -24,7 +24,11 @@ pub trait InputProvider {
     /// Updates the internal state
     fn update(&mut self);
 
-    fn set_inputs(&self, input: &mut JoypadInput);
+    /// Set the input value in the joypad memory and return true if the joystick interrupt is raised.
+    ///
+    /// Joypad interrupt is raised when one of the 4 lower bit of the joypad input switch from high to low.
+    /// Doc: https://gbdev.io/pandocs/Interrupt_Sources.html?highlight=joypad%20inte#int-60--joypad-interrupt
+    fn set_inputs(&self, input: &mut JoypadInput) -> bool;
 
     fn is_quit_pressed(&self) -> bool;
 }

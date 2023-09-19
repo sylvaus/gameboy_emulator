@@ -42,9 +42,9 @@ pub const INTERRUPT_ENABLE_ADDRESS: u16 = 0xFFFF;
 
 pub struct GBMemory {
     mbc: Box<dyn MemoryBankController>,
-    video: VideoController,
+    pub video: VideoController,
     ram: RamController,
-    joypad: JoypadInput,
+    pub joypad: JoypadInput,
     serial: SerialTransfer,
     sound: SoundController,
     timer: Timer,
@@ -119,6 +119,10 @@ impl GBMemory {
 
     pub fn reset_interrupt_flag(&mut self, interrupt: Interrupt) {
         self.interrupt_flag = interrupt.unset(self.interrupt_flag);
+    }
+
+    pub fn set_interrupt_flag(&mut self, interrupt: Interrupt) {
+        self.interrupt_flag = interrupt.set(self.interrupt_flag);
     }
 
     fn write_oam_dma(&mut self, value: u8) {

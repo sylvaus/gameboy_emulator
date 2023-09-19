@@ -1,7 +1,7 @@
 use crate::cartridge::Cartridge;
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::interrupts::Interrupt;
-use crate::joypad::JoypadInput;
+use crate::joypad::{InputProvider, JoypadInput};
 use crate::memory::argument::Argument;
 use crate::memory::cgb::CGBRegisters;
 use crate::memory::gbmemory::GBMemory;
@@ -13,6 +13,7 @@ use crate::serial::SerialTransfer;
 use crate::sound::SoundController;
 use crate::timer::Timer;
 use crate::video::controller::VideoController;
+use crate::video::renderer::VideoRenderer;
 use std::convert::Into;
 use std::ops::Div;
 use std::thread::sleep;
@@ -21,13 +22,19 @@ use std::time::Instant;
 
 const CPU_FREQUENCY: u32 = 1 << 22;
 
-pub struct Emulator {
+pub struct Emulator<Renderer, Input> {
     memory: GBMemory,
     registers: Registers,
+    renderer: Renderer,
+    input_provider: Input,
 }
 
-impl Emulator {
-    pub fn new(cartridge: Cartridge) -> Self {
+impl<Renderer, Input> Emulator<Renderer, Input>
+where
+    Renderer: VideoRenderer,
+    Input: InputProvider,
+{
+    pub fn new(cartridge: Cartridge, renderer: Renderer, input_provider: Input) -> Self {
         let mut memory = GBMemory::new(
             cartridge.memory_controller,
             VideoController::new(),
@@ -43,12 +50,16 @@ impl Emulator {
         init_registers(cartridge.cgb_flag, &mut registers);
 
         memory.init();
-
-        Self { memory, registers }
+        Self {
+            memory,
+            registers,
+            renderer,
+            input_provider,
+        }
     }
 
-    pub fn run(&mut self) -> u64 {
-        loop {
+    pub fn run(&mut self) {
+        while !self.input_provider.is_quit_pressed() {
             let start_time = Instant::now();
 
             let nb_cycles = self.update();
@@ -77,6 +88,14 @@ impl Emulator {
         }
 
         self.memory.update(nb_cycles);
+        if self.memory.video.start_generating_line() {
+            self.renderer.render(&self.memory.video);
+            /// Only update the inputs when a frame is completed to avoid polling too often.
+            self.input_provider.update();
+            if self.input_provider.set_inputs(&mut self.memory.joypad) {
+                self.memory.set_interrupt_flag(Interrupt::Joypad)
+            }
+        }
         nb_cycles
     }
 

@@ -41,6 +41,6 @@ fn main() {
 
     println!("Cartridge: {}", cartridge);
 
-    let mut emulator = Emulator::new(cartridge);
+    let mut emulator = Emulator::new(cartridge, video, input);
     emulator.run();
 }
