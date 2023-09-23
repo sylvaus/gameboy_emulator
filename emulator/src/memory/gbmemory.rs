@@ -150,7 +150,7 @@ impl GBMemory {
 
     fn read_io(&self, address: u16) -> u8 {
         match address {
-            JOYPAD_INPUT_ADDRESS => self.joypad.value,
+            JOYPAD_INPUT_ADDRESS => self.joypad.read(),
             SERIAL_TRANSFER_START_ADDRESS..=SERIAL_TRANSFER_END_ADDRESS => {
                 self.serial.read(address)
             }
@@ -176,7 +176,7 @@ impl GBMemory {
 
     fn write_io(&mut self, address: u16, value: u8) {
         match address {
-            JOYPAD_INPUT_ADDRESS => self.joypad.value = value,
+            JOYPAD_INPUT_ADDRESS => self.joypad.write(value),
             SERIAL_TRANSFER_START_ADDRESS..=SERIAL_TRANSFER_END_ADDRESS => {
                 self.serial.write(address, value)
             }

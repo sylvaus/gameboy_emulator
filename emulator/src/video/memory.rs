@@ -23,7 +23,19 @@ pub struct LcdStatus {
     #[bit_offset_size(mode0_interrupt_source, 3, 1)]
     #[bit_offset_size(lyc_ly_flag, 2, 1)]
     #[bit_offset_size(mode, 0, 2)]
-    pub value: u8,
+    value: u8,
+}
+
+impl LcdStatus {
+    pub fn write(&mut self, value: u8) {
+        // Lower 3 bits are read only: https://gbdev.io/pandocs/STAT.html
+        self.value &= 0b111;
+        self.value |= (value & 0b11111000u8);
+    }
+
+    pub fn read(&self) -> u8 {
+        self.value
+    }
 }
 
 #[cfg(test)]

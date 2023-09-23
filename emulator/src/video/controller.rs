@@ -115,7 +115,7 @@ pub struct VideoController {
 
 impl VideoController {
     pub fn new() -> Self {
-        let mut controller = Self {
+        Self {
             vram: vec![0u8; VRAM_SIZE],
             oam: vec![0u8; OAM_SIZE],
 
@@ -134,16 +134,19 @@ impl VideoController {
             window_position_x: 0,
             cycles: 0,
             next_cycles_event: 0,
-        };
-        controller.status.write_mode(MODE_2_SEARCH_OAM_VALUE);
-        controller.previous_status = controller.status;
-        controller
+        }
     }
 
     /// Function to call before starting the emulator if data was written to the VideoController
     ///
     /// This function ensures that the change detection works as expected.
     pub fn init(&mut self) {
+        if self.coordinate_y <= MAX_MOD_0_2_3_Y {
+            self.update_mode(MODE_2_SEARCH_OAM);
+        } else {
+            self.update_mode(MODE_1_VBLANK);
+        }
+
         self.previous_control = self.control;
         self.previous_status = self.status;
     }
@@ -158,8 +161,8 @@ impl VideoController {
             // According to https://www.reddit.com/r/Gameboy/comments/a1c8h0/what_happens_when_a_gameboy_screen_is_disabled/
             // Clock is reset to zero
             self.cycles = 0;
-            self.next_cycles_event = MODE_2_SEARCH_OAM_CYCLES;
-            self.status.write_mode(MODE_2_SEARCH_OAM_VALUE)
+            self.next_cycles_event = MODE_0_HBLANK_CYCLES + MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES;
+            self.status.write_mode(MODE_0_HBLANK_VALUE)
         }
         self.previous_control = self.control;
         self.previous_status = self.status;
@@ -242,7 +245,7 @@ impl VideoController {
     pub fn write_lcd(&mut self, address: u16, value: u8) {
         match address {
             LCD_CONTROL_ADDRESS => self.control.value = value,
-            LCD_STATUS_ADDRESS => self.status.value = value,
+            LCD_STATUS_ADDRESS => self.status.write(value),
             LCD_SCROLL_Y_ADDRESS => self.scroll_y = value,
             LCD_SCROLL_X_ADDRESS => self.scroll_x = value,
             LCD_COORDINATE_Y_ADDRESS => self.coordinate_y = value,
@@ -259,7 +262,7 @@ impl VideoController {
     pub fn read_lcd(&self, address: u16) -> u8 {
         match address {
             LCD_CONTROL_ADDRESS => self.control.value,
-            LCD_STATUS_ADDRESS => self.status.value,
+            LCD_STATUS_ADDRESS => self.status.read(),
             LCD_SCROLL_Y_ADDRESS => self.scroll_y,
             LCD_SCROLL_X_ADDRESS => self.scroll_x,
             LCD_COORDINATE_Y_ADDRESS => self.coordinate_y,
@@ -292,10 +295,16 @@ impl VideoController {
     }
 
     /// Indicates that the renderer can start generating the image for the current line.
-    pub fn start_generating_line(&self) -> bool {
+    pub fn should_scanline(&self) -> bool {
         // See: https://gbdev.io/pandocs/STAT.html#stat-modes
-        (self.previous_status.read_mode() == MODE_2_SEARCH_OAM_VALUE) &&
-            (self.status.read_mode() == MODE_3_TRANSFER_VALUE)
+        (self.previous_status.read_mode() == MODE_0_HBLANK_VALUE) &&
+            (self.status.read_mode() != MODE_0_HBLANK_VALUE)
+    }
+
+    pub fn should_update_frame(&self) -> bool {
+        // See: https://gbdev.io/pandocs/STAT.html#stat-modes
+        (self.previous_status.read_mode() == MODE_1_VBLANK_VALUE) &&
+            (self.status.read_mode() == MODE_2_SEARCH_OAM_VALUE)
     }
 
     fn update_mode(&mut self, mode: VideoMode) {

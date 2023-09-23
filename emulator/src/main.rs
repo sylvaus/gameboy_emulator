@@ -1,6 +1,6 @@
 use crate::cartridge::load_cartridge;
 use crate::emulator::Emulator;
-use crate::gui::sdl2::get_sdl2_gui;
+use crate::gui::sdl2::{Sdl2Gui, Sdl2GuiProvider};
 use crate::logging::init_log;
 use clap::Parser;
 use log::Level;
@@ -29,7 +29,7 @@ fn main() {
     let args = Args::parse();
 
     init_log(Level::Info);
-    let (video, input, context) = get_sdl2_gui();
+    let mut gui = Sdl2GuiProvider::new();
 
     let cartridge = load_cartridge(args.rom_path.as_path()).unwrap_or_else(|e| {
         panic!(
@@ -41,6 +41,6 @@ fn main() {
 
     println!("Cartridge: {}", cartridge);
 
-    let mut emulator = Emulator::new(cartridge, video, input);
+    let mut emulator = Emulator::new(cartridge, gui.get());
     emulator.run();
 }

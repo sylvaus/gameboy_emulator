@@ -1,5 +1,6 @@
 use crate::cartridge::Cartridge;
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
+use crate::gui::Gui;
 use crate::interrupts::Interrupt;
 use crate::joypad::{InputProvider, JoypadInput};
 use crate::memory::argument::Argument;
@@ -22,19 +23,17 @@ use std::time::Instant;
 
 const CPU_FREQUENCY: u32 = 1 << 22;
 
-pub struct Emulator<Renderer, Input> {
+pub struct Emulator<GuiImpl> {
     memory: GBMemory,
     registers: Registers,
-    renderer: Renderer,
-    input_provider: Input,
+    gui: GuiImpl,
 }
 
-impl<Renderer, Input> Emulator<Renderer, Input>
+impl<GuiImpl> Emulator<GuiImpl>
 where
-    Renderer: VideoRenderer,
-    Input: InputProvider,
+    GuiImpl: Gui,
 {
-    pub fn new(cartridge: Cartridge, renderer: Renderer, input_provider: Input) -> Self {
+    pub fn new(cartridge: Cartridge, gui: GuiImpl) -> Self {
         let mut memory = GBMemory::new(
             cartridge.memory_controller,
             VideoController::new(),
@@ -53,20 +52,19 @@ where
         Self {
             memory,
             registers,
-            renderer,
-            input_provider,
+            gui,
         }
     }
 
     pub fn run(&mut self) {
-        while !self.input_provider.is_quit_pressed() {
+        while !self.gui.is_quit_pressed() {
             let start_time = Instant::now();
 
             let nb_cycles = self.update();
 
             let expected_time = Duration::from_secs(nb_cycles).div(CPU_FREQUENCY);
             let time_left = expected_time.saturating_sub(Instant::now().duration_since(start_time));
-            if time_left > Duration::ZERO {
+            if time_left > Duration::from_millis(1) {
                 sleep(time_left);
             }
         }
@@ -88,11 +86,14 @@ where
         }
 
         self.memory.update(nb_cycles);
-        if self.memory.video.start_generating_line() {
-            self.renderer.render(&self.memory.video);
+        if self.memory.video.should_scanline() {
+            self.gui.scanline(&self.memory.video);
+        }
+        if self.memory.video.should_update_frame() {
+            self.gui.update_frame();
             /// Only update the inputs when a frame is completed to avoid polling too often.
-            self.input_provider.update();
-            if self.input_provider.set_inputs(&mut self.memory.joypad) {
+            self.gui.update_inputs();
+            if self.gui.set_inputs(&mut self.memory.joypad) {
                 self.memory.set_interrupt_flag(Interrupt::Joypad)
             }
         }
