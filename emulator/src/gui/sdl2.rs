@@ -10,6 +10,8 @@ use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::video::WindowContext;
 use sdl2::{EventPump, Sdl};
 
+const INIT_SCALE: u32 = 3;
+
 const NB_BYTES_PER_PIXEL: usize = 4;
 const SCREEN_WIDTH_BYTES: usize = (SCREEN_WIDTH as usize) * NB_BYTES_PER_PIXEL;
 const NB_PIXELS: usize = ((SCREEN_WIDTH * SCREEN_HEIGHT) as usize) * NB_BYTES_PER_PIXEL;
@@ -112,8 +114,8 @@ pub fn get_pixel_value_from_tile(vram: &[u8], tile_address: usize, x: usize, y: 
     let low_bits = vram[tile_address + y * 2];
     let high_bits = vram[tile_address + y * 2 + 1];
 
-    let low_bit = (low_bits >> (7 -x)) & 0b1;
-    let high_bit = (high_bits >> (7 -x)) & 0b1;
+    let low_bit = (low_bits >> (7 - x)) & 0b1;
+    let high_bit = (high_bits >> (7 - x)) & 0b1;
     (high_bit << 1) + low_bit
 }
 
@@ -276,12 +278,20 @@ impl Sdl2GuiProvider {
         let video_subsystem = context.video().unwrap();
 
         let window = video_subsystem
-            .window("Emulator", SCREEN_WIDTH, SCREEN_HEIGHT)
+            .window(
+                "Emulator",
+                SCREEN_WIDTH * INIT_SCALE,
+                SCREEN_HEIGHT * INIT_SCALE,
+            )
             .position_centered()
             .build()
             .unwrap();
 
-        let canvas = window.into_canvas().build().unwrap();
+        let mut canvas = window.into_canvas().present_vsync().build().unwrap();
+        // TODO: implement dynamic resizing.
+        canvas
+            .set_scale(INIT_SCALE as f32, INIT_SCALE as f32)
+            .expect("Scaling should not fail");
         let texture_creator = canvas.texture_creator();
         Self {
             context,
