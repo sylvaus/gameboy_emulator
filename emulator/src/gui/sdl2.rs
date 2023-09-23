@@ -14,11 +14,107 @@ const NB_BYTES_PER_PIXEL: usize = 4;
 const SCREEN_WIDTH_BYTES: usize = (SCREEN_WIDTH as usize) * NB_BYTES_PER_PIXEL;
 const NB_PIXELS: usize = ((SCREEN_WIDTH * SCREEN_HEIGHT) as usize) * NB_BYTES_PER_PIXEL;
 
+/// Information from: https://gbdev.io/pandocs/Tile_Maps.html
+const TILE_MAP_WIDTH: usize = 32;
+const TILE_MAP_HEIGHT: usize = 32;
+const TILE_MAP_TOTAL_SIZE: usize = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
+
+/// Information from: https://gbdev.io/pandocs/Tile_Data.html#vram-tile-data
+const TILE_SIZE: usize = 16;
+const TILE_BLOCK_1_OFFSET: usize = 0x800;
+
+/// Information from https://gbdev.io/pandocs/Palettes.html#ff47--bgp-non-cgb-mode-only-bg-palette-data
+const WHITE: Color = Color {
+    alpha: 0,
+    red: 0xFF,
+    green: 0xFF,
+    blue: 0xFF,
+};
+
+const LIGHT_GRAY: Color = Color {
+    alpha: 0,
+    red: 170,
+    green: 170,
+    blue: 170,
+};
+
+const DARK_GRAY: Color = Color {
+    alpha: 0,
+    red: 85,
+    green: 85,
+    blue: 85,
+};
+
+const BLACK: Color = Color {
+    alpha: 0,
+    red: 0,
+    green: 0,
+    blue: 0,
+};
+
+#[derive(Debug, Clone, Copy)]
 struct Color {
     pub alpha: u8,
     pub red: u8,
     pub green: u8,
     pub blue: u8,
+}
+
+/// Information from https://gbdev.io/pandocs/Palettes.html#ff47--bgp-non-cgb-mode-only-bg-palette-data
+fn get_non_cgb_color(index: u8) -> Color {
+    match index {
+        0 => WHITE,
+        1 => LIGHT_GRAY,
+        2 => DARK_GRAY,
+        3 => BLACK,
+        _ => panic!(
+            "Non CGB color only supports value in range [0..=3], got: {}",
+            index
+        ),
+    }
+}
+
+/// Returns the offset from the start of the VRAM memory area based on the bit value given
+///
+/// Information from:
+/// * https://gbdev.io/pandocs/LCDC.html#lcdc6--window-tile-map-area
+/// * https://gbdev.io/pandocs/LCDC.html#lcdc3--bg-tile-map-area
+fn get_vram_tile_offset_from_area(bit_value: u8) -> usize {
+    if bit_value > 0 {
+        0x1C00 // 0x9C00 - 0x8000
+    } else {
+        0x1800 // 0x9800 - 0x8000
+    }
+}
+
+/// Returns the tile address from the tile_index and the flag BG and Window tile data area
+///
+/// Information from:
+/// * https://gbdev.io/pandocs/LCDC.html#lcdc4--bg-and-window-tile-data-area
+/// * https://gbdev.io/pandocs/Tile_Data.html
+fn get_tile_address(mut tile_index: usize, tile_data_area: u8) -> usize {
+    let offset = if tile_data_area == 0 {
+        // Convert 128 - 255 followed by 0-127 mapping to 0-255 mapping
+        tile_index = (tile_index + 128) % 256;
+        TILE_BLOCK_1_OFFSET
+    } else {
+        0
+    };
+
+    return offset + (tile_index * TILE_SIZE);
+}
+
+/// Returns the color index of the pixel at coordinate x, y on the tile
+///
+/// Information from https://gbdev.io/pandocs/Tile_Data.html
+pub fn get_pixel_value_from_tile(vram: &[u8], tile_address: usize, x: usize, y: usize) -> u8 {
+    // Information from https://gbdev.io/pandocs/Tile_Data.html#vram-tile-data
+    let low_bits = vram[tile_address + y * 2];
+    let high_bits = vram[tile_address + y * 2 + 1];
+
+    let low_bit = (low_bits >> (7 -x)) & 0b1;
+    let high_bit = (high_bits >> (7 -x)) & 0b1;
+    (high_bit << 1) + low_bit
 }
 
 pub struct Sdl2Gui<'a> {
@@ -44,9 +140,49 @@ impl<'a> Sdl2Gui<'a> {
         }
     }
 
-    fn render_background_window(&mut self, video: &VideoController) -> [u8; SCREEN_WIDTH as usize] {
+    fn render_background_window(&mut self, video: &VideoController) {
+        // Information from: https://gbdev.io/pandocs/pixel_fifo.html#get-tile
+        let y = (video.coordinate_y - 1) as usize;
+        for x in 0..(SCREEN_WIDTH as usize) {
+            let color = if video.control.read_window_enable() != 0 {
+                self.get_window_pixel(video, x, y)
+            } else if video.control.read_bg_window_enable() != 0 {
+                self.get_background_pixel(video, x, y)
+            } else {
+                WHITE
+            };
+            self.write_pixel(x, y, &color);
+        }
+    }
+
+    fn get_window_pixel(&mut self, video: &VideoController, x: usize, y: usize) -> Color {
         // TODO: implement
-        [0; SCREEN_WIDTH as usize]
+        let tile_offset = get_vram_tile_offset_from_area(video.control.read_window_tile_map_area());
+        WHITE
+    }
+
+    fn get_background_pixel(&mut self, video: &VideoController, x: usize, y: usize) -> Color {
+        let tile_map_offset = get_vram_tile_offset_from_area(video.control.read_bg_tile_map_area());
+        let background_x = video.scroll_x as usize + x;
+        let background_y = video.scroll_y as usize + y;
+
+        let tile_map_x = background_x / 8;
+        let tile_map_y = background_y / 8;
+
+        let tile_map_index =
+            ((tile_map_y * 32) % TILE_MAP_TOTAL_SIZE) + (tile_map_x % TILE_MAP_WIDTH);
+
+        let tile_index = video.vram[tile_map_offset + tile_map_index];
+        let tile_address = get_tile_address(
+            tile_index as usize,
+            video.control.read_bg_window_tile_data_area(),
+        );
+
+        let tile_x = background_x % 8;
+        let tile_y = background_y % 8;
+        let color_index = get_pixel_value_from_tile(&video.vram, tile_address, tile_x, tile_y);
+
+        get_non_cgb_color(color_index)
     }
 
     fn render_sprites(&mut self, video: &VideoController) {
@@ -74,9 +210,7 @@ impl<'a> VideoRenderer for Sdl2Gui<'a> {
             return;
         }
 
-        if video.control.read_window_enable() != 0 {
-            self.render_background_window(video);
-        }
+        self.render_background_window(video);
         if video.control.read_obj_enable() != 0 {
             self.render_sprites(video);
         }
@@ -84,7 +218,6 @@ impl<'a> VideoRenderer for Sdl2Gui<'a> {
 
     fn update_frame(&mut self) {
         self.canvas.clear();
-
         let screen = create_screen_rect();
         self.texture
             .update(screen, &self.pixels, SCREEN_WIDTH_BYTES)
