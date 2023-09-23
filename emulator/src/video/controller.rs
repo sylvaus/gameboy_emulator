@@ -341,6 +341,8 @@ mod tests {
     fn update_cycles_through_modes() {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         // Mode 2  2_____2_____2_____2_____2_____2___________________2____
         // Mode 3  _33____33____33____33____33____33__________________3___
@@ -370,6 +372,8 @@ mod tests {
     fn vblank_interrupt_is_triggered() {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         for _ in 0..143 {
             assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
@@ -393,6 +397,8 @@ mod tests {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
         controller.status.write_mode0_interrupt_source(1);
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         for i in 0..=143 {
             assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
@@ -415,6 +421,8 @@ mod tests {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
         controller.status.write_mode1_interrupt_source(1);
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         for i in 0..=143 {
             assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
@@ -438,6 +446,8 @@ mod tests {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
         controller.status.write_mode2_interrupt_source(1);
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         for i in 0..=143 {
             assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
@@ -463,6 +473,8 @@ mod tests {
         controller.control.write_lcd_enable(1);
         controller.status.write_enable_lyc_stat_interrupt(1);
         controller.compare_y = 125;
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         for i in 0..=143 {
             assert_eq!(controller.update(MODE_2_SEARCH_OAM_CYCLES).len(), 0);
@@ -501,6 +513,8 @@ mod tests {
     fn disabling_lcd_reset_coordinate_and_mode() {
         let mut controller = VideoController::new();
         controller.control.write_lcd_enable(1);
+        controller.update_mode(MODE_2_SEARCH_OAM);
+        controller.init();
 
         for _ in 0..=3 {
             controller.update(MODE_2_SEARCH_OAM_CYCLES);
@@ -514,7 +528,7 @@ mod tests {
         controller.control.write_lcd_enable(0);
 
         controller.update(1);
-        assert_eq!(controller.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
+        assert_eq!(controller.status.read_mode(), MODE_0_HBLANK_VALUE);
         assert_eq!(controller.coordinate_y, 0);
     }
 }
