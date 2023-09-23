@@ -28,8 +28,8 @@ impl NoMemoryBankController {
 }
 
 impl MemoryBankController for NoMemoryBankController {
-    fn write_rom(&mut self, address: u16, value: u8) {
-        self.rom[address as usize] = value;
+    fn write_rom(&mut self, _address: u16, _value: u8) {
+        // Rom is read only.
     }
 
     fn read_rom(&self, address: u16) -> u8 {
