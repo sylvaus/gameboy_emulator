@@ -2,6 +2,7 @@ use crate::gui::Gui;
 use crate::joypad::{InputProvider, JoypadInput};
 use crate::video::controller::VideoController;
 use crate::video::renderer::{VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::video::sprites::{get_intersected_sprites, SPRITE_Y_OFFSET, SpriteSize};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum::ARGB8888;
@@ -9,6 +10,7 @@ use sdl2::rect::Rect;
 use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::video::WindowContext;
 use sdl2::{EventPump, Sdl};
+use std::cmp::min;
 
 const INIT_SCALE: u32 = 3;
 
@@ -63,8 +65,10 @@ struct Color {
 }
 
 /// Information from https://gbdev.io/pandocs/Palettes.html#ff47--bgp-non-cgb-mode-only-bg-palette-data
-fn get_non_cgb_color(index: u8) -> Color {
-    match index {
+fn get_non_cgb_color(index: u8, palette: u8) -> Color {
+    let color = (palette >> (index * 2)) & 0b11;
+
+    match color {
         0 => WHITE,
         1 => LIGHT_GRAY,
         2 => DARK_GRAY,
@@ -184,11 +188,51 @@ impl<'a> Sdl2Gui<'a> {
         let tile_y = background_y % 8;
         let color_index = get_pixel_value_from_tile(&video.vram, tile_address, tile_x, tile_y);
 
-        get_non_cgb_color(color_index)
+        get_non_cgb_color(color_index, video.bg_palette_data.value)
     }
 
     fn render_sprites(&mut self, video: &VideoController) {
-        // TODO: implement
+        let y = (video.coordinate_y - 1) as usize;
+
+        // Information from: https://gbdev.io/pandocs/LCDC.html#lcdc2--obj-size
+        let object_size = if video.control.read_obj_size() == 1 {
+            SpriteSize::Size8x16
+        } else {
+            SpriteSize::Size8x8
+        };
+
+        let mut sprites = get_intersected_sprites(&video.oam, y, object_size);
+        // Information from: https://gbdev.io/pandocs/OAM.html#drawing-priority
+        sprites.sort_by_key(|sprite| sprite.x);
+
+        let mut y_colors: [Option<Color>; SCREEN_WIDTH as usize] = [None; SCREEN_WIDTH as usize];
+        for sprite in sprites.iter().rev() {
+            let tile_address = sprite.get_tile_address();
+            let palette = match sprite.read_non_cgb_palette() {
+                0 => video.obj_palette_data_0,
+                1 => video.obj_palette_data_1,
+                _ => panic!("This should never happen.")
+            };
+            let min_x: usize = 8usize.saturating_sub(sprite.x);
+            let max_x = min(8usize, (SCREEN_WIDTH as usize).saturating_sub(sprite.x));
+            let tile_y = (y + SPRITE_Y_OFFSET) - sprite.y;
+
+            for tile_x in min_x..max_x {
+                let color_index = get_pixel_value_from_tile(&video.vram, tile_address, tile_x, tile_y);
+                let color = if color_index == 0 {
+                    None
+                } else {
+                    Some(get_non_cgb_color(color_index, palette.value))
+                };
+                y_colors[(sprite.x + tile_x) - 8] = color;
+            }
+        }
+
+        for (x, color) in y_colors.iter().enumerate() {
+            if let Some(color) = color {
+                self.write_pixel(x, y, &color);
+            }
+        }
     }
 
     fn write_pixel(&mut self, x: usize, y: usize, color: &Color) {
