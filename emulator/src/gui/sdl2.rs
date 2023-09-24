@@ -1,5 +1,5 @@
 use crate::gui::Gui;
-use crate::joypad::{InputProvider, JoypadInput};
+use crate::joypad::{InputProvider, JoypadInput, JoypadState};
 use crate::video::controller::VideoController;
 use crate::video::renderer::{VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::video::sprite::{
@@ -90,6 +90,7 @@ pub struct Sdl2Gui<'a> {
 
     // Input fields
     events: EventPump,
+    joypad: JoypadState,
     quit_pressed: bool,
 }
 
@@ -100,6 +101,7 @@ impl<'a> Sdl2Gui<'a> {
             texture,
             pixels: [0; NB_PIXELS],
             events,
+            joypad: JoypadState::default(),
             quit_pressed: false,
         }
     }
@@ -246,11 +248,24 @@ impl<'a> InputProvider for Sdl2Gui<'a> {
                 _ => {}
             }
         }
+        let keys: Vec<Keycode> = self.events
+            .keyboard_state()
+            .pressed_scancodes()
+            .filter_map(Keycode::from_scancode)
+            .collect();
+
+        self.joypad.right = keys.contains(&Keycode::Right);
+        self.joypad.left = keys.contains(&Keycode::Left);
+        self.joypad.down = keys.contains(&Keycode::Down);
+        self.joypad.up = keys.contains(&Keycode::Up);
+        self.joypad.a = keys.contains(&Keycode::Q);
+        self.joypad.b = keys.contains(&Keycode::W);
+        self.joypad.select = keys.contains(&Keycode::RShift);
+        self.joypad.start = keys.contains(&Keycode::Return);
     }
 
-    fn set_inputs(&self, input: &mut JoypadInput) -> bool {
-        // TODO: implement
-        false
+    fn get_inputs(&self) -> JoypadState {
+        self.joypad.clone()
     }
 
     fn is_quit_pressed(&self) -> bool {

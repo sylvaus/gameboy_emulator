@@ -93,9 +93,9 @@ where
             self.gui.update_frame();
             /// Only update the inputs when a frame is completed to avoid polling too often.
             self.gui.update_inputs();
-            if self.gui.set_inputs(&mut self.memory.joypad) {
-                self.memory.set_interrupt_flag(Interrupt::Joypad)
-            }
+        }
+        if self.memory.joypad.write_state(&self.gui.get_inputs()) {
+            self.memory.set_interrupt_flag(Interrupt::Joypad);
         }
         nb_cycles
     }
