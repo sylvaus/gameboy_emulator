@@ -1,4 +1,5 @@
 use macros::BitAccessor;
+use crate::video::tile::get_pixel_value_from_tile;
 
 /// Information from: https://gbdev.io/pandocs/OAM.html
 pub const NB_SPRITES: usize = 40;
@@ -75,4 +76,16 @@ pub fn get_intersected_sprites(oam: &[u8], mut y: usize, size: SpriteSize) -> Ve
     }
 
     sprites
+}
+
+pub fn get_pixel_value_from_sprite(vram: &[u8], sprite: &Sprite, mut x: usize, mut y: usize) -> u8 {
+    let tile_address = sprite.get_tile_address();
+    if sprite.read_x_flip() == 1 {
+        x =  8 - x;
+    }
+    if sprite.read_y_flip() == 1 {
+        y = sprite.size.get_tile_size() - y;
+    }
+
+    get_pixel_value_from_tile(vram, tile_address, x, y)
 }

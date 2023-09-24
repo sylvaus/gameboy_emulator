@@ -2,7 +2,12 @@ use crate::gui::Gui;
 use crate::joypad::{InputProvider, JoypadInput};
 use crate::video::controller::VideoController;
 use crate::video::renderer::{VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::video::sprites::{get_intersected_sprites, SPRITE_Y_OFFSET, SpriteSize};
+use crate::video::sprite::{
+    get_intersected_sprites, get_pixel_value_from_sprite, SpriteSize, SPRITE_Y_OFFSET,
+};
+use crate::video::tile::{
+    get_pixel_value_from_tile, get_tile_address, get_vram_tile_offset_from_area,
+};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum::ARGB8888;
@@ -22,10 +27,6 @@ const NB_PIXELS: usize = ((SCREEN_WIDTH * SCREEN_HEIGHT) as usize) * NB_BYTES_PE
 const TILE_MAP_WIDTH: usize = 32;
 const TILE_MAP_HEIGHT: usize = 32;
 const TILE_MAP_TOTAL_SIZE: usize = TILE_MAP_WIDTH * TILE_MAP_HEIGHT;
-
-/// Information from: https://gbdev.io/pandocs/Tile_Data.html#vram-tile-data
-const TILE_SIZE: usize = 16;
-const TILE_BLOCK_1_OFFSET: usize = 0x800;
 
 /// Information from https://gbdev.io/pandocs/Palettes.html#ff47--bgp-non-cgb-mode-only-bg-palette-data
 const WHITE: Color = Color {
@@ -78,49 +79,6 @@ fn get_non_cgb_color(index: u8, palette: u8) -> Color {
             index
         ),
     }
-}
-
-/// Returns the offset from the start of the VRAM memory area based on the bit value given
-///
-/// Information from:
-/// * https://gbdev.io/pandocs/LCDC.html#lcdc6--window-tile-map-area
-/// * https://gbdev.io/pandocs/LCDC.html#lcdc3--bg-tile-map-area
-fn get_vram_tile_offset_from_area(bit_value: u8) -> usize {
-    if bit_value > 0 {
-        0x1C00 // 0x9C00 - 0x8000
-    } else {
-        0x1800 // 0x9800 - 0x8000
-    }
-}
-
-/// Returns the tile address from the tile_index and the flag BG and Window tile data area
-///
-/// Information from:
-/// * https://gbdev.io/pandocs/LCDC.html#lcdc4--bg-and-window-tile-data-area
-/// * https://gbdev.io/pandocs/Tile_Data.html
-fn get_tile_address(mut tile_index: usize, tile_data_area: u8) -> usize {
-    let offset = if tile_data_area == 0 {
-        // Convert 128 - 255 followed by 0-127 mapping to 0-255 mapping
-        tile_index = (tile_index + 128) % 256;
-        TILE_BLOCK_1_OFFSET
-    } else {
-        0
-    };
-
-    return offset + (tile_index * TILE_SIZE);
-}
-
-/// Returns the color index of the pixel at coordinate x, y on the tile
-///
-/// Information from https://gbdev.io/pandocs/Tile_Data.html
-pub fn get_pixel_value_from_tile(vram: &[u8], tile_address: usize, x: usize, y: usize) -> u8 {
-    // Information from https://gbdev.io/pandocs/Tile_Data.html#vram-tile-data
-    let low_bits = vram[tile_address + y * 2];
-    let high_bits = vram[tile_address + y * 2 + 1];
-
-    let low_bit = (low_bits >> (7 - x)) & 0b1;
-    let high_bit = (high_bits >> (7 - x)) & 0b1;
-    (high_bit << 1) + low_bit
 }
 
 pub struct Sdl2Gui<'a> {
@@ -207,24 +165,24 @@ impl<'a> Sdl2Gui<'a> {
 
         let mut y_colors: [Option<Color>; SCREEN_WIDTH as usize] = [None; SCREEN_WIDTH as usize];
         for sprite in sprites.iter().rev() {
-            let tile_address = sprite.get_tile_address();
             let palette = match sprite.read_non_cgb_palette() {
                 0 => video.obj_palette_data_0,
                 1 => video.obj_palette_data_1,
-                _ => panic!("This should never happen.")
+                _ => panic!("This should never happen."),
             };
             let min_x: usize = 8usize.saturating_sub(sprite.x);
             let max_x = min(8usize, (SCREEN_WIDTH as usize).saturating_sub(sprite.x));
-            let tile_y = (y + SPRITE_Y_OFFSET) - sprite.y;
+            let sprite_y = (y + SPRITE_Y_OFFSET) - sprite.y;
 
-            for tile_x in min_x..max_x {
-                let color_index = get_pixel_value_from_tile(&video.vram, tile_address, tile_x, tile_y);
+            for sprite_x in min_x..max_x {
+                let color_index =
+                    get_pixel_value_from_sprite(&video.vram, sprite, sprite_x, sprite_y);
                 let color = if color_index == 0 {
                     None
                 } else {
                     Some(get_non_cgb_color(color_index, palette.value))
                 };
-                y_colors[(sprite.x + tile_x) - 8] = color;
+                y_colors[(sprite.x + sprite_x) - 8] = color;
             }
         }
 
