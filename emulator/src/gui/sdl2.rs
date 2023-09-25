@@ -1,7 +1,7 @@
 use crate::gui::Gui;
 use crate::joypad::{InputProvider, JoypadInput, JoypadState};
-use crate::video::controller::VideoController;
-use crate::video::renderer::{VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::video::controller::{MonochromePalette, VideoController};
+use crate::video::renderer::{VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH, WINDOW_X_OFFSET};
 use crate::video::sprite::{
     get_intersected_sprites, get_pixel_value_from_sprite, SpriteSize, SPRITE_Y_OFFSET,
 };
@@ -87,6 +87,7 @@ pub struct Sdl2Gui<'a> {
     canvas: &'a mut WindowCanvas,
     texture: Texture<'a>,
     pixels: [u8; NB_PIXELS],
+    window_y: usize,
 
     // Input fields
     events: EventPump,
@@ -100,40 +101,77 @@ impl<'a> Sdl2Gui<'a> {
             canvas,
             texture,
             pixels: [0; NB_PIXELS],
+            window_y: 0,
             events,
             joypad: JoypadState::default(),
             quit_pressed: false,
         }
     }
 
+    fn render_blank(&mut self, video: &VideoController) {
+        let y = (video.coordinate_y - 1) as usize;
+        for x in 0..(SCREEN_WIDTH as usize) {
+            self.write_pixel(x, y, &WHITE);
+        }
+    }
+
     fn render_background_window(&mut self, video: &VideoController) {
         // Information from: https://gbdev.io/pandocs/pixel_fifo.html#get-tile
         let y = (video.coordinate_y - 1) as usize;
+        // Information from: https://gbdev.io/pandocs/Scrolling.html#ff4aff4b--wy-wx-window-y-position-x-position-plus-7
+        let window_enabled = (video.control.read_window_enable() != 0)
+            && ((video.window_position_y as u32) < SCREEN_HEIGHT)
+            && ((video.window_position_x as u32) < (SCREEN_WIDTH + WINDOW_X_OFFSET as u32))
+            && (6 < video.window_position_x); // 0-6 are not valid values: page 30 https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
+        let window_enabled_for_y = window_enabled && ((video.window_position_y as usize) <= y);
+        let background_enabled = video.control.read_bg_window_enable() != 0;
+
         for x in 0..(SCREEN_WIDTH as usize) {
-            let color = if video.control.read_window_enable() != 0 {
-                self.get_window_pixel(video, x, y)
-            } else if video.control.read_bg_window_enable() != 0 {
-                self.get_background_pixel(video, x, y)
+            let window_x = (video.window_position_x as usize).saturating_sub(WINDOW_X_OFFSET);
+            let color = if window_enabled_for_y && (window_x <= x) {
+                self.get_window_pixel(video, x - window_x, self.window_y)
+            } else if background_enabled {
+                self.get_background_pixel(
+                    video,
+                    x + video.scroll_x as usize,
+                    y + video.scroll_y as usize,
+                )
             } else {
                 WHITE
             };
             self.write_pixel(x, y, &color);
         }
+
+        if window_enabled {
+            self.window_y += 1;
+            if self.window_y == SCREEN_HEIGHT as usize {
+                self.window_y = 0;
+            }
+        }
     }
 
     fn get_window_pixel(&mut self, video: &VideoController, x: usize, y: usize) -> Color {
-        // TODO: implement
-        let tile_offset = get_vram_tile_offset_from_area(video.control.read_window_tile_map_area());
-        WHITE
+        let tile_map_offset =
+            get_vram_tile_offset_from_area(video.control.read_window_tile_map_area());
+
+        self.get_tile_pixel(video, x, y, tile_map_offset)
     }
 
     fn get_background_pixel(&mut self, video: &VideoController, x: usize, y: usize) -> Color {
         let tile_map_offset = get_vram_tile_offset_from_area(video.control.read_bg_tile_map_area());
-        let background_x = video.scroll_x as usize + x;
-        let background_y = video.scroll_y as usize + y;
 
-        let tile_map_x = background_x / 8;
-        let tile_map_y = background_y / 8;
+        self.get_tile_pixel(video, x, y, tile_map_offset)
+    }
+
+    fn get_tile_pixel(
+        &mut self,
+        video: &VideoController,
+        x: usize,
+        y: usize,
+        tile_map_offset: usize,
+    ) -> Color {
+        let tile_map_x = x / 8;
+        let tile_map_y = y / 8;
 
         let tile_map_index =
             ((tile_map_y * 32) % TILE_MAP_TOTAL_SIZE) + (tile_map_x % TILE_MAP_WIDTH);
@@ -144,8 +182,8 @@ impl<'a> Sdl2Gui<'a> {
             video.control.read_bg_window_tile_data_area(),
         );
 
-        let tile_x = background_x % 8;
-        let tile_y = background_y % 8;
+        let tile_x = x % 8;
+        let tile_y = y % 8;
         let color_index = get_pixel_value_from_tile(&video.vram, tile_address, tile_x, tile_y);
 
         get_non_cgb_color(color_index, video.bg_palette_data.value)
@@ -216,7 +254,11 @@ impl<'a> VideoRenderer for Sdl2Gui<'a> {
             return;
         }
 
-        self.render_background_window(video);
+        if video.control.read_bg_window_enable() != 0 {
+            self.render_background_window(video);
+        } else {
+            self.render_blank(video);
+        }
         if video.control.read_obj_enable() != 0 {
             self.render_sprites(video);
         }
@@ -248,7 +290,8 @@ impl<'a> InputProvider for Sdl2Gui<'a> {
                 _ => {}
             }
         }
-        let keys: Vec<Keycode> = self.events
+        let keys: Vec<Keycode> = self
+            .events
             .keyboard_state()
             .pressed_scancodes()
             .filter_map(Keycode::from_scancode)
