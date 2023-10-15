@@ -6,7 +6,7 @@ use crate::video::tile::{
     get_pixel_value_from_tile, get_tile_address, get_vram_tile_offset_from_area,
 };
 use std::cmp::min;
-use std::marker::PhantomData;
+
 
 pub const SCREEN_WIDTH: u32 = 160;
 pub const SCREEN_HEIGHT: u32 = 144;

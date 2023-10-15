@@ -1,6 +1,6 @@
 use crate::cartridge::load_cartridge;
 use crate::emulator::Emulator;
-use crate::gui::sdl2::{Sdl2Gui, Sdl2GuiProvider};
+use crate::gui::sdl2::{Sdl2GuiProvider};
 use crate::logging::init_log;
 use clap::Parser;
 use log::Level;

@@ -58,7 +58,7 @@ impl JoypadInput {
     pub fn write(&mut self, value: u8) {
         // Only set the control bits, the 4 lower bits are read only
         self.value &= JOYPAD_INPUT_READ_ONLY_MASK;
-        self.value |= (value & JOYPAD_INPUT_WRITE_ONLY_MASK);
+        self.value |= value & JOYPAD_INPUT_WRITE_ONLY_MASK;
     }
 
     pub fn read(self) -> u8 {
