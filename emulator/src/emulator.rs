@@ -14,7 +14,7 @@ use crate::serial::SerialTransfer;
 use crate::sound::SoundController;
 use crate::timer::Timer;
 use crate::video::controller::VideoController;
-use crate::video::renderer::VideoRenderer;
+use crate::video::renderer::{CoreNonCgbRenderer, Screen};
 use std::convert::Into;
 use std::ops::Div;
 use std::thread::sleep;
@@ -26,6 +26,7 @@ const CPU_FREQUENCY: u32 = 1 << 22;
 pub struct Emulator<GuiImpl> {
     memory: GBMemory,
     registers: Registers,
+    renderer: CoreNonCgbRenderer,
     gui: GuiImpl,
 }
 
@@ -52,6 +53,7 @@ where
         Self {
             memory,
             registers,
+            renderer: CoreNonCgbRenderer::new(),
             gui,
         }
     }
@@ -87,7 +89,9 @@ where
 
         self.memory.update(nb_cycles);
         if self.memory.video.should_scanline() {
-            self.gui.scanline(&self.memory.video);
+            self.renderer.scanline(&self.memory.video, |x, y, color| {
+                self.gui.write_pixel(x, y, color)
+            });
         }
         if self.memory.video.should_update_frame() {
             self.gui.update_frame();

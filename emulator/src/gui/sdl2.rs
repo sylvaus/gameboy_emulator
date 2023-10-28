@@ -2,7 +2,7 @@ use crate::gui::Gui;
 use crate::joypad::{InputProvider, JoypadState};
 use crate::video::controller::VideoController;
 use crate::video::renderer::{
-    Color, CoreNonCgbRenderer, VideoRenderer, SCREEN_HEIGHT, SCREEN_WIDTH
+    Color, CoreNonCgbRenderer, Screen, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -22,7 +22,6 @@ pub struct Sdl2Gui<'a> {
     // TODO: split graphic and input into two sub structs
     // Graphic Fields
     screen: Sdl2Screen<'a>,
-    renderer: CoreNonCgbRenderer,
 
     // Input fields
     events: EventPump,
@@ -34,7 +33,6 @@ impl<'a> Sdl2Gui<'a> {
     pub fn new(canvas: &'a mut WindowCanvas, texture: Texture<'a>, events: EventPump) -> Self {
         Self {
             screen: Sdl2Screen::new(canvas, texture),
-            renderer: CoreNonCgbRenderer::new(),
             events,
             joypad: JoypadState::default(),
             quit_pressed: false,
@@ -44,11 +42,9 @@ impl<'a> Sdl2Gui<'a> {
 
 impl<'a> Gui for Sdl2Gui<'a> {}
 
-impl<'a> VideoRenderer for Sdl2Gui<'a> {
-    fn scanline(&mut self, video: &VideoController) {
-        let screen = &mut self.screen;
-        self.renderer
-            .scanline(video, |x, y, color| screen.write_pixel(x, y, color))
+impl<'a> Screen for Sdl2Gui<'a> {
+    fn write_pixel(&mut self, x: usize, y: usize, color: &Color) {
+        self.screen.write_pixel(x, y, color);
     }
 
     fn update_frame(&mut self) {
