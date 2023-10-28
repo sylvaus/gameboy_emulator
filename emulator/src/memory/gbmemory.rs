@@ -2,7 +2,7 @@ use crate::interrupts::{Interrupt, ALL_INTERRUPTS};
 use crate::joypad::{JoypadInput, JOYPAD_INPUT_ADDRESS};
 use crate::memory::cgb::{CGBRegisters, INFRARED_CONTROL_ADDRESS, KEY_1_ADDRESS};
 use crate::memory::mbc::interface::{
-    MemoryBankController, EXT_RAM_END_ADDRESS, EXT_RAM_START_ADDRESS, ROM_END_ADDRESS,
+    MemoryBankController, EXT_RAM_END_ADDRESS, EXT_RAM_START_ADDRESS, ROM_BANK_1_N_END_ADDRESS,
     ROM_START_ADDRESS,
 };
 use crate::memory::ram::{
@@ -204,7 +204,7 @@ impl GBMemory {
 impl Memory for GBMemory {
     fn read(&self, address: u16) -> u8 {
         match address {
-            ROM_START_ADDRESS..=ROM_END_ADDRESS => self.mbc.read_rom(address),
+            ROM_START_ADDRESS..=ROM_BANK_1_N_END_ADDRESS => self.mbc.read_rom(address),
             VRAM_START_ADDRESS..=VRAM_END_ADDRESS => self.video.read_vram(address),
             EXT_RAM_START_ADDRESS..=EXT_RAM_END_ADDRESS => self.mbc.read_ext_ram(address),
             WORK_RAM_START_ADDRESS..=WORK_RAM_END_ADDRESS => self.ram.read_work_ram(address),
@@ -229,7 +229,7 @@ impl Memory for GBMemory {
 
     fn write(&mut self, address: u16, value: u8) {
         match address {
-            ROM_START_ADDRESS..=ROM_END_ADDRESS => self.mbc.write_rom(address, value),
+            ROM_START_ADDRESS..=ROM_BANK_1_N_END_ADDRESS => self.mbc.write_rom(address, value),
             VRAM_START_ADDRESS..=VRAM_END_ADDRESS => self.video.write_vram(address, value),
             EXT_RAM_START_ADDRESS..=EXT_RAM_END_ADDRESS => self.mbc.write_ext_ram(address, value),
             WORK_RAM_START_ADDRESS..=WORK_RAM_END_ADDRESS => {

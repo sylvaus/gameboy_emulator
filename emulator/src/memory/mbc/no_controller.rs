@@ -1,4 +1,4 @@
-use crate::memory::mbc::interface::{MemoryBankController, EXT_RAM_START_ADDRESS};
+use crate::memory::mbc::interface::{MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_SIZE};
 use std::fs::File;
 use std::io::{BufReader, Read, Seek};
 
@@ -15,14 +15,14 @@ impl NoMemoryBankController {
         rom_reader
             .rewind()
             .map_err(|e| format!("Could not rewind the reader {:?}", e))?;
-        let mut rom = vec![0; 0x8000];
+        let mut rom = vec![0; 2 * ROM_BANK_SIZE];
         rom_reader
             .read_exact(&mut rom)
             .map_err(|e| format!("Could not get the rom data {:?}", e))?;
 
         Ok(Box::new(Self {
             rom,
-            ram: vec![0; num_ram_banks * 0x8000],
+            ram: vec![0; num_ram_banks * RAM_BANK_SIZE],
         }))
     }
 }
