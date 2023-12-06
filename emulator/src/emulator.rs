@@ -2,7 +2,7 @@ use crate::cartridge::Cartridge;
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::gui::Gui;
 use crate::interrupts::Interrupt;
-use crate::joypad::{InputProvider, JoypadInput};
+use crate::joypad::{InputProvider, JoypadInput, JoypadState};
 use crate::memory::argument::Argument;
 use crate::memory::cgb::CGBRegisters;
 use crate::memory::gbmemory::GBMemory;
@@ -14,27 +14,25 @@ use crate::serial::SerialTransfer;
 use crate::sound::SoundController;
 use crate::timer::Timer;
 use crate::video::controller::VideoController;
-use crate::video::renderer::{CoreNonCgbRenderer, Screen};
+use crate::video::renderer::{Color, CoreNonCgbRenderer, Screen};
 use std::convert::Into;
 use std::ops::Div;
-use std::thread::sleep;
+use std::sync::{mpsc, Arc, Condvar, Mutex};
+use std::thread;
+use std::thread::{sleep, JoinHandle};
 use std::time::Duration;
 use std::time::Instant;
 
 const CPU_FREQUENCY: u32 = 1 << 22;
 
-pub struct Emulator<GuiImpl> {
+pub struct EmulatorState {
     memory: GBMemory,
     registers: Registers,
     renderer: CoreNonCgbRenderer,
-    gui: GuiImpl,
 }
 
-impl<GuiImpl> Emulator<GuiImpl>
-where
-    GuiImpl: Gui,
-{
-    pub fn new(cartridge: Cartridge, gui: GuiImpl) -> Self {
+impl EmulatorState {
+    pub fn new(cartridge: Cartridge) -> Self {
         let mut memory = GBMemory::new(
             cartridge.memory_controller,
             VideoController::new(),
@@ -54,98 +52,248 @@ where
             memory,
             registers,
             renderer: CoreNonCgbRenderer::new(),
-            gui,
         }
-    }
-
-    pub fn run(&mut self) {
-        while !self.gui.is_quit_pressed() {
-            let start_time = Instant::now();
-
-            let nb_cycles = self.update();
-
-            let expected_time = Duration::from_secs(nb_cycles).div(CPU_FREQUENCY);
-            let time_left = expected_time.saturating_sub(Instant::now().duration_since(start_time));
-            if time_left > Duration::from_millis(1) {
-                sleep(time_left);
-            }
-        }
-    }
-
-    pub fn update(&mut self) -> u64 {
-        let mut nb_cycles = 0u64;
-        if self.registers.ime_flag {
-            if let Some(interrupt) = self.memory.get_enabled_interrupt() {
-                nb_cycles += self.handle_interrupt(interrupt);
-            }
-        }
-
-        if !(self.registers.halted && self.registers.ime_flag) {
-            nb_cycles += self.fetch_and_execute();
-        } else {
-            // TODO: add handling when ime_flag is false and halted.
-            nb_cycles += 4; // TODO: confirm the number of cycles to spend during halt
-        }
-
-        self.memory.update(nb_cycles);
-        if self.memory.video.should_scanline() {
-            self.renderer.scanline(&self.memory.video, |x, y, color| {
-                self.gui.write_pixel(x, y, color)
-            });
-        }
-        if self.memory.video.should_update_frame() {
-            self.gui.update_frame();
-            /// Only update the inputs when a frame is completed to avoid polling too often.
-            self.gui.update_inputs();
-        }
-        if self.memory.joypad.write_state(&self.gui.get_inputs()) {
-            self.memory.set_interrupt_flag(Interrupt::Joypad);
-        }
-        nb_cycles
-    }
-
-    pub fn handle_interrupt(&mut self, interrupt: Interrupt) -> u64 {
-        // Information from: https://gbdev.io/pandocs/Interrupts.html#interrupt-handling
-        // step 1: Reset ime flag and interrupt flag
-        self.registers.ime_flag = false;
-        self.memory.reset_interrupt_flag(interrupt);
-
-        // step 2: push program counter on the stack and jump to interrupt address
-        self.memory.write(
-            self.registers.sp - 1u16,
-            ((self.registers.pc >> 8u16) & 0xFFu16) as u8,
-        );
-        self.memory.write(
-            self.registers.sp - 2u16,
-            (self.registers.pc & 0xFFu16) as u8,
-        );
-        self.registers.sp = self.registers.sp - 2u16;
-        self.registers.pc = interrupt.get_address();
-
-        // 5 M-cycles
-        20
-    }
-
-    pub fn fetch_and_execute(&mut self) -> u64 {
-        let mut opcode: u16 = self.memory.read(self.registers.pc).into();
-        let mut argument_pc = self.registers.pc + 1;
-        if opcode == 0xCB {
-            opcode = 0x100u16 + self.memory.read(self.registers.pc + 1) as u16;
-            argument_pc += 1;
-        }
-
-        let (instruction, argument_type) = get_instruction(opcode);
-        let argument = match argument_type {
-            ImmediateArgumentType::None => Argument::new_empty(),
-            ImmediateArgumentType::Unsigned8Bits => Argument::new_u8(self.memory.read(argument_pc)),
-            ImmediateArgumentType::Signed8Bits => {
-                Argument::new_i8(self.memory.read_signed(argument_pc))
-            }
-            ImmediateArgumentType::Unsigned16Bits => {
-                Argument::new_u16(self.memory.read_16_bits(argument_pc))
-            }
-        };
-
-        instruction(&mut self.registers, &mut self.memory, &argument)
     }
 }
+
+pub fn run(state: &mut EmulatorState, gui: &mut impl Gui) {
+    while !gui.should_quit() {
+        let start_time = Instant::now();
+
+        let nb_cycles = update_next_instruction(state, gui);
+
+        let expected_time = Duration::from_secs(nb_cycles).div(CPU_FREQUENCY);
+        let time_left = expected_time.saturating_sub(Instant::now().duration_since(start_time));
+        if time_left > Duration::from_millis(1) {
+            sleep(time_left);
+        }
+    }
+}
+
+pub fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> u64 {
+    let mut nb_cycles = 0u64;
+    if state.registers.ime_flag {
+        if let Some(interrupt) = state.memory.get_enabled_interrupt() {
+            nb_cycles += handle_interrupt(state, interrupt);
+        }
+    }
+
+    if !(state.registers.halted && state.registers.ime_flag) {
+        nb_cycles += fetch_and_execute(state);
+    } else {
+        // TODO: add handling when ime_flag is false and halted.
+        nb_cycles += 4; // TODO: confirm the number of cycles to spend during halt
+    }
+
+    state.memory.update(nb_cycles);
+    if state.memory.video.should_scanline() {
+        state.renderer.scanline(&state.memory.video, |x, y, color| {
+            gui.write_pixel(x, y, color)
+        });
+    }
+    if state.memory.video.should_update_frame() {
+        gui.update_frame();
+        /// Only update the inputs when a frame is completed to avoid polling too often.
+        gui.update_inputs();
+    }
+    if state.memory.joypad.write_state(&gui.get_inputs()) {
+        state.memory.set_interrupt_flag(Interrupt::Joypad);
+    }
+    nb_cycles
+}
+
+fn handle_interrupt(state: &mut EmulatorState, interrupt: Interrupt) -> u64 {
+    // Information from: https://gbdev.io/pandocs/Interrupts.html#interrupt-handling
+    // step 1: Reset ime flag and interrupt flag
+    state.registers.ime_flag = false;
+    state.memory.reset_interrupt_flag(interrupt);
+
+    // step 2: push program counter on the stack and jump to interrupt address
+    state.memory.write(
+        state.registers.sp - 1u16,
+        ((state.registers.pc >> 8u16) & 0xFFu16) as u8,
+    );
+    state.memory.write(
+        state.registers.sp - 2u16,
+        (state.registers.pc & 0xFFu16) as u8,
+    );
+    state.registers.sp = state.registers.sp - 2u16;
+    state.registers.pc = interrupt.get_address();
+
+    // 5 M-cycles
+    20
+}
+
+fn fetch_and_execute(state: &mut EmulatorState) -> u64 {
+    let mut opcode: u16 = state.memory.read(state.registers.pc).into();
+    let mut argument_pc = state.registers.pc + 1;
+    if opcode == 0xCB {
+        opcode = 0x100u16 + state.memory.read(state.registers.pc + 1) as u16;
+        argument_pc += 1;
+    }
+
+    let (instruction, argument_type) = get_instruction(opcode);
+    let argument = match argument_type {
+        ImmediateArgumentType::None => Argument::new_empty(),
+        ImmediateArgumentType::Unsigned8Bits => Argument::new_u8(state.memory.read(argument_pc)),
+        ImmediateArgumentType::Signed8Bits => {
+            Argument::new_i8(state.memory.read_signed(argument_pc))
+        }
+        ImmediateArgumentType::Unsigned16Bits => {
+            Argument::new_u16(state.memory.read_16_bits(argument_pc))
+        }
+    };
+
+    instruction(&mut state.registers, &mut state.memory, &argument)
+}
+
+pub struct ThreadedEmulator {
+    handle: JoinHandle<()>,
+    sender: mpsc::Sender<Action>,
+}
+
+impl ThreadedEmulator {
+    fn new() -> Self {
+        let (sender, receiver) = mpsc::channel();
+        let handle = thread::spawn(move || {
+            thread_loop(receiver);
+        });
+        Self { handle, sender }
+    }
+    fn start(&mut self, cartridge: Cartridge, screen: Box<dyn Screen>) {
+        if !self.handle.is_finished() {
+            self.sender
+                .send(Action::Start((cartridge, screen)))
+                .expect("Channel is invalid");
+        }
+    }
+
+    fn pause(&mut self) {
+        if !self.handle.is_finished() {
+            self.sender
+                .send(Action::Pause())
+                .expect("Channel is invalid");
+        }
+    }
+
+    fn resume(&mut self) {
+        if !self.handle.is_finished() {
+            self.sender
+                .send(Action::Resume())
+                .expect("Channel is invalid");
+        }
+    }
+
+    fn stop(&mut self) -> bool {
+        if !self.handle.is_finished() {
+            self.sender
+                .send(Action::Stop())
+                .expect("Channel is invalid");
+            true
+        } else {
+            false
+        }
+    }
+
+    fn update_inputs(&mut self, input: JoypadState) {
+        if !self.handle.is_finished() {
+            self.sender
+                .send(Action::Inputs(input))
+                .expect("Channel is invalid");
+        }
+    }
+}
+
+fn thread_loop(receiver: mpsc::Receiver<Action>) {
+    let mut state = State::default();
+    loop {
+        if let Ok(action) = receiver.recv() {
+            update_state(&mut state, action)
+        } else {
+            break;
+        }
+
+        loop {
+            for action in receiver.try_iter() {
+                update_state(&mut state, action)
+            }
+            if state.input.should_quit || state.input.is_paused {
+                break;
+            }
+            if let Some((emulator_state, screen)) = &mut state.emulator {
+                let mut gui = GuiMiddleware {
+                    screen,
+                    state: &state.input,
+                };
+                update_next_instruction(emulator_state, &mut gui);
+            };
+        }
+    }
+}
+
+fn update_state(state: &mut State, action: Action) {
+    match action {
+        Action::Start((cartridge, screen)) => {
+            state.input.is_paused = false;
+            state.input.should_quit = false;
+            state.input.joypad = Default::default();
+            state.emulator = Some((EmulatorState::new(cartridge), screen))
+        }
+        Action::Pause() => {}
+        Action::Resume() => {}
+        Action::Stop() => {}
+        Action::Inputs(_) => {}
+    }
+}
+
+
+
+#[derive(Default, Debug)]
+struct InputState {
+    pub is_paused: bool,
+    pub should_quit: bool,
+    pub joypad: JoypadState,
+}
+
+#[derive(Default)]
+struct State {
+    pub input: InputState,
+    pub emulator: Option<(EmulatorState, Box<dyn Screen>)>,
+}
+
+enum Action {
+    Start((Cartridge, Box<dyn Screen>)),
+    Pause(),
+    Resume(),
+    Stop(),
+    Inputs(JoypadState),
+}
+
+struct GuiMiddleware<'a> {
+    screen: &'a mut Box<dyn Screen>,
+    state: &'a InputState,
+}
+
+impl<'a> Screen for GuiMiddleware<'a> {
+    fn write_pixel(&mut self, x: usize, y: usize, color: &Color) {
+        self.screen.write_pixel(x, y, color);
+    }
+
+    fn update_frame(&mut self) {
+        self.screen.update_frame();
+    }
+}
+
+impl<'a> InputProvider for GuiMiddleware<'a> {
+    fn update_inputs(&mut self) {}
+
+    fn get_inputs(&self) -> JoypadState {
+        self.state.joypad.clone()
+    }
+
+    fn should_quit(&self) -> bool {
+        self.state.should_quit
+    }
+}
+
+impl<'a> Gui for GuiMiddleware<'a> {}
