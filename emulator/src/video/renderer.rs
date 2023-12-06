@@ -58,7 +58,9 @@ pub struct Color {
     pub blue: u8,
 }
 
-pub trait Screen {
+
+
+pub trait Screen: Send {
     fn write_pixel(&mut self, x: usize, y: usize, color: &Color);
     fn update_frame(&mut self);
 }

@@ -1,8 +1,7 @@
 use crate::gui::Gui;
 use crate::joypad::{InputProvider, JoypadState};
-use crate::video::controller::VideoController;
 use crate::video::renderer::{
-    Color, CoreNonCgbRenderer, Screen, SCREEN_HEIGHT, SCREEN_WIDTH
+    Color, Screen, SCREEN_HEIGHT, SCREEN_WIDTH
 };
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -88,7 +87,7 @@ impl<'a> InputProvider for Sdl2Gui<'a> {
         self.joypad.clone()
     }
 
-    fn is_quit_pressed(&self) -> bool {
+    fn should_quit(&self) -> bool {
         self.quit_pressed
     }
 }

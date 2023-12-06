@@ -90,7 +90,7 @@ pub trait InputProvider {
 
     fn get_inputs(&self) -> JoypadState;
 
-    fn is_quit_pressed(&self) -> bool;
+    fn should_quit(&self) -> bool;
 }
 
 #[cfg(test)]

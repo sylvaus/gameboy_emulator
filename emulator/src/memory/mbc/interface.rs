@@ -7,7 +7,7 @@ pub const EXT_RAM_END_ADDRESS: u16 = 0xBFFF;
 pub const ROM_BANK_SIZE: usize = 0x4000;
 pub const RAM_BANK_SIZE: usize = 0x2000;
 
-pub trait MemoryBankController {
+pub trait MemoryBankController: Send {
     fn write_rom(&mut self, address: u16, value: u8);
     fn read_rom(&self, address: u16) -> u8;
     fn write_ext_ram(&mut self, address: u16, value: u8);
