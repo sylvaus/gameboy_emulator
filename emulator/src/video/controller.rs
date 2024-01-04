@@ -1,6 +1,6 @@
-use macros::BitAccessor;
 use crate::interrupts::Interrupt;
 use crate::video::memory::{LcdControl, LcdStatus};
+use macros::BitAccessor;
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const VRAM_SIZE: usize = 0x2000;
@@ -161,7 +161,8 @@ impl VideoController {
             // According to https://www.reddit.com/r/Gameboy/comments/a1c8h0/what_happens_when_a_gameboy_screen_is_disabled/
             // Clock is reset to zero
             self.cycles = 0;
-            self.next_cycles_event = MODE_0_HBLANK_CYCLES + MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES;
+            self.next_cycles_event =
+                MODE_0_HBLANK_CYCLES + MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES;
             self.status.write_mode(MODE_0_HBLANK_VALUE)
         }
         self.previous_control = self.control;
@@ -297,14 +298,14 @@ impl VideoController {
     /// Indicates that the renderer can start generating the image for the current line.
     pub fn should_scanline(&self) -> bool {
         // See: https://gbdev.io/pandocs/STAT.html#stat-modes
-        (self.previous_status.read_mode() == MODE_0_HBLANK_VALUE) &&
-            (self.status.read_mode() != MODE_0_HBLANK_VALUE)
+        (self.previous_status.read_mode() == MODE_0_HBLANK_VALUE)
+            && (self.status.read_mode() != MODE_0_HBLANK_VALUE)
     }
 
     pub fn should_update_frame(&self) -> bool {
         // See: https://gbdev.io/pandocs/STAT.html#stat-modes
-        (self.previous_status.read_mode() == MODE_1_VBLANK_VALUE) &&
-            (self.status.read_mode() == MODE_2_SEARCH_OAM_VALUE)
+        (self.previous_status.read_mode() == MODE_1_VBLANK_VALUE)
+            && (self.status.read_mode() == MODE_2_SEARCH_OAM_VALUE)
     }
 
     fn update_mode(&mut self, mode: VideoMode) {

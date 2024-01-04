@@ -1,8 +1,6 @@
 use crate::gui::Gui;
 use crate::joypad::{InputProvider, JoypadState};
-use crate::video::renderer::{
-    Color, Screen, SCREEN_HEIGHT, SCREEN_WIDTH
-};
+use crate::video::renderer::{Color, Screen, SCREEN_HEIGHT, SCREEN_WIDTH};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum::ARGB8888;

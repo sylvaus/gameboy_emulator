@@ -18,8 +18,11 @@ Installation
 
 * [rustup/cargo](https://www.rust-lang.org/tools/install)
 * sdl2 (for [rust bindings](https://github.com/Rust-SDL2/rust-sdl2)):
-  * Fedora: `sudo dnf install SDL2-devel`
-  * Ubuntu: `sudo apt-get install libsdl2-dev`
+  * Fedora: 
+    * For eframe: `sudo dnf install gtk3-devel` 
+    * For SDL2: `sudo dnf install SDL2-devel`
+  * Ubuntu: 
+    * For SDL2: `sudo apt-get install libsdl2-dev`
 
 Important Findings
 ------------------
