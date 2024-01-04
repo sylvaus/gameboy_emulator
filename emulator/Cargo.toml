@@ -11,6 +11,7 @@ log = { version = "0.4.20", features = ["std"] }
 macros = { path = "../macros" }
 sdl2 = { version = "0.35.2", optional = true }
 env_logger = "0.9.1"
+rfd = "0.12.1"
 
 [features]
 sdl2-ui = ["sdl2"]

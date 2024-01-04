@@ -1,5 +1,5 @@
-use macros::BitAccessor;
 use crate::video::tile::get_pixel_value_from_tile;
+use macros::BitAccessor;
 
 /// Information from: https://gbdev.io/pandocs/OAM.html
 pub const NB_SPRITES: usize = 40;
@@ -70,7 +70,7 @@ pub fn get_intersected_sprites(oam: &[u8], mut y: usize, size: SpriteSize) -> Ve
             // Information from: https://gbdev.io/pandocs/OAM.html#object-priority-and-conflicts
             // Only the first 10 Sprites are kept.
             if sprites.len() == 10 {
-                break
+                break;
             }
         }
     }

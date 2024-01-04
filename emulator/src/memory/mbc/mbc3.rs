@@ -2,10 +2,10 @@ use crate::memory::mbc::interface::{
     MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_0_END_ADDRESS,
     ROM_BANK_1_N_END_ADDRESS, ROM_BANK_1_N_START_ADDRESS, ROM_BANK_SIZE,
 };
+use chrono::{DateTime, Utc};
 use std::cmp::max;
 use std::fs::File;
 use std::io::{BufReader, Read, Seek};
-use chrono::{DateTime, Utc};
 
 pub struct MBC3BankController {
     rom: Vec<u8>,
@@ -15,9 +15,6 @@ pub struct MBC3BankController {
     ram_rtc_index: usize,
     max_ram_index: usize,
     ram_rtc_enabled: bool,
-
-
-
 }
 
 impl MBC3BankController {
@@ -75,7 +72,7 @@ impl MemoryBankController for MBC3BankController {
             0..=3 if self.ram_rtc_index <= self.max_ram_index => {
                 self.ram[(address - EXT_RAM_START_ADDRESS) as usize
                     + self.ram_rtc_index * RAM_BANK_SIZE]
-            },
+            }
             // 8..=0xC => {
             //
             // }
@@ -83,7 +80,6 @@ impl MemoryBankController for MBC3BankController {
         }
     }
 }
-
 
 struct RealTimeCounter {
     // When the rtc was started

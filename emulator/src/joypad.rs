@@ -49,7 +49,6 @@ pub struct JoypadInput {
     value: u8,
 }
 impl JoypadInput {
-
     pub fn new() -> Self {
         // Init with none of the button pressed: https://gbdev.io/pandocs/Joypad_Input.html#ff00--p1joyp-joypad
         Self { value: 0xFF }

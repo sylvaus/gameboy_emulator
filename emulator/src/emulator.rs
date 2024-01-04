@@ -153,14 +153,14 @@ pub struct ThreadedEmulator {
 }
 
 impl ThreadedEmulator {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let (sender, receiver) = mpsc::channel();
         let handle = thread::spawn(move || {
             thread_loop(receiver);
         });
         Self { handle, sender }
     }
-    fn start(&mut self, cartridge: Cartridge, screen: Box<dyn Screen>) {
+    pub fn start(&mut self, cartridge: Cartridge, screen: Box<dyn Screen>) {
         if !self.handle.is_finished() {
             self.sender
                 .send(Action::Start((cartridge, screen)))
@@ -168,7 +168,7 @@ impl ThreadedEmulator {
         }
     }
 
-    fn pause(&mut self) {
+    pub fn pause(&mut self) {
         if !self.handle.is_finished() {
             self.sender
                 .send(Action::Pause())
@@ -176,7 +176,7 @@ impl ThreadedEmulator {
         }
     }
 
-    fn resume(&mut self) {
+    pub fn resume(&mut self) {
         if !self.handle.is_finished() {
             self.sender
                 .send(Action::Resume())
@@ -184,7 +184,7 @@ impl ThreadedEmulator {
         }
     }
 
-    fn stop(&mut self) -> bool {
+    pub fn stop(&mut self) -> bool {
         if !self.handle.is_finished() {
             self.sender
                 .send(Action::Stop())
@@ -195,7 +195,7 @@ impl ThreadedEmulator {
         }
     }
 
-    fn update_inputs(&mut self, input: JoypadState) {
+    pub fn update_inputs(&mut self, input: JoypadState) {
         if !self.handle.is_finished() {
             self.sender
                 .send(Action::Inputs(input))
@@ -206,19 +206,22 @@ impl ThreadedEmulator {
 
 fn thread_loop(receiver: mpsc::Receiver<Action>) {
     let mut state = State::default();
-    loop {
+    'main: loop {
         if let Ok(action) = receiver.recv() {
             update_state(&mut state, action)
         } else {
             break;
         }
 
-        loop {
+        'running: loop {
             for action in receiver.try_iter() {
                 update_state(&mut state, action)
             }
-            if state.input.should_quit || state.input.is_paused {
-                break;
+            if state.input.is_paused {
+                break 'running;
+            }
+            if state.input.should_quit {
+                break 'main;
             }
             if let Some((emulator_state, screen)) = &mut state.emulator {
                 let mut gui = GuiMiddleware {
@@ -239,14 +242,20 @@ fn update_state(state: &mut State, action: Action) {
             state.input.joypad = Default::default();
             state.emulator = Some((EmulatorState::new(cartridge), screen))
         }
-        Action::Pause() => {}
-        Action::Resume() => {}
-        Action::Stop() => {}
-        Action::Inputs(_) => {}
+        Action::Pause() => {
+            state.input.is_paused = true;
+        }
+        Action::Resume() => {
+            state.input.is_paused = false;
+        }
+        Action::Stop() => {
+            state.input.should_quit = false;
+        }
+        Action::Inputs(inputs) => {
+            state.input.joypad = inputs;
+        }
     }
 }
-
-
 
 #[derive(Default, Debug)]
 struct InputState {
