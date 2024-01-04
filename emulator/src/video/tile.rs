@@ -2,7 +2,6 @@
 const TILE_SIZE: usize = 16;
 const TILE_BLOCK_1_OFFSET: usize = 0x800;
 
-
 /// Returns the offset from the start of the VRAM memory area based on the bit value given
 ///
 /// Information from:
