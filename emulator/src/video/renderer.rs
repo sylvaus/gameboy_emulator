@@ -7,7 +7,6 @@ use crate::video::tile::{
 };
 use std::cmp::min;
 
-
 pub const SCREEN_WIDTH: u32 = 160;
 pub const SCREEN_HEIGHT: u32 = 144;
 const NB_BYTES_PER_PIXEL: usize = 4;
@@ -57,8 +56,6 @@ pub struct Color {
     pub green: u8,
     pub blue: u8,
 }
-
-
 
 pub trait Screen: Send {
     fn write_pixel(&mut self, x: usize, y: usize, color: &Color);
