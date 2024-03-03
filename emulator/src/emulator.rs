@@ -12,18 +12,14 @@ use crate::memory::registers::Registers;
 use crate::memory::Memory;
 use crate::serial::SerialTransfer;
 use crate::sound::SoundController;
+use crate::throttler::Throttler;
 use crate::timer::Timer;
 use crate::video::controller::VideoController;
 use crate::video::renderer::{Color, CoreNonCgbRenderer, Screen};
 use std::convert::Into;
-use std::ops::Div;
-use std::sync::{mpsc, Arc, Condvar, Mutex};
+use std::sync::mpsc;
 use std::thread;
-use std::thread::{sleep, JoinHandle};
-use std::time::Duration;
-use std::time::Instant;
-
-const CPU_FREQUENCY: u32 = 1 << 22;
+use std::thread::JoinHandle;
 
 pub struct EmulatorState {
     memory: GBMemory,
@@ -57,20 +53,19 @@ impl EmulatorState {
 }
 
 pub fn run(state: &mut EmulatorState, gui: &mut impl Gui) {
+    let mut throttler = Throttler::new();
     while !gui.should_quit() {
-        let start_time = Instant::now();
-
-        let nb_cycles = update_next_instruction(state, gui);
-
-        let expected_time = Duration::from_secs(nb_cycles).div(CPU_FREQUENCY);
-        let time_left = expected_time.saturating_sub(Instant::now().duration_since(start_time));
-        if time_left > Duration::from_millis(1) {
-            sleep(time_left);
-        }
+        let nb_cycles = update_next_instruction(state, gui).nb_cycles;
+        throttler.throttle_for_cycles(nb_cycles);
     }
 }
 
-pub fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> u64 {
+struct InstructionUpdate {
+    pub nb_cycles: u64,
+    pub update_frame: bool,
+}
+
+fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> InstructionUpdate {
     let mut nb_cycles = 0u64;
     if state.registers.ime_flag {
         if let Some(interrupt) = state.memory.get_enabled_interrupt() {
@@ -91,15 +86,20 @@ pub fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) ->
             gui.write_pixel(x, y, color)
         });
     }
+    let mut update_frame = false;
     if state.memory.video.should_update_frame() {
         gui.update_frame();
         /// Only update the inputs when a frame is completed to avoid polling too often.
         gui.update_inputs();
+        update_frame = true;
     }
     if state.memory.joypad.write_state(&gui.get_inputs()) {
         state.memory.set_interrupt_flag(Interrupt::Joypad);
     }
-    nb_cycles
+    InstructionUpdate {
+        nb_cycles,
+        update_frame,
+    }
 }
 
 fn handle_interrupt(state: &mut EmulatorState, interrupt: Interrupt) -> u64 {
@@ -206,6 +206,7 @@ impl ThreadedEmulator {
 
 fn thread_loop(receiver: mpsc::Receiver<Action>) {
     let mut state = State::default();
+    let mut throttler = Throttler::new();
     'main: loop {
         if let Ok(action) = receiver.recv() {
             update_state(&mut state, action)
@@ -213,23 +214,26 @@ fn thread_loop(receiver: mpsc::Receiver<Action>) {
             break;
         }
 
+        let mut nb_cycles = 0;
         'running: loop {
             for action in receiver.try_iter() {
                 update_state(&mut state, action)
             }
-            if state.input.is_paused {
-                break 'running;
-            }
             if state.input.should_quit {
                 break 'main;
             }
-            if let Some((emulator_state, screen)) = &mut state.emulator {
-                let mut gui = GuiMiddleware {
-                    screen,
-                    state: &state.input,
-                };
-                update_next_instruction(emulator_state, &mut gui);
-            };
+            if state.input.is_paused || state.emulator.is_none() {
+                break 'running;
+            }
+            let (emulator_state, screen) = &mut state.emulator.as_mut().unwrap();
+            let mut gui = GuiMiddleware::new(screen, &state.input);
+            let update = update_next_instruction(emulator_state, &mut gui);
+
+            nb_cycles += update.nb_cycles;
+            if update.update_frame {
+                throttler.throttle_for_cycles(nb_cycles);
+                nb_cycles = 0;
+            }
         }
     }
 }
@@ -281,6 +285,12 @@ enum Action {
 struct GuiMiddleware<'a> {
     screen: &'a mut Box<dyn Screen>,
     state: &'a InputState,
+}
+
+impl<'a> GuiMiddleware<'a> {
+    pub fn new(screen: &'a mut Box<dyn Screen>, state: &'a InputState) -> Self {
+        Self { screen, state }
+    }
 }
 
 impl<'a> Screen for GuiMiddleware<'a> {
