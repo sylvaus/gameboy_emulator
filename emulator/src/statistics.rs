@@ -1,4 +1,3 @@
-use macros::BitAccessor;
 use std::time::Instant;
 
 const FPS_FILTERING_GAIN: f64 = 0.4;
