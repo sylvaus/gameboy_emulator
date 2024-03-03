@@ -23,6 +23,7 @@ mod serial;
 mod sound;
 mod timer;
 mod video;
+mod throttler;
 
 fn main() -> Result<(), eframe::Error> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
