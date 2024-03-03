@@ -1,7 +1,7 @@
 use crate::joypad::InputProvider;
 use crate::video::renderer::Screen;
 
-mod eframe;
+pub(crate) mod eframe;
 #[cfg(feature = "sdl2-ui")]
 pub(crate) mod sdl2;
 
