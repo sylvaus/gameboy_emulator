@@ -20,6 +20,7 @@ use std::convert::Into;
 use std::sync::mpsc;
 use std::thread;
 use std::thread::JoinHandle;
+use crate::statistics::StatisticsRecorder;
 
 pub struct EmulatorState {
     memory: GBMemory,
@@ -207,6 +208,7 @@ impl ThreadedEmulator {
 fn thread_loop(receiver: mpsc::Receiver<Action>) {
     let mut state = State::default();
     let mut throttler = Throttler::new();
+    let mut stats_recorder = StatisticsRecorder::new();
     'main: loop {
         if let Ok(action) = receiver.recv() {
             update_state(&mut state, action)
@@ -232,6 +234,7 @@ fn thread_loop(receiver: mpsc::Receiver<Action>) {
             nb_cycles += update.nb_cycles;
             if update.update_frame {
                 throttler.throttle_for_cycles(nb_cycles);
+                stats_recorder.record_frame();
                 nb_cycles = 0;
             }
         }
