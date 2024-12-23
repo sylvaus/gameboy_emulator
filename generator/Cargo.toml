@@ -6,9 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.2.1", features = ["derive"] }
-quote = "1.0.26"
+clap = { version = "4.5.23", features = ["derive"] }
 serde = { version = "1.0.159", features = ["derive"] }
-serde_json = "1.0.95"
-syn = "2.0.15"
+serde_json = "1.0.133"
 macros = { path = "../macros" }

@@ -90,7 +90,7 @@ fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> Ins
     let mut update_frame = false;
     if state.memory.video.should_update_frame() {
         gui.update_frame();
-        /// Only update the inputs when a frame is completed to avoid polling too often.
+        // Only update the inputs when a frame is completed to avoid polling too often.
         gui.update_inputs();
         update_frame = true;
     }
