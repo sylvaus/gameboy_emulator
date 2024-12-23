@@ -10,13 +10,19 @@ Being able to run a GameBoy game (sound optional).
 
 Compatibility
 -------------
-Tested on: Fedora 38
+Tested on:
+
+* Windows 11
 
 Installation
 ------------
 ### Dependencies
 
 * [rustup/cargo](https://www.rust-lang.org/tools/install)
+
+
+
+#### Not supported anymore
 * sdl2 (for [rust bindings](https://github.com/Rust-SDL2/rust-sdl2)):
   * Fedora: 
     * For eframe: `sudo dnf install gtk3-devel` 

@@ -4,20 +4,19 @@ use crate::joypad::JoypadState;
 use crate::video::renderer::{Color, Screen, SCREEN_HEIGHT, SCREEN_WIDTH};
 use eframe::egui;
 use eframe::egui::{Color32, ColorImage, Key};
-use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
 
-pub fn run_emulator() -> Result<(), dyn Error> {
+pub fn run_emulator() -> eframe::Result {
     let options = eframe::NativeOptions {
         ..Default::default()
     };
     eframe::run_native(
         "GameBoy emulator",
         options,
-        Box::new(|_| Box::new(GBEmulatorApp::new())),
+        Box::new(|_| Ok(Box::new(GBEmulatorApp::new()))),
     )
 }
 
@@ -46,7 +45,7 @@ impl GBEmulatorApp {
 }
 
 impl eframe::App for GBEmulatorApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         if self
             .dialog
             .as_ref()
@@ -73,28 +72,28 @@ impl eframe::App for GBEmulatorApp {
         self.add_top_panel(ctx);
         self.add_central_panel(ctx);
     }
-
-    fn post_rendering(&mut self, _window_size: [u32; 2], frame: &eframe::Frame) {
-        // TODO: remove if not useful
-    }
 }
 
 impl GBEmulatorApp {
     fn add_top_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            ui.set_enabled(!self.is_dialog_open());
+            if self.is_dialog_open() {
+                ui.disable();
+            }
 
             egui::menu::bar(ui, |ui| {
                 ui.menu_button("File", |ui| self.menu_file_buttons(ui));
                 ui.add_space(16.0);
 
-                egui::widgets::global_dark_light_mode_buttons(ui);
+                egui::widgets::global_theme_preference_buttons(ui);
             });
         });
     }
     fn add_central_panel(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.set_enabled(!self.is_dialog_open());
+            if self.is_dialog_open() {
+                ui.disable();
+            }
 
             self.texture.get_or_insert_with(|| {
                 ui.ctx()
