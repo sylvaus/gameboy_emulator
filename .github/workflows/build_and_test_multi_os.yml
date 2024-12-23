@@ -17,16 +17,11 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-#          TODO: Re-enable by using the bundled sdl2 version
-#          - macOS-latest
-#          - windows-latest
+          - macOS-latest
+          - windows-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Install dependency
-      run: |
-        sudo apt-get update
-        sudo apt-get install libsdl2-dev
     - name: Build
       run: cargo build --verbose
     - name: Run tests
