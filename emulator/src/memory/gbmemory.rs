@@ -218,8 +218,6 @@ impl Memory for GBMemory {
             IO_RANGE_START_ADDRESS..=IO_RANGE_END_ADDRESS => self.read_io(address),
             HIGH_RAM_START_ADDRESS..=HIGH_RAM_END_ADDRESS => self.ram.read_high_ram(address),
             INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable,
-
-            address => panic!("Trying to read unknown address {:?}", address),
         }
     }
 
@@ -248,8 +246,6 @@ impl Memory for GBMemory {
                 self.ram.write_high_ram(address, value)
             }
             INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable = value,
-
-            address => panic!("Trying to write unknown address {:04X}", address),
         }
     }
 }

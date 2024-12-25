@@ -30,6 +30,9 @@ impl StatisticsRecorder {
         }
         self.last_frame = Some(now);
     }
+
+
+    #[allow(dead_code)]
     pub fn stats(&self) -> Statistics {
         self.stats
     }

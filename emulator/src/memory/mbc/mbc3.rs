@@ -18,7 +18,7 @@ pub struct MBC3BankController {
 }
 
 impl MBC3BankController {
-    pub fn create(
+    pub fn new(
         rom_reader: &mut BufReader<File>,
         num_rom_banks: usize,
         num_ram_banks: usize,

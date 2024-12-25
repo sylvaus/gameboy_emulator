@@ -53,6 +53,7 @@ impl EmulatorState {
     }
 }
 
+#[allow(dead_code)]
 pub fn run(state: &mut EmulatorState, gui: &mut impl Gui) {
     let mut throttler = Throttler::new();
     while !gui.should_quit() {
@@ -153,6 +154,7 @@ pub struct ThreadedEmulator {
     sender: mpsc::Sender<Action>,
 }
 
+#[allow(dead_code)]
 impl ThreadedEmulator {
     pub fn new() -> Self {
         let (sender, receiver) = mpsc::channel();

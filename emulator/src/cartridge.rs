@@ -84,6 +84,7 @@ pub enum MBCType {
     MBC5,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct CartridgeInfo {
     pub bank_type: MBCType,
@@ -149,6 +150,7 @@ pub enum ROMSize {
     S1MB500KB,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct ROMSizeInfo {
     pub rom_size: ROMSize,
@@ -194,6 +196,7 @@ pub enum RAMSize {
     S64KB,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct RAMSizeInfo {
     pub ram_size: RAMSize,

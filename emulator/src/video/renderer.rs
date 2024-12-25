@@ -78,16 +78,16 @@ impl CoreNonCgbRenderer {
     where
         PixelWriter: FnMut(usize, usize, &Color),
     {
-        if video.control.read_lcd_enable() == 0 {
+        if video.get_control().read_lcd_enable() == 0 {
             return;
         }
 
-        if video.control.read_bg_window_enable() != 0 {
+        if video.get_control().read_bg_window_enable() != 0 {
             self.render_background_window(video, &mut writer);
         } else {
             self.render_blank(video, &mut writer);
         }
-        if video.control.read_obj_enable() != 0 {
+        if video.get_control().read_obj_enable() != 0 {
             self.render_sprites(video, &mut writer);
         }
     }
@@ -96,7 +96,7 @@ impl CoreNonCgbRenderer {
     where
         PixelWriter: FnMut(usize, usize, &Color),
     {
-        let y = (video.coordinate_y - 1) as usize;
+        let y = (video.get_coordinates().y - 1) as usize;
         for x in 0..(SCREEN_WIDTH as usize) {
             writer(x, y, &WHITE);
         }
@@ -110,24 +110,24 @@ impl CoreNonCgbRenderer {
         PixelWriter: FnMut(usize, usize, &Color),
     {
         // Information from: https://gbdev.io/pandocs/pixel_fifo.html#get-tile
-        let y = (video.coordinate_y - 1) as usize;
+        let y = (video.get_coordinates().y - 1) as usize;
         // Information from: https://gbdev.io/pandocs/Scrolling.html#ff4aff4b--wy-wx-window-y-position-x-position-plus-7
-        let window_enabled = (video.control.read_window_enable() != 0)
-            && ((video.window_position_y as u32) < SCREEN_HEIGHT)
-            && ((video.window_position_x as u32) < (SCREEN_WIDTH + WINDOW_X_OFFSET as u32))
-            && (6 < video.window_position_x); // 0-6 are not valid values: page 30 https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
-        let window_enabled_for_y = window_enabled && ((video.window_position_y as usize) <= y);
-        let background_enabled = video.control.read_bg_window_enable() != 0;
+        let window_enabled = (video.get_control().read_window_enable() != 0)
+            && ((video.get_coordinates().window_position_y as u32) < SCREEN_HEIGHT)
+            && ((video.get_coordinates().window_position_x as u32) < (SCREEN_WIDTH + WINDOW_X_OFFSET as u32))
+            && (6 < video.get_coordinates().window_position_x); // 0-6 are not valid values: page 30 https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
+        let window_enabled_for_y = window_enabled && ((video.get_coordinates().window_position_y as usize) <= y);
+        let background_enabled = video.get_control().read_bg_window_enable() != 0;
 
         for x in 0..(SCREEN_WIDTH as usize) {
-            let window_x = (video.window_position_x as usize).saturating_sub(WINDOW_X_OFFSET);
+            let window_x = (video.get_coordinates().window_position_x as usize).saturating_sub(WINDOW_X_OFFSET);
             let color = if window_enabled_for_y && (window_x <= x) {
                 self.get_window_pixel(video, x - window_x, self.window_y)
             } else if background_enabled {
                 self.get_background_pixel(
                     video,
-                    x + video.scroll_x as usize,
-                    y + video.scroll_y as usize,
+                    x + video.get_coordinates().scroll_x as usize,
+                    y + video.get_coordinates().scroll_y as usize,
                 )
             } else {
                 WHITE
@@ -145,13 +145,13 @@ impl CoreNonCgbRenderer {
 
     fn get_window_pixel(&mut self, video: &VideoController, x: usize, y: usize) -> Color {
         let tile_map_offset =
-            get_vram_tile_offset_from_area(video.control.read_window_tile_map_area());
+            get_vram_tile_offset_from_area(video.get_control().read_window_tile_map_area());
 
         self.get_tile_pixel(video, x, y, tile_map_offset)
     }
 
     fn get_background_pixel(&mut self, video: &VideoController, x: usize, y: usize) -> Color {
-        let tile_map_offset = get_vram_tile_offset_from_area(video.control.read_bg_tile_map_area());
+        let tile_map_offset = get_vram_tile_offset_from_area(video.get_control().read_bg_tile_map_area());
 
         self.get_tile_pixel(video, x, y, tile_map_offset)
     }
@@ -169,41 +169,41 @@ impl CoreNonCgbRenderer {
         let tile_map_index =
             ((tile_map_y * 32) % TILE_MAP_TOTAL_SIZE) + (tile_map_x % TILE_MAP_WIDTH);
 
-        let tile_index = video.vram[tile_map_offset + tile_map_index];
+        let tile_index = video.get_vram()[tile_map_offset + tile_map_index];
         let tile_address = get_tile_address(
             tile_index as usize,
-            video.control.read_bg_window_tile_data_area(),
+            video.get_control().read_bg_window_tile_data_area(),
         );
 
         let tile_x = x % 8;
         let tile_y = y % 8;
-        let color_index = get_pixel_value_from_tile(&video.vram, tile_address, tile_x, tile_y);
+        let color_index = get_pixel_value_from_tile(&video.get_vram(), tile_address, tile_x, tile_y);
 
-        get_non_cgb_color(color_index, video.bg_palette_data.value)
+        get_non_cgb_color(color_index, video.get_bg_palette_data().value)
     }
 
     fn render_sprites<PixelWriter>(&mut self, video: &VideoController, writer: &mut PixelWriter)
     where
         PixelWriter: FnMut(usize, usize, &Color),
     {
-        let y = (video.coordinate_y - 1) as usize;
+        let y = (video.get_coordinates().y - 1) as usize;
 
         // Information from: https://gbdev.io/pandocs/LCDC.html#lcdc2--obj-size
-        let object_size = if video.control.read_obj_size() == 1 {
+        let object_size = if video.get_control().read_obj_size() == 1 {
             SpriteSize::Size8x16
         } else {
             SpriteSize::Size8x8
         };
 
-        let mut sprites = get_intersected_sprites(&video.oam, y, object_size);
+        let mut sprites = get_intersected_sprites(&video.get_oam(), y, object_size);
         // Information from: https://gbdev.io/pandocs/OAM.html#drawing-priority
         sprites.sort_by_key(|sprite| sprite.x);
 
         let mut y_colors: [Option<Color>; SCREEN_WIDTH as usize] = [None; SCREEN_WIDTH as usize];
         for sprite in sprites.iter().rev() {
             let palette = match sprite.read_non_cgb_palette() {
-                0 => video.obj_palette_data_0,
-                1 => video.obj_palette_data_1,
+                0 => video.get_obj_palette_data_0(),
+                1 => video.get_obj_palette_data_1(),
                 _ => panic!("This should never happen."),
             };
             let min_x: usize = 8usize.saturating_sub(sprite.x);
@@ -212,7 +212,7 @@ impl CoreNonCgbRenderer {
 
             for sprite_x in min_x..max_x {
                 let color_index =
-                    get_pixel_value_from_sprite(&video.vram, sprite, sprite_x, sprite_y);
+                    get_pixel_value_from_sprite(&video.get_vram(), sprite, sprite_x, sprite_y);
                 let color = if color_index == 0 {
                     None
                 } else {
