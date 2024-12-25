@@ -8,7 +8,6 @@ mod generated;
 mod gui;
 mod interrupts;
 mod joypad;
-mod logging;
 mod memory;
 mod serial;
 mod sound;
