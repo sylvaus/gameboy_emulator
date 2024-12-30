@@ -81,7 +81,7 @@ pub fn get_intersected_sprites(oam: &[u8], mut y: usize, size: SpriteSize) -> Ve
 pub fn get_pixel_value_from_sprite(vram: &[u8], sprite: &Sprite, mut x: usize, mut y: usize) -> u8 {
     let tile_address = sprite.get_tile_address();
     if sprite.read_x_flip() == 1 {
-        x = 8 - x;
+        x = 7 - x;
     }
     if sprite.read_y_flip() == 1 {
         y = sprite.size.get_tile_size() - y;

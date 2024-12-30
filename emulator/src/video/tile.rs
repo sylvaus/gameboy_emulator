@@ -29,7 +29,7 @@ pub fn get_tile_address(mut tile_index: usize, tile_data_area: u8) -> usize {
         0
     };
 
-    return offset + (tile_index * TILE_SIZE);
+    offset + (tile_index * TILE_SIZE)
 }
 
 /// Returns the color index of the pixel at coordinate x, y on the tile
