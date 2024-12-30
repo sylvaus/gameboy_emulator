@@ -131,11 +131,10 @@ impl CoreNonCgbRenderer {
             result[x] = color;
         }
 
-        if window_enabled {
+        if y == (SCREEN_HEIGHT - 1) as usize {
+            self.window_y = 0;
+        } else if window_enabled_for_y {
             self.window_y += 1;
-            if self.window_y == SCREEN_HEIGHT as usize {
-                self.window_y = 0;
-            }
         }
 
         result
