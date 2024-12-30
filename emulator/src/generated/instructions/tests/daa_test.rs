@@ -153,10 +153,11 @@ const DAA_TEST_CASES: &[DAATestCase] = &[
     },
 ];
 
+const DAA_OPCODE: u16 = 0x27;
+
 #[test]
 fn test_daa() {
     for test_case in DAA_TEST_CASES {
-        let opcode = 0x27;
         let mut registers = Registers::new();
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
@@ -167,7 +168,7 @@ fn test_daa() {
         registers.set_zero_flag(test_case.register_a_before == 0);
         let mut expected = registers.clone();
 
-        let (instruction, argument_type) = get_instruction(opcode);
+        let (instruction, argument_type) = get_instruction(DAA_OPCODE);
         let nb_cycle = instruction(&mut registers, &mut memory, &argument);
 
         assert_eq!(nb_cycle, 4);
@@ -181,3 +182,44 @@ fn test_daa() {
         assert_eq!(argument_type, ImmediateArgumentType::None);
     }
 }
+
+fn convert_to_bcd(value: u8) -> u8 {
+    (value % 10) + ((value / 10) << 4)
+}
+
+#[test]
+fn test_daa_add() {
+    for a_value in 0..100 {
+        for b_value in 0..100 {
+            let mut registers = Registers::new();
+            let mut memory = FakeMemory::new();
+            let argument = Argument::new_empty();
+
+            registers.a = convert_to_bcd(a_value);
+            registers.b = convert_to_bcd(b_value);
+
+            let (add, _) = get_instruction(0x80);
+            add(&mut registers, &mut memory, &argument);
+
+            let mut expected = registers.clone();
+
+            let (instruction, argument_type) = get_instruction(DAA_OPCODE);
+            let nb_cycle = instruction(&mut registers, &mut memory, &argument);
+
+            assert_eq!(nb_cycle, 4);
+
+            let result = (a_value + b_value) % 100;
+            expected.pc = 2;
+            expected.a = convert_to_bcd(result);
+            expected.set_carry_flag(a_value + b_value > 99);
+            expected.set_half_carry_flag(false);
+            expected.set_zero_flag(result == 0);
+            assert_eq!(registers, expected, "Testing with A: {:0X}, B: {:0X}", a_value, b_value);
+            assert_eq!(argument_type, ImmediateArgumentType::None);
+
+
+        }
+    }
+}
+
+// TODO: Add substraction tests.

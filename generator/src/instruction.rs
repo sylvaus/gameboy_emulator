@@ -159,17 +159,38 @@ pub const REGISTER_NAME_D: &str = "d";
 pub const REGISTER_NAME_E: &str = "e";
 pub const REGISTER_NAME_H: &str = "h";
 pub const REGISTER_NAME_L: &str = "l";
-pub const REGISTER_NAME_AF: &str = "af";
-pub const REGISTER_NAME_BC: &str = "bc";
-pub const REGISTER_NAME_DE: &str = "de";
-pub const REGISTER_NAME_HL: &str = "hl";
-pub const REGISTER_NAME_SP: &str = "sp";
-pub const REGISTER_NAME_PC: &str = "pc";
 
 pub const FLAG_NAME_CARRY: &str = "c";
 pub const FLAG_NAME_ZERO: &str = "z";
 pub const FLAG_NAME_NON_CARRY: &str = "nc";
 pub const FLAG_NAME_NON_ZERO: &str = "nz";
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum RegisterName {
+    A, B, C, D, E, H, L,
+    AF, BC, DE, HL, SP, PC
+}
+
+impl RegisterName {
+    pub fn from_name(name: &str) -> Option<RegisterName> {
+        match name.to_lowercase().as_str() {
+            "a" => Some(Self::A),
+            "b" => Some(Self::B),
+            "c" => Some(Self::C),
+            "d" => Some(Self::D),
+            "e" => Some(Self::E),
+            "h" => Some(Self::H),
+            "l" => Some(Self::L),
+            "af" => Some(Self::AF),
+            "bc" => Some(Self::BC),
+            "de" => Some(Self::DE),
+            "hl" => Some(Self::HL),
+            "sp" => Some(Self::SP),
+            "pc" => Some(Self::PC),
+            _ => None
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Argument {

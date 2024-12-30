@@ -24,6 +24,12 @@ fn test_pop_16bits() {
         assert_eq!(nb_cycle, 12);
 
         (register_info.setter)(&mut expected, 0x5CD1);
+        // 0xf1 POP AF
+        // Only the top 4 bits should be set for the flags register:
+        // https://forums.nesdev.org/viewtopic.php?p=147669&sid=968b67f5e97f5c4e8419d9267a7ac9ed#p147669
+        if opcode == 0xF1 {
+            expected.flags &= 0xF0;
+        }
         expected.sp = 0x1245 + 2;
         expected.pc = 1;
         assert_eq!(register, expected);

@@ -18,7 +18,7 @@ use crate::common::register::{
     decrement_register_int, get_sub_registers_from_name, increment_register_int,
 };
 use crate::instruction;
-use crate::instruction::{Argument, FlagAction, Instruction, InstructionType};
+use crate::instruction::{Argument, FlagAction, Instruction, InstructionType, RegisterName};
 use crate::interface::{Code, Function, IntFormat, Language, Type};
 
 fn create_nop(instruction: &Instruction, language: &Language) -> Function {
@@ -354,7 +354,7 @@ fn create_daa_add(instruction: &Instruction, language: &Language) -> Code {
         language.hex_literal(0x60, Type::Uint8),
         carry_flag.name.clone(),
     ]);
-    let lower_bits_a = language.greater_than_int(
+    let lower_bits_a = language.greater_equal_int(
         &language.bitwise_and_int(&register_a_value, 0xF, IntFormat::Hex),
         0xA,
         IntFormat::Hex,
@@ -605,13 +605,23 @@ pub fn create_return(instruction: &Instruction, language: &Language) -> Function
 }
 
 pub fn create_pop(instruction: &Instruction, language: &Language) -> Function {
-    // Comparison is implemented by subtracting the input to the register a.
     let stack = language.registers.stack_pointer.as_ref();
-    let (lower, upper) =
-        get_sub_registers_from_name(language, &instruction.first_argument.as_ref().unwrap().name);
+    let register = &instruction.first_argument.as_ref().unwrap().name;
+    let (lower, upper) = get_sub_registers_from_name(language, register);
 
-    let code = Code::create_empty()
-        .append(lower.set(&language.get_from_address(&stack.get())))
+    let set_lower_byte = if Some(RegisterName::AF) == RegisterName::from_name(register) {
+        let lower_byte_value = language.operations.bitwise_and(&[
+            language.get_from_address(&stack.get()),
+            language.hex_literal(0xF0, Type::Uint8),
+        ]);
+        Code::create_empty()
+            .append(language.statements.comment("Only the upper bits should be written to the F register: https://forums.nesdev.org/viewtopic.php?p=147669&sid=968b67f5e97f5c4e8419d9267a7ac9ed#p147669"))
+            .append(lower.set(&lower_byte_value))
+    } else {
+        Code::create_empty().append(lower.set(&language.get_from_address(&stack.get())))
+    };
+
+    let code = set_lower_byte
         .append(upper.set(&language.get_from_address(&language.add_int(
             stack.get(),
             1,

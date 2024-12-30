@@ -513,7 +513,8 @@ pub fn daa_027(registers: &mut Registers, _memory: &mut dyn Memory, _argument: &
         registers.a = registers.a.wrapping_add(
             (0x60u8 * carry_flag)
                 + (0x6u8
-                    * ((((registers.a & 0xFu8) > 0xAu8) || registers.get_half_carry_flag()) as u8)),
+                    * ((((registers.a & 0xFu8) >= 0xAu8) || registers.get_half_carry_flag())
+                        as u8)),
         );
         let zero_flag: u8 = (registers.a == 0x0u8) as u8;
         registers.flags =
@@ -3001,7 +3002,8 @@ pub fn ldh_0f0(registers: &mut Registers, memory: &mut dyn Memory, argument: &Ar
 pub fn pop_0f1(registers: &mut Registers, memory: &mut dyn Memory, _argument: &Argument) -> u64 {
     trace!("0xf1 POP AF");
     trace!("registers: (AF: 0x{:04X}, BC: 0x{:04X}, DE: 0x{:04X}, HL: 0x{:04X}, SP: 0x{:04X}, PC: 0x{:04X})",registers.get_af(), registers.get_bc(), registers.get_de(), registers.get_hl(), registers.sp, registers.pc);
-    registers.flags = memory.read(registers.sp);
+    // Only the upper bits should be written to the F register: https://forums.nesdev.org/viewtopic.php?p=147669&sid=968b67f5e97f5c4e8419d9267a7ac9ed#p147669
+    registers.flags = memory.read(registers.sp) & 0xF0u8;
     registers.a = memory.read(registers.sp + 1u16);
     registers.sp = registers.sp + 2u16;
     registers.pc = registers.pc + 1;

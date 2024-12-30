@@ -1,4 +1,4 @@
-use crate::instruction;
+use crate::instruction::RegisterName;
 use crate::interface::{Code, Expression, IntFormat, Language, Register};
 
 pub fn increment_register(language: &Language, register: &dyn Register, value: Expression) -> Code {
@@ -28,22 +28,20 @@ pub fn decrement_register_int(
 }
 
 pub fn get_register_from_name<'a>(language: &'a Language, name: &str) -> &'a Box<dyn Register> {
-    match name.to_lowercase().as_str() {
-        instruction::REGISTER_NAME_A => &language.registers.a,
-        instruction::REGISTER_NAME_B => &language.registers.b,
-        instruction::REGISTER_NAME_C => &language.registers.c,
-        instruction::REGISTER_NAME_D => &language.registers.d,
-        instruction::REGISTER_NAME_E => &language.registers.e,
-        instruction::REGISTER_NAME_H => &language.registers.h,
-        instruction::REGISTER_NAME_L => &language.registers.l,
-        instruction::REGISTER_NAME_AF => &language.registers.af,
-        instruction::REGISTER_NAME_BC => &language.registers.bc,
-        instruction::REGISTER_NAME_DE => &language.registers.de,
-        instruction::REGISTER_NAME_HL => &language.registers.hl,
-        instruction::REGISTER_NAME_SP => &language.registers.stack_pointer,
-        instruction::REGISTER_NAME_PC => &language.registers.program_counter,
-
-        _ => panic!("No register for name {}", name),
+    match RegisterName::from_name(name).unwrap_or_else(|| panic!("No register for name {}", name)) {
+        RegisterName::A => &language.registers.a,
+        RegisterName::B => &language.registers.b,
+        RegisterName::C => &language.registers.c,
+        RegisterName::D => &language.registers.d,
+        RegisterName::E => &language.registers.e,
+        RegisterName::H => &language.registers.h,
+        RegisterName::L => &language.registers.l,
+        RegisterName::AF => &language.registers.af,
+        RegisterName::BC => &language.registers.bc,
+        RegisterName::DE => &language.registers.de,
+        RegisterName::HL => &language.registers.hl,
+        RegisterName::SP => &language.registers.stack_pointer,
+        RegisterName::PC => &language.registers.program_counter,
     }
 }
 
@@ -51,12 +49,12 @@ pub fn get_sub_registers_from_name<'a>(
     language: &'a Language,
     name: &str,
 ) -> (&'a Box<dyn Register>, &'a Box<dyn Register>) {
-    match name.to_lowercase().as_str() {
-        instruction::REGISTER_NAME_AF => (&language.registers.f, &language.registers.a),
-        instruction::REGISTER_NAME_BC => (&language.registers.c, &language.registers.b),
-        instruction::REGISTER_NAME_DE => (&language.registers.e, &language.registers.d),
-        instruction::REGISTER_NAME_HL => (&language.registers.l, &language.registers.h),
+    match RegisterName::from_name(name).unwrap_or_else(|| panic!("No u16 register for name {}", name)) {
+        RegisterName::AF => (&language.registers.f, &language.registers.a),
+        RegisterName::BC => (&language.registers.c, &language.registers.b),
+        RegisterName::DE => (&language.registers.e, &language.registers.d),
+        RegisterName::HL => (&language.registers.l, &language.registers.h),
 
-        _ => panic!("No u16 register for name {}", name),
+        _ => panic!("Register {} is not supported", name),
     }
 }
