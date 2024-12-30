@@ -180,9 +180,6 @@ const RTC_HOURS_SELECT_VALUE: u8 = 0x0A;
 const RTC_DAY_LOW_SELECT_VALUE: u8 = 0x0B;
 const RTC_DAY_HIGH_SELECT_VALUE: u8 = 0x0C;
 
-const RTC_MIN_SELECT_VALUE: u8 = RTC_SECONDS_SELECT_VALUE;
-const RTC_MAX_SELECT_VALUE: u8 = RTC_DAY_HIGH_SELECT_VALUE;
-
 struct RealTimeCounter {
     register: RealTimeCounterRegister,
     latched: RealTimeCounterRegister,

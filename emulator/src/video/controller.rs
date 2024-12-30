@@ -507,8 +507,8 @@ mod tests {
                 interrupts.len(),
                 /* stat + vblank interrupt */ (i == 143) as usize * 2
             );
-            assert_eq!((i == 143), interrupts.contains(&Interrupt::VBlank));
-            assert_eq!((i == 143), interrupts.contains(&Interrupt::LCDStat));
+            assert_eq!(i == 143, interrupts.contains(&Interrupt::VBlank));
+            assert_eq!(i == 143, interrupts.contains(&Interrupt::LCDStat));
         }
 
         for _ in 144..=153 {
@@ -529,8 +529,8 @@ mod tests {
             assert_eq!(controller.update(MODE_3_TRANSFER_CYCLES).len(), 0);
             let interrupts = controller.update(MODE_0_HBLANK_CYCLES);
             assert_eq!(interrupts.len(), /* stat or vblank interrupt */ 1);
-            assert_eq!((i == 143), interrupts.contains(&Interrupt::VBlank));
-            assert_eq!((i != 143), interrupts.contains(&Interrupt::LCDStat));
+            assert_eq!(i == 143, interrupts.contains(&Interrupt::VBlank));
+            assert_eq!(i != 143, interrupts.contains(&Interrupt::LCDStat));
         }
 
         for _ in 144..=152 {

@@ -1,4 +1,5 @@
 use crate::memory::mbc::interface::MemoryBankController;
+use crate::memory::mbc::mbc1::MBC1BankController;
 use crate::memory::mbc::mbc3::MBC3BankController;
 use crate::memory::mbc::no_controller::NoMemoryBankController;
 use macros::AddEnumName;
@@ -247,7 +248,7 @@ fn get_memory_controller(
     match &info.bank_type {
         MBCType::RomOnly => NoMemoryBankController::new(rom_reader, ram_info.num_banks),
         MBCType::MBC1 => {
-            MBC3BankController::new(rom_reader, rom_info.num_banks, ram_info.num_banks)
+            MBC1BankController::new(rom_reader, rom_info.num_banks, ram_info.num_banks)
         }
         MBCType::MBC3 => {
             MBC3BankController::new(rom_reader, rom_info.num_banks, ram_info.num_banks)

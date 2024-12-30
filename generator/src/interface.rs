@@ -60,9 +60,9 @@ pub struct Code {
     lines: Vec<String>,
 }
 
-impl ToString for Code {
-    fn to_string(&self) -> String {
-        self.lines.join("\n")
+impl Display for Code {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.lines.join("\n"))
     }
 }
 

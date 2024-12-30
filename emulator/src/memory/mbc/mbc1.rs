@@ -8,7 +8,6 @@ pub struct MBC1BankController {
     rom: Vec<u8>,
     ram: Vec<u8>,
 
-    max_rom_bank_number: u8,
     mask_rom_bank_number: u8,
     rom_bank_number: u8,
     ram_bank_number_or_rom_upper_bits: u8,
@@ -36,7 +35,6 @@ impl MBC1BankController {
         Ok(Box::new(Self {
             rom,
             ram: vec![0; num_ram_banks * RAM_BANK_SIZE],
-            max_rom_bank_number,
             // The num_rom_banks is always a power of 2.
             // This make the number of rom banks - 1, the mask for the rom bank number.
             mask_rom_bank_number: max_rom_bank_number,
@@ -62,7 +60,7 @@ impl MemoryBankController for MBC1BankController {
                 if raw_rom_bank_number == 0 {
                     raw_rom_bank_number = 1;
                 }
-                self.rom_bank_number = value & self.mask_rom_bank_number;
+                self.rom_bank_number = raw_rom_bank_number & self.mask_rom_bank_number;
             }
             // https://gbdev.io/pandocs/MBC1.html#40005fff--ram-bank-number--or--upper-bits-of-rom-bank-number-write-only
             0x4000..=0x5FFF => {
