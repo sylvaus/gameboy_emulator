@@ -3,7 +3,7 @@ use crate::emulator::ThreadedEmulator;
 use crate::joypad::JoypadState;
 use crate::video::renderer::{Color, Screen, SCREEN_HEIGHT, SCREEN_WIDTH};
 use eframe::egui;
-use eframe::egui::{Color32, ColorImage, Key};
+use eframe::egui::{Color32, ColorImage, Key, TextureOptions};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
@@ -97,7 +97,7 @@ impl GBEmulatorApp {
 
             self.texture.get_or_insert_with(|| {
                 ui.ctx()
-                    .load_texture("gb_image", default_gb_image(), Default::default())
+                    .load_texture("gb_image", default_gb_image(), TextureOptions::NEAREST)
             });
 
             if let Some(texture) = self.texture.as_ref() {
@@ -148,11 +148,11 @@ struct AppScreen {
 impl Screen for AppScreen {
     fn write_pixel(&mut self, x: usize, y: usize, color: &Color) {
         Arc::make_mut(&mut self.image)[(x, y)] =
-            Color32::from_rgba_premultiplied(color.red, color.green, color.blue, color.alpha);
+            Color32::from_rgba_unmultiplied(color.red, color.green, color.blue, color.alpha);
     }
 
     fn update_frame(&mut self) {
-        self.texture.set(self.image.clone(), Default::default());
+        self.texture.set(self.image.clone(), TextureOptions::NEAREST);
     }
 }
 
