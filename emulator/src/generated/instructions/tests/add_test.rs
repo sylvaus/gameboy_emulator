@@ -50,7 +50,7 @@ fn test_add_16bits_half_carry() {
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
         register.set_hl(0x7A23);
-        // In the case of register A it just double the value.
+        // In the case of register A, it just doubles the value.
         if register_info != &REGISTER_HL {
             (register_info.setter)(&mut register, 0x605);
         }
@@ -103,6 +103,69 @@ fn test_add_16bits_carry() {
         assert_eq!(register, expected);
         assert_eq!(argument_type, ImmediateArgumentType::None);
     }
+}
+
+const ADD_SP_R8: u16 = 0xE8;
+
+#[test]
+fn test_add_sp_r8() {
+    let mut register = Registers::new();
+    let mut memory = FakeMemory::new();
+    let argument = Argument::new_i8(2);
+    register.sp = 0xFFF8;
+    let mut expected = register.clone();
+
+    let (instruction, argument_type) = get_instruction(ADD_SP_R8);
+    let nb_cycle = instruction(&mut register, &mut memory, &argument);
+
+    assert_eq!(nb_cycle, 16);
+
+    expected.pc = 2;
+    expected.sp = 0xFFFA;
+    assert_eq!(register, expected);
+    assert_eq!(argument_type, ImmediateArgumentType::Signed8Bits);
+}
+
+/// Half carry is computed the 4 lower bits: https://forums.nesdev.org/viewtopic.php?p=42138
+#[test]
+fn test_add_sp_r8_half_carry() {
+    let mut register = Registers::new();
+    let mut memory = FakeMemory::new();
+    let argument = Argument::new_i8(2);
+    register.sp = 0x111F;
+    let mut expected = register.clone();
+
+    let (instruction, argument_type) = get_instruction(ADD_SP_R8);
+    let nb_cycle = instruction(&mut register, &mut memory, &argument);
+
+    assert_eq!(nb_cycle, 16);
+
+    expected.pc = 2;
+    expected.sp = 0x1121;
+    expected.set_half_carry_flag(true);
+    assert_eq!(register, expected);
+    assert_eq!(argument_type, ImmediateArgumentType::Signed8Bits);
+}
+
+/// Carry is calculated on the 8 lower bits: https://forums.nesdev.org/viewtopic.php?p=42138
+#[test]
+fn test_add_sp_r8_carry() {
+    let mut register = Registers::new();
+    let mut memory = FakeMemory::new();
+    let argument = Argument::new_i8(0x21);
+    register.sp = 0x11F1;
+    let mut expected = register.clone();
+
+    let (instruction, argument_type) = get_instruction(ADD_SP_R8);
+    let nb_cycle = instruction(&mut register, &mut memory, &argument);
+
+    assert_eq!(nb_cycle, 16);
+
+    expected.pc = 2;
+    expected.sp = 0x1212;
+    expected.set_carry_flag(true);
+    assert_eq!(register, expected);
+    assert_eq!(argument_type, ImmediateArgumentType::Signed8Bits);
 }
 
 #[test]

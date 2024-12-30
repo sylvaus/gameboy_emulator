@@ -488,7 +488,7 @@ fn test_ld_register_sp_to_register_hl_half_carry() {
     let opcode = 0b11111000;
     let mut registers = Registers::new();
     let mut memory = FakeMemory::new();
-    let argument = Argument::new_i8(0x7F);
+    let argument = Argument::new_i8(0x1F);
     registers.sp = 0x1FDA;
     let mut expected = registers.clone();
 
@@ -497,7 +497,7 @@ fn test_ld_register_sp_to_register_hl_half_carry() {
 
     assert_eq!(nb_cycle, 12);
     expected.set_half_carry_flag(true);
-    expected.set_hl(0x1FDA + 0x7F);
+    expected.set_hl(0x1FDA + 0x1F);
     expected.pc = 2;
     assert_eq!(registers, expected);
     assert_eq!(argument_type, ImmediateArgumentType::Signed8Bits);
@@ -509,7 +509,7 @@ fn test_ld_register_sp_to_register_hl_carry() {
     let mut registers = Registers::new();
     let mut memory = FakeMemory::new();
     let argument = Argument::new_i8(0x7F);
-    registers.sp = 0xFFDA;
+    registers.sp = 0x1FDA;
     let mut expected = registers.clone();
 
     let (instruction, argument_type) = get_instruction(opcode);
@@ -518,7 +518,7 @@ fn test_ld_register_sp_to_register_hl_carry() {
     assert_eq!(nb_cycle, 12);
     expected.set_half_carry_flag(true);
     expected.set_carry_flag(true);
-    expected.set_hl(0xFFDAu16.wrapping_add(0x7F));
+    expected.set_hl(0x1FDA + 0x7F);
     expected.pc = 2;
     assert_eq!(registers, expected);
     assert_eq!(argument_type, ImmediateArgumentType::Signed8Bits);

@@ -55,21 +55,35 @@ pub fn create_op_with_flag_code_3_custom_values(
         .for_each(|value| result.code.iprepend(value.code.clone()));
 
     let mut custom_flag_values = Vec::new();
+    let is_only_comparing_lower_8_bites = instruction.value == 0xE8 || instruction.value == 0xF8;
     let carry_max_value: i64 = get_carry_max_value(instruction);
-    let half_carry_max_value: i64 = get_half_carry_max_value(instruction);
     if instruction.zero_flag == FlagAction::CUSTOM {
         let variable = compute_zero_flag(language, &result.name, carry_max_value);
         custom_flag_values.push(create_zero_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }
     if instruction.half_carry_flag == FlagAction::CUSTOM {
+        let half_carry_max_value: i64 = if is_only_comparing_lower_8_bites {
+            0xF
+        } else {
+            get_half_carry_max_value(instruction)
+        };
         let variable =
             compute_half_carry_flag(language, &variable_names, half_carry_max_value, operation);
         custom_flag_values.push(create_half_carry_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }
     if instruction.carry_flag == FlagAction::CUSTOM {
-        let variable = compute_carry_flag(language, &result.name, carry_max_value, operation);
+        let (value_to_compare, carry_max_value) = if is_only_comparing_lower_8_bites {
+            let masked_values = variable_names
+                .iter()
+                .map(|variable| language.bitwise_and_int(variable, 0xFF, IntFormat::Hex))
+                .collect::<Vec<Expression>>();
+            (&language.operations.add(&masked_values), 0xFF)
+        } else {
+            (&result.name, carry_max_value)
+        };
+        let variable = compute_carry_flag(language, &value_to_compare, carry_max_value, operation);
         custom_flag_values.push(create_carry_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }
