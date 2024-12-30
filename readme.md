@@ -4,9 +4,24 @@ GameBoy Emulator
 [![Rust](https://github.com/sylvaus/gameboy_emulator/actions/workflows/coverage.yml/badge.svg)](https://github.com/sylvaus/gameboy_emulator/actions/workflows/coverage.yml)
 [![codecov](https://codecov.io/gh/sylvaus/gameboy_emulator/graph/badge.svg?token=ytstiuuAmR)](https://codecov.io/gh/sylvaus/gameboy_emulator)
 
-Goal
+Goals
 ----
-Being able to run a GameBoy game (sound optional).
+ - [x] Being able to run a GameBoy game 
+
+Additional goals
+ - [ ] Being able to play sounds
+ - [ ] Being to use Serial communication
+
+Current Status
+--------------
+
+DMG Supported
+
+Memory Bank Controllers:
+
+* No Controller
+* MBC1 
+* MBC3
 
 Compatibility
 -------------
