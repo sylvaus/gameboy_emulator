@@ -2,56 +2,17 @@ use crate::cartridge::Cartridge;
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::gui::Gui;
 use crate::interrupts::Interrupt;
-use crate::joypad::{InputProvider, JoypadInput, JoypadState};
+use crate::joypad::{InputProvider, JoypadState};
 use crate::memory::argument::Argument;
-use crate::memory::cgb::CGBRegisters;
-use crate::memory::gbmemory::GBMemory;
-use crate::memory::init::{init_memory, init_registers};
-use crate::memory::ram::RamController;
-use crate::memory::registers::Registers;
 use crate::memory::Memory;
-use crate::serial::SerialTransfer;
-use crate::sound::SoundController;
+use crate::state::EmulatorState;
+use crate::statistics::StatisticsRecorder;
 use crate::throttler::Throttler;
-use crate::timer::Timer;
-use crate::video::controller::VideoController;
-use crate::video::renderer::{Color, CoreNonCgbRenderer, Screen};
+use crate::video::renderer::{Color, Screen};
 use std::convert::Into;
 use std::sync::mpsc;
 use std::thread;
 use std::thread::JoinHandle;
-use crate::statistics::StatisticsRecorder;
-
-pub struct EmulatorState {
-    memory: GBMemory,
-    registers: Registers,
-    renderer: CoreNonCgbRenderer,
-}
-
-impl EmulatorState {
-    pub fn new(cartridge: Cartridge) -> Self {
-        let mut memory = GBMemory::new(
-            cartridge.memory_controller,
-            VideoController::new(),
-            RamController::new(),
-            JoypadInput::new(),
-            SerialTransfer {},
-            SoundController {},
-            Timer::new(),
-            CGBRegisters::default(),
-        );
-        init_memory(cartridge.cgb_flag.clone(), &mut memory);
-        let mut registers = Registers::new();
-        init_registers(cartridge.cgb_flag, &mut registers);
-
-        memory.init();
-        Self {
-            memory,
-            registers,
-            renderer: CoreNonCgbRenderer::new(),
-        }
-    }
-}
 
 #[allow(dead_code)]
 pub fn run(state: &mut EmulatorState, gui: &mut impl Gui) {
@@ -69,13 +30,15 @@ struct InstructionUpdate {
 
 fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> InstructionUpdate {
     let mut nb_cycles = 0u64;
-    if state.registers.ime_flag {
-        if let Some(interrupt) = state.memory.get_enabled_interrupt() {
+
+    if let Some(interrupt) = state.memory.get_enabled_interrupt() {
+        if state.registers.ime_flag {
             nb_cycles += handle_interrupt(state, interrupt);
         }
+        state.registers.halted = false;
     }
 
-    if !(state.registers.halted && state.registers.ime_flag) {
+    if !state.registers.halted {
         nb_cycles += fetch_and_execute(state);
     } else {
         // TODO: add handling when ime_flag is false and halted.
