@@ -19,6 +19,7 @@ use crate::video::controller::{
     IO_LCD_END_ADDRESS, IO_LCD_START_ADDRESS, OAM_DMA_ADDRESS, OAM_END_ADDRESS, OAM_SIZE,
     OAM_START_ADDRESS, VRAM_BANK_SELECT, VRAM_END_ADDRESS, VRAM_START_ADDRESS,
 };
+use crate::timer::convert_cycles_to_duration;
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const NOT_USABLE_START_ADDRESS: u16 = 0xFEA0;
@@ -95,7 +96,6 @@ impl GBMemory {
     /// Update all memory controllers and update interrupt flags
     ///
     /// Memory controllers: video, timer
-    /// # Returns: number of cycles consumed by
     pub fn update(&mut self, nb_cycles: u64) {
         let mut interrupts = self.video.update(nb_cycles);
         if let Some(interrupt) = self.timer.update(nb_cycles) {
@@ -106,6 +106,7 @@ impl GBMemory {
         for interrupt in interrupts {
             self.interrupt_flag = interrupt.set(self.interrupt_flag);
         }
+        self.mbc.update(convert_cycles_to_duration(nb_cycles));
     }
 
     pub fn get_enabled_interrupt(&self) -> Option<Interrupt> {

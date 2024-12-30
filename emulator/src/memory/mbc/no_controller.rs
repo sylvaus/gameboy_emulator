@@ -3,6 +3,7 @@ use crate::memory::mbc::interface::{
 };
 use std::fs::File;
 use std::io::{BufReader, Read, Seek};
+use std::time::Duration;
 
 pub struct NoMemoryBankController {
     rom: Vec<u8>,
@@ -10,7 +11,7 @@ pub struct NoMemoryBankController {
 }
 
 impl NoMemoryBankController {
-    pub fn create(
+    pub fn new(
         rom_reader: &mut BufReader<File>,
         num_ram_banks: usize,
     ) -> Result<Box<dyn MemoryBankController>, String> {
@@ -44,5 +45,9 @@ impl MemoryBankController for NoMemoryBankController {
 
     fn read_ext_ram(&self, address: u16) -> u8 {
         self.ram[(address - EXT_RAM_START_ADDRESS) as usize]
+    }
+
+    fn update(&mut self, _duration: Duration) {
+        // Nothing to do.
     }
 }

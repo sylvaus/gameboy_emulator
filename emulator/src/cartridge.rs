@@ -1,4 +1,5 @@
 use crate::memory::mbc::interface::MemoryBankController;
+use crate::memory::mbc::mbc3::MBC3BankController;
 use crate::memory::mbc::no_controller::NoMemoryBankController;
 use macros::AddEnumName;
 use std::fmt::{Display, Formatter};
@@ -31,7 +32,7 @@ pub fn load_cartridge(path: &Path) -> Result<Cartridge, Box<dyn error::Error>> {
     let ram_info = get_ram_size(&cartridge_header)?;
     let header_checksum = get_header_checksum(&cartridge_header);
     let computed_header_checksum = compute_header_checksum(&cartridge_header);
-    let memory_controller = get_memory_controller(&info, &mut reader, &ram_info)?;
+    let memory_controller = get_memory_controller(&info, &mut reader, &rom_info, &ram_info)?;
 
     Ok(Cartridge {
         title,
@@ -240,10 +241,17 @@ fn compute_header_checksum(rom: &[u8]) -> u8 {
 fn get_memory_controller(
     info: &CartridgeInfo,
     rom_reader: &mut BufReader<File>,
+    rom_info: &ROMSizeInfo,
     ram_info: &RAMSizeInfo,
 ) -> Result<Box<dyn MemoryBankController>, String> {
     match &info.bank_type {
-        MBCType::RomOnly => NoMemoryBankController::create(rom_reader, ram_info.num_banks),
+        MBCType::RomOnly => NoMemoryBankController::new(rom_reader, ram_info.num_banks),
+        MBCType::MBC1 => {
+            MBC3BankController::new(rom_reader, rom_info.num_banks, ram_info.num_banks)
+        }
+        MBCType::MBC3 => {
+            MBC3BankController::new(rom_reader, rom_info.num_banks, ram_info.num_banks)
+        }
         value => Err(format!("Unsupported bank type {:?}", value.get_name())),
     }
 }

@@ -1,5 +1,10 @@
+use std::ops::Div;
+use std::time::Duration;
 use crate::interrupts::Interrupt;
 use macros::BitAccessor;
+
+// https://gbdev.io/pandocs/Specifications.html#specifications
+const CPU_INSTRUCTION_PER_SECONDS: u32 = 1 << 22;
 
 // Information from: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
 pub const TIMER_START_ADDRESS: u16 = 0xFF04;
@@ -14,6 +19,10 @@ pub const TIMER_0_DIVIDER: u64 = 1024;
 pub const TIMER_1_DIVIDER: u64 = 16;
 pub const TIMER_2_DIVIDER: u64 = 64;
 pub const TIMER_3_DIVIDER: u64 = 256;
+
+pub fn convert_cycles_to_duration(nb_cycles: u64) -> Duration {
+    Duration::from_secs(nb_cycles).div(CPU_INSTRUCTION_PER_SECONDS)
+}
 
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct Timer {
