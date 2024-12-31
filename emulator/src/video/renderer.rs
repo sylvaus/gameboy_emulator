@@ -1,7 +1,5 @@
 use crate::video::controller::VideoController;
-use crate::video::sprite::{
-    get_intersected_sprites, get_pixel_value_from_sprite, SpriteSize, SPRITE_Y_OFFSET,
-};
+use crate::video::sprite::{get_intersected_sprites, get_pixel_value_from_sprite, SpriteSize, SPRITE_X_OFFSET, SPRITE_Y_OFFSET};
 use crate::video::tile::{
     get_pixel_value_from_tile, get_tile_address, get_vram_tile_offset_from_area,
 };
@@ -207,8 +205,9 @@ impl CoreNonCgbRenderer {
                 1 => video.get_obj_palette_data_1(),
                 _ => panic!("This should never happen."),
             };
-            let min_x: usize = 8usize.saturating_sub(sprite.x);
-            let max_x = min(8usize, (SCREEN_WIDTH as usize).saturating_sub(sprite.x));
+
+            let min_x: usize = SPRITE_X_OFFSET.saturating_sub(sprite.x);
+            let max_x = min(8usize, (SCREEN_WIDTH as usize + SPRITE_X_OFFSET).saturating_sub(sprite.x));
             let sprite_y = (y + SPRITE_Y_OFFSET) - sprite.y;
 
             for sprite_x in min_x..max_x {
@@ -216,7 +215,7 @@ impl CoreNonCgbRenderer {
                     get_pixel_value_from_sprite(&video.get_vram(), sprite, sprite_x, sprite_y);
                 if color_index != 0 {
                     let color = get_non_cgb_color(color_index, palette.value);
-                    let x = (sprite.x + sprite_x) - 8;
+                    let x = (sprite.x + sprite_x) - SPRITE_X_OFFSET;
                     // If the color is not white and bg_window_over_obj is set do nothing.
                     if !(y_colors[x] != WHITE && sprite.read_bg_window_over_obj() != 0) {
                         y_colors[x] = color;

@@ -3,6 +3,7 @@ use macros::BitAccessor;
 
 /// Information from: https://gbdev.io/pandocs/OAM.html
 pub const NB_SPRITES: usize = 40;
+pub const SPRITE_X_OFFSET: usize = 8;
 pub const SPRITE_Y_OFFSET: usize = 16;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
