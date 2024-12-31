@@ -79,20 +79,21 @@ impl MemoryBankController for MBC1BankController {
             0x0000..=0x3FFF => {
                 // https://gbdev.io/pandocs/MBC1.html#00003fff
                 let address = if self.is_advanced_banking_mode_enabled {
-                    address + (self.ram_bank_number_or_rom_upper_bits as u16).shl(19)
+                    address as usize + (self.ram_bank_number_or_rom_upper_bits as usize).shl(19)
                 } else {
-                    address
+                    address as usize
                 };
-                self.rom[address as usize]
+                self.rom[address]
             }
             0x4000..=0x7FFF => {
-                let address = address + (self.rom_bank_number as u16).shl(14);
+                // https://gbdev.io/pandocs/MBC1.html#40007fff
+                let address = (address as usize & 0x3FFF) + (self.rom_bank_number as usize).shl(14);
                 let address = if self.is_advanced_banking_mode_enabled {
-                    address + (self.ram_bank_number_or_rom_upper_bits as u16).shl(19)
+                    address + (self.ram_bank_number_or_rom_upper_bits as usize).shl(19)
                 } else {
                     address
                 };
-                self.rom[address as usize]
+                self.rom[address]
             }
             _ => 0,
         }
