@@ -2,8 +2,9 @@ use macros::BitAccessor;
 
 /// Information from: https://gbdev.io/pandocs/Joypad_Input.html#ff00--p1joyp-joypad
 pub const JOYPAD_INPUT_ADDRESS: u16 = 0xFF00;
-pub const JOYPAD_INPUT_READ_ONLY_MASK: u8 = 0b00001111u8;
-pub const JOYPAD_INPUT_WRITE_ONLY_MASK: u8 = 0b11110000u8;
+pub const JOYPAD_INPUT_UNUSED_BIT_MASK: u8 = 0b1100_0000u8;
+pub const JOYPAD_INPUT_READ_ONLY_MASK: u8 = 0b0000_1111u8;
+pub const JOYPAD_INPUT_WRITE_ONLY_MASK: u8 = 0b0011_0000u8;
 
 #[derive(Debug, Clone, Default)]
 pub struct JoypadState {
@@ -40,6 +41,7 @@ impl JoypadState {
 
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct JoypadInput {
+    #[bit_offset_size(unused, 6, 2)]
     #[bit_offset_size(action_buttons, 5, 1)]
     #[bit_offset_size(direction_buttons, 4, 1)]
     #[bit_offset_size(down_start, 3, 1)]
@@ -56,7 +58,7 @@ impl JoypadInput {
 
     pub fn write(&mut self, value: u8) {
         // Only set the control bits, the 4 lower bits are read only
-        self.value &= JOYPAD_INPUT_READ_ONLY_MASK;
+        self.value &= JOYPAD_INPUT_READ_ONLY_MASK | JOYPAD_INPUT_UNUSED_BIT_MASK;
         self.value |= value & JOYPAD_INPUT_WRITE_ONLY_MASK;
     }
 
@@ -77,7 +79,7 @@ impl JoypadInput {
         let modified_bits = value ^ old_value;
         let high_to_low_bits = old_value & modified_bits;
 
-        self.value &= JOYPAD_INPUT_WRITE_ONLY_MASK;
+        self.value &= JOYPAD_INPUT_WRITE_ONLY_MASK | JOYPAD_INPUT_UNUSED_BIT_MASK;
         self.value |= value;
         high_to_low_bits > 0
     }
@@ -88,8 +90,6 @@ pub trait InputProvider {
     fn update_inputs(&mut self);
 
     fn get_inputs(&self) -> JoypadState;
-
-    fn should_quit(&self) -> bool;
 }
 
 #[cfg(test)]
@@ -105,6 +105,7 @@ mod tests {
         assert_eq!(joypad.read_up_select(), 1);
         assert_eq!(joypad.read_left_b(), 1);
         assert_eq!(joypad.read_right_a(), 1);
+        assert_eq!(joypad.read_unused(), 0b11);
     }
 
     #[test]
@@ -119,6 +120,7 @@ mod tests {
         assert_eq!(joypad.read_up_select(), 1);
         assert_eq!(joypad.read_left_b(), 1);
         assert_eq!(joypad.read_right_a(), 1);
+        assert_eq!(joypad.read_unused(), 0b11);
     }
 
     #[test]
@@ -142,6 +144,7 @@ mod tests {
         assert_eq!(joypad.read_up_select(), 1);
         assert_eq!(joypad.read_left_b(), 1);
         assert_eq!(joypad.read_right_a(), 1);
+        assert_eq!(joypad.read_unused(), 0b11);
     }
 
     #[test]
@@ -166,6 +169,7 @@ mod tests {
         assert_eq!(joypad.read_up_select(), 0);
         assert_eq!(joypad.read_left_b(), 1);
         assert_eq!(joypad.read_right_a(), 0);
+        assert_eq!(joypad.read_unused(), 0b11);
     }
 
     #[test]
@@ -190,5 +194,6 @@ mod tests {
         assert_eq!(joypad.read_up_select(), 0);
         assert_eq!(joypad.read_left_b(), 1);
         assert_eq!(joypad.read_right_a(), 0);
+        assert_eq!(joypad.read_unused(), 0b11);
     }
 }
