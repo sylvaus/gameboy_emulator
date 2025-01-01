@@ -39,6 +39,7 @@ pub const VRAM_DMA_END_ADDRESS: u16 = 0xFF55;
 
 /// Information from: https://gbdev.io/pandocs/Interrupts.html#interrupts
 pub const INTERRUPT_FLAG_ADDRESS: u16 = 0xFF0F;
+pub const INTERRUPT_FLAG_UNUSED_BITS: u8 = 0b1110_0000;
 pub const INTERRUPT_ENABLE_ADDRESS: u16 = 0xFFFF;
 
 pub struct GBMemory {
@@ -51,7 +52,6 @@ pub struct GBMemory {
     timer: Timer,
     cgb_registers: CGBRegisters,
 
-    io_range: Vec<u8>,
     oam_dma_high_bits: u8, // https://gbdev.io/pandocs/OAM_DMA_Transfer.html?highlight=oam%20dma%20high#ff46--dma-oam-dma-source-address--start
     interrupt_flag: u8,    // https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable
     interrupt_enable: u8,  // https://gbdev.io/pandocs/Interrupts.html#ff0f--if-interrupt-flag
@@ -78,7 +78,6 @@ impl GBMemory {
             sound,
             timer,
             cgb_registers,
-            io_range: vec![0u8; IO_RANGE_SIZE],
             oam_dma_high_bits: 0,
             interrupt_flag: 0,
             interrupt_enable: 0,
@@ -142,7 +141,7 @@ impl GBMemory {
 
     fn read_vram_dma(&self, _address: u16) -> u8 {
         // TODO implement vram dma for CGB: https://gbdev.io/pandocs/CGB_Registers.html#lcd-vram-dma-transfers
-        0
+        0xFF
     }
 
     fn write_vram_dma(&mut self, _address: u16, _value: u8) {
@@ -156,14 +155,14 @@ impl GBMemory {
                 self.serial.read(address)
             }
             TIMER_START_ADDRESS..=TIMER_END_ADDRESS => self.timer.read(address),
-            INTERRUPT_FLAG_ADDRESS => self.interrupt_flag,
+            INTERRUPT_FLAG_ADDRESS => self.interrupt_flag | INTERRUPT_FLAG_UNUSED_BITS,
             SOUND_START_ADDRESS..=SOUND_END_ADDRESS => self.sound.read(address),
             IO_LCD_START_ADDRESS..=BEFORE_OAM_DMA_ADDRESS => self.video.read_lcd(address),
             OAM_DMA_ADDRESS => self.oam_dma_high_bits,
             AFTER_OAM_DMA_ADDRESS..=IO_LCD_END_ADDRESS => self.video.read_lcd(address),
             KEY_1_ADDRESS => self.cgb_registers.read_key_1(),
             VRAM_BANK_SELECT => self.video.read_vram_bank(),
-            DISABLE_BOOT_ROM_ADDRESS => self.boot_rom_disabled,
+            DISABLE_BOOT_ROM_ADDRESS => 0xFF,
             VRAM_DMA_START_ADDRESS..=VRAM_DMA_END_ADDRESS => self.read_vram_dma(address),
             INFRARED_CONTROL_ADDRESS => self.cgb_registers.read_infrared_control(),
             BG_OBJ_PALETTES_START_ADDRESS..=BG_OBJ_PALETTES__END_ADDRESS => {
@@ -171,7 +170,9 @@ impl GBMemory {
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.read_selected_work_ram_bank(),
 
-            address => self.io_range[(address - IO_RANGE_START_ADDRESS) as usize],
+            // According to https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/bits/unused_hwio-GS.s
+            // All unused bits should return 1.
+            _address => 0xFF,
         }
     }
 
@@ -197,7 +198,7 @@ impl GBMemory {
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.write_selected_work_ram_bank(value),
 
-            address => self.io_range[(address - IO_RANGE_START_ADDRESS) as usize] = value,
+            _address => {/* Unused IO register: nothing to do. */ },
         }
     }
 }
