@@ -84,10 +84,6 @@ impl<'a> InputProvider for Sdl2Gui<'a> {
     fn get_inputs(&self) -> JoypadState {
         self.joypad.clone()
     }
-
-    fn should_quit(&self) -> bool {
-        self.quit_pressed
-    }
 }
 
 pub struct Sdl2Context {
