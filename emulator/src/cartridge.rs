@@ -258,11 +258,17 @@ fn get_memory_controller(
 }
 
 /// Source: https://gbdev.io/pandocs/The_Cartridge_Header.html#0143--cgb-flag
-#[derive(Clone, Debug, PartialEq, AddEnumName)]
+#[derive(Copy, Clone, Debug, PartialEq, AddEnumName)]
 pub enum CGBFlag {
     NonCgbCompatible,
     CgbCompatible,
     CgbOnly,
+}
+
+impl CGBFlag {
+    pub fn use_cgb(&self) -> bool {
+        matches!(self, Self::CgbCompatible | Self::CgbOnly)
+    }
 }
 
 fn get_cgb_flag(rom: &[u8]) -> CGBFlag {

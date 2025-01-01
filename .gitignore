@@ -16,3 +16,11 @@ Cargo.lock
 # IntelliJ
 .idea
 *.iml
+
+# Mooneye test data
+**/mts
+
+# Do not upload ROMs
+**/*.gb
+**/*.gba
+**/*.sym

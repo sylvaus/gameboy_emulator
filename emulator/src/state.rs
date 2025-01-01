@@ -19,17 +19,18 @@ pub struct EmulatorState {
 
 impl EmulatorState {
     pub fn new(cartridge: Cartridge) -> Self {
+        let is_cgb = cartridge.cgb_flag.use_cgb();
         let mut memory = GBMemory::new(
             cartridge.memory_controller,
             VideoController::new(),
             RamController::new(),
             JoypadInput::new(),
-            SerialTransfer {},
-            SoundController {},
+            SerialTransfer::new(is_cgb),
+            SoundController::default(),
             Timer::new(),
-            CGBRegisters::default(),
+            CGBRegisters::new(is_cgb),
         );
-        init_memory(cartridge.cgb_flag.clone(), &mut memory);
+        init_memory(cartridge.cgb_flag, &mut memory);
         let mut registers = Registers::new();
         init_registers(cartridge.cgb_flag, &mut registers);
 

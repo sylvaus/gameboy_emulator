@@ -1,4 +1,5 @@
 use crate::cartridge::Cartridge;
+use crate::debugger::{Debugger, NoOpDebugger};
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::gui::Gui;
 use crate::interrupts::Interrupt;
@@ -14,21 +15,16 @@ use std::sync::mpsc;
 use std::thread;
 use std::thread::JoinHandle;
 
-#[allow(dead_code)]
-pub fn run(state: &mut EmulatorState, gui: &mut impl Gui) {
-    let mut throttler = Throttler::new();
-    while !gui.should_quit() {
-        let nb_cycles = update_next_instruction(state, gui).nb_cycles;
-        throttler.throttle_for_cycles(nb_cycles);
-    }
-}
-
-struct InstructionUpdate {
+pub struct InstructionUpdate {
     pub nb_cycles: u64,
     pub update_frame: bool,
 }
 
-fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> InstructionUpdate {
+pub fn update_next_instruction(
+    state: &mut EmulatorState,
+    gui: &mut impl Gui,
+    debugger: &mut impl Debugger,
+) -> InstructionUpdate {
     let mut nb_cycles = 0u64;
 
     if let Some(interrupt) = state.memory.get_enabled_interrupt() {
@@ -39,7 +35,7 @@ fn update_next_instruction(state: &mut EmulatorState, gui: &mut impl Gui) -> Ins
     }
 
     if !state.registers.halted {
-        nb_cycles += fetch_and_execute(state);
+        nb_cycles += fetch_and_execute(state, debugger);
     } else {
         // TODO: add handling when ime_flag is false and halted.
         nb_cycles += 4; // TODO: confirm the number of cycles to spend during halt
@@ -89,7 +85,7 @@ fn handle_interrupt(state: &mut EmulatorState, interrupt: Interrupt) -> u64 {
     20
 }
 
-fn fetch_and_execute(state: &mut EmulatorState) -> u64 {
+fn fetch_and_execute(state: &mut EmulatorState, debugger: &mut impl Debugger) -> u64 {
     let mut opcode: u16 = state.memory.read(state.registers.pc).into();
     let mut argument_pc = state.registers.pc + 1;
     if opcode == 0xCB {
@@ -97,6 +93,7 @@ fn fetch_and_execute(state: &mut EmulatorState) -> u64 {
         argument_pc += 1;
     }
 
+    debugger.handle_instruction(opcode, state);
     let (instruction, argument_type) = get_instruction(opcode);
     let argument = match argument_type {
         ImmediateArgumentType::None => Argument::new_empty(),
@@ -171,6 +168,7 @@ impl ThreadedEmulator {
 }
 
 fn thread_loop(receiver: mpsc::Receiver<Action>) {
+    let mut debugger = NoOpDebugger::new();
     let mut state = State::default();
     let mut throttler = Throttler::new();
     let mut stats_recorder = StatisticsRecorder::new();
@@ -194,7 +192,7 @@ fn thread_loop(receiver: mpsc::Receiver<Action>) {
             }
             let (emulator_state, screen) = &mut state.emulator.as_mut().unwrap();
             let mut gui = GuiMiddleware::new(screen, &state.input);
-            let update = update_next_instruction(emulator_state, &mut gui);
+            let update = update_next_instruction(emulator_state, &mut gui, &mut debugger);
 
             nb_cycles += update.nb_cycles;
             if update.update_frame {
@@ -276,10 +274,6 @@ impl<'a> InputProvider for GuiMiddleware<'a> {
 
     fn get_inputs(&self) -> JoypadState {
         self.state.joypad.clone()
-    }
-
-    fn should_quit(&self) -> bool {
-        self.state.should_quit
     }
 }
 
