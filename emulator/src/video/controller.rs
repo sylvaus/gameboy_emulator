@@ -48,7 +48,7 @@ pub const MODE_3_TRANSFER_VALUE: u8 = 3;
 /// Full frame time: 70224
 /// * Mode 2 + 3 + 0 for 144 lines (0-143): (173 + 80 + 203) * 144
 /// * Mode 1 for 10 lines (144-153): 456 * 10
-/// (173 + 80 + 203) * 144 + 456 * 10 = 70224
+///   (173 + 80 + 203) * 144 + 456 * 10 = 70224
 pub const MODE_0_HBLANK_CYCLES: u64 = 173;
 pub const MODE_1_VBLANK_CYCLES: u64 = 456;
 pub const MODE_2_SEARCH_OAM_CYCLES: u64 = 80;
@@ -389,6 +389,12 @@ impl VideoController {
 
     pub fn get_obj_palette_data_1(&self) -> &MonochromePalette {
         &self.obj_palette_data_1
+    }
+}
+
+impl Default for VideoController {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

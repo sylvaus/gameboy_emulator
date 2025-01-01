@@ -35,8 +35,8 @@ impl SerialTransfer {
 
     pub fn read(&self, address: u16) -> u8 {
         match address {
-            0xFF01 => self.data,
-            0xFF02 => {
+            SERIAL_TRANSFER_DATA_ADDRESS => self.data,
+            SERIAL_TRANSFER_CONTROL_ADDRESS => {
                 if self.is_cgb {
                     self.control | CGB_CONTROL_UNUSED_BITS
                 } else {
@@ -44,16 +44,16 @@ impl SerialTransfer {
                 }
             }
 
-            _ => panic!("This function should never be called with address outside range [0xFF10, 0xFF3F], called with {}", address),
+            _ => panic!("This function should never be called with address outside range [0xFF01, 0xFF02], called with {}", address),
         }
     }
 
     pub fn write(&mut self, address: u16, value: u8) {
         match address {
-            0xFF01 => self.data = value,
-            0xFF02 => self.control = value,
+            SERIAL_TRANSFER_DATA_ADDRESS => self.data = value,
+            SERIAL_TRANSFER_CONTROL_ADDRESS => self.control = value,
 
-            _ => panic!("This function should never be called with address outside range [0xFF10, 0xFF3F], called with {}", address),
+            _ => panic!("This function should never be called with address outside range [0xFF01, 0xFF02], called with {}", address),
         }
     }
 }

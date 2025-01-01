@@ -21,7 +21,7 @@ pub struct MBC3BankController {
 }
 
 impl MBC3BankController {
-    pub fn new(
+    pub fn create(
         rom_reader: &mut BufReader<File>,
         num_rom_banks: usize,
         num_ram_banks: usize,
@@ -126,7 +126,7 @@ impl MemoryBankController for MBC3BankController {
         }
     }
 
-    fn update(&mut self, duration: Duration) -> () {
+    fn update(&mut self, duration: Duration) {
         self.rtc.update(duration);
     }
 }
@@ -157,8 +157,8 @@ impl RealTimeCounterRegister {
     pub fn add_time(&mut self, duration: Duration) {
         // https://gbdev.io/pandocs/MBC3.html#the-clock-counter-registers
         let microseconds = duration.as_micros() + self.microseconds as u128;
-        self.microseconds = (microseconds % 1000_000) as u64;
-        let seconds = (microseconds / 1000_000) as u64 + self.seconds as u64;
+        self.microseconds = (microseconds % 1_000_000) as u64;
+        let seconds = (microseconds / 1_000_000) as u64 + self.seconds as u64;
         self.seconds = (seconds % 60) as u8;
         let minutes = (seconds / 60) + self.minutes as u64;
         self.minutes = (minutes % 60) as u8;

@@ -5,6 +5,7 @@ use crate::interface::{Code, Expression, IntFormat, Language, Type, Variable};
 
 const OFFSET_CARRY_FLAG_VALUE: i64 = 4;
 const OFFSET_HALF_CARRY_FLAG_VALUE: i64 = 5;
+#[allow(dead_code)]
 const OFFSET_ADD_SUB_FLAG_VALUE: i64 = 6;
 const OFFSET_ZERO_FLAG_VALUE: i64 = 7;
 

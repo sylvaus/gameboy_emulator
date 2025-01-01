@@ -110,7 +110,7 @@ impl GBEmulatorApp {
     }
 
     fn menu_file_buttons(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Open Rom").clicked() && !self.dialog.is_some() {
+        if ui.button("Open Rom").clicked() && self.dialog.is_none() {
             self.dialog = Some(thread::spawn(|| {
                 let answer = rfd::FileDialog::new()
                     .set_title("Select ROM to Play")
@@ -126,16 +126,13 @@ impl GBEmulatorApp {
     }
 
     fn handle_dialog_answer(&mut self, handle: JoinHandle<AppDialogAnswer>) {
-        match handle.join() {
-            Ok(AppDialogAnswer::OpenFile(Some(path))) => {
-                if let (Some(handle), Ok(cartridge)) =
-                    (&self.texture, load_cartridge(path.as_path()))
-                {
-                    self.emulator
-                        .start(cartridge, Box::new(AppScreen::new(handle.clone())));
-                }
+        if let Ok(AppDialogAnswer::OpenFile(Some(path))) = handle.join() {
+            if let (Some(handle), Ok(cartridge)) =
+                (&self.texture, load_cartridge(path.as_path()))
+            {
+                self.emulator
+                    .start(cartridge, Box::new(AppScreen::new(handle.clone())));
             }
-            _ => {}
         };
     }
 }

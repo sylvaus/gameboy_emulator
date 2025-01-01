@@ -146,3 +146,9 @@ impl Registers {
         *high = (value >> 8) as u8;
     }
 }
+
+impl Default for Registers {
+    fn default() -> Self {
+        Self::new()
+    }
+}

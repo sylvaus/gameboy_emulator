@@ -51,7 +51,7 @@ impl Sprite {
 }
 
 pub fn get_intersected_sprites(oam: &[u8], mut y: usize, size: SpriteSize) -> Vec<Sprite> {
-    y = y + SPRITE_Y_OFFSET;
+    y += SPRITE_Y_OFFSET;
 
     let height = size.get_height();
     let mut sprites = Vec::new();

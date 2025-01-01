@@ -83,7 +83,7 @@ pub fn create_op_with_flag_code_3_custom_values(
         } else {
             (&result.name, carry_max_value)
         };
-        let variable = compute_carry_flag(language, &value_to_compare, carry_max_value, operation);
+        let variable = compute_carry_flag(language, value_to_compare, carry_max_value, operation);
         custom_flag_values.push(create_carry_flag_value(language, &variable.name));
         result.code.iappend(variable.code);
     }

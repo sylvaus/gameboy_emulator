@@ -91,7 +91,7 @@ impl CoreNonCgbRenderer {
 
         let y = (video.get_coordinates().y - 1) as usize;
         for (x, color) in y_colors.iter().enumerate() {
-            writer(x, y, &color);
+            writer(x, y, color);
         }
     }
 
@@ -112,7 +112,7 @@ impl CoreNonCgbRenderer {
         let background_enabled = video.get_control().read_bg_window_enable() != 0;
 
         let mut result = [WHITE; SCREEN_WIDTH as usize];
-        for x in 0..(SCREEN_WIDTH as usize) {
+        for (x, cell) in result.iter_mut().enumerate() {
             let window_x = (video.get_coordinates().window_position_x as usize)
                 .saturating_sub(WINDOW_X_OFFSET);
             let color = if window_enabled_for_y && (window_x <= x) {
@@ -126,7 +126,7 @@ impl CoreNonCgbRenderer {
             } else {
                 WHITE
             };
-            result[x] = color;
+            *cell = color;
         }
 
         if y == (SCREEN_HEIGHT - 1) as usize {
@@ -174,7 +174,7 @@ impl CoreNonCgbRenderer {
         let tile_x = x % 8;
         let tile_y = y % 8;
         let color_index =
-            get_pixel_value_from_tile(&video.get_vram(), tile_address, tile_x, tile_y);
+            get_pixel_value_from_tile(video.get_vram(), tile_address, tile_x, tile_y);
 
         get_non_cgb_color(color_index, video.get_bg_palette_data().value)
     }
@@ -193,7 +193,7 @@ impl CoreNonCgbRenderer {
             SpriteSize::Size8x8
         };
 
-        let mut sprites = get_intersected_sprites(&video.get_oam(), y, object_size);
+        let mut sprites = get_intersected_sprites(video.get_oam(), y, object_size);
 
         // Information from: https://gbdev.io/pandocs/OAM.html#drawing-priority
         sprites.sort_by_key(|sprite| sprite.x);
@@ -212,7 +212,7 @@ impl CoreNonCgbRenderer {
 
             for sprite_x in min_x..max_x {
                 let color_index =
-                    get_pixel_value_from_sprite(&video.get_vram(), sprite, sprite_x, sprite_y);
+                    get_pixel_value_from_sprite(video.get_vram(), sprite, sprite_x, sprite_y);
                 if color_index != 0 {
                     let color = get_non_cgb_color(color_index, palette.value);
                     let x = (sprite.x + sprite_x) - SPRITE_X_OFFSET;
@@ -223,6 +223,12 @@ impl CoreNonCgbRenderer {
                 };
             }
         }
+    }
+}
+
+impl Default for CoreNonCgbRenderer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

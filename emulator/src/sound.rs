@@ -2,9 +2,6 @@ use macros::BitAccessor;
 
 // TODO: Implement sound.
 
-pub const AUDIO_WAVE_START_ADDRESS: u16 = 0xFF10;
-pub const AUDIO_WAVE_END_ADDRESS: u16 = 0xFF3F;
-
 const AUDIO_CONTROL_UNUSED_BITS: u8 = 0b0111_0000u8;
 
 

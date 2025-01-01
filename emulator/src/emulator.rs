@@ -78,7 +78,7 @@ fn handle_interrupt(state: &mut EmulatorState, interrupt: Interrupt) -> u64 {
         state.registers.sp - 2u16,
         (state.registers.pc & 0xFFu16) as u8,
     );
-    state.registers.sp = state.registers.sp - 2u16;
+    state.registers.sp -= 2u16;
     state.registers.pc = interrupt.get_address();
 
     // 5 M-cycles
@@ -112,6 +112,12 @@ fn fetch_and_execute(state: &mut EmulatorState, debugger: &mut impl Debugger) ->
 pub struct ThreadedEmulator {
     handle: JoinHandle<()>,
     sender: mpsc::Sender<Action>,
+}
+
+impl Default for ThreadedEmulator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[allow(dead_code)]
@@ -259,7 +265,7 @@ impl<'a> GuiMiddleware<'a> {
     }
 }
 
-impl<'a> Screen for GuiMiddleware<'a> {
+impl Screen for GuiMiddleware<'_> {
     fn write_pixel(&mut self, x: usize, y: usize, color: &Color) {
         self.screen.write_pixel(x, y, color);
     }
@@ -269,7 +275,7 @@ impl<'a> Screen for GuiMiddleware<'a> {
     }
 }
 
-impl<'a> InputProvider for GuiMiddleware<'a> {
+impl InputProvider for GuiMiddleware<'_> {
     fn update_inputs(&mut self) {}
 
     fn get_inputs(&self) -> JoypadState {
@@ -277,4 +283,4 @@ impl<'a> InputProvider for GuiMiddleware<'a> {
     }
 }
 
-impl<'a> Gui for GuiMiddleware<'a> {}
+impl Gui for GuiMiddleware<'_> {}

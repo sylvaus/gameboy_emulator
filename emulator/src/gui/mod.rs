@@ -15,6 +15,12 @@ impl NoOpGui {
     }
 }
 
+impl Default for NoOpGui {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Screen for NoOpGui {
     fn write_pixel(&mut self, _x: usize, _y: usize, _color: &Color) {
 

@@ -1,10 +1,9 @@
-/// TODO: Implement the CGB variant
-/// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
+//! TODO: Implement the CGB variant
+//! Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 
 pub const WORK_RAM_SIZE: usize = 0x1000;
 pub const WORK_RAM_START_ADDRESS: u16 = 0xC000;
 pub const WORK_RAM_END_ADDRESS: u16 = 0xDFFF;
-pub const ECHO_RAM_SIZE: usize = 0x1E00;
 pub const ECHO_RAM_START_ADDRESS: u16 = 0xE000;
 pub const ECHO_RAM_END_ADDRESS: u16 = 0xFDFF;
 
@@ -61,5 +60,11 @@ impl RamController {
         // see: https://gbdev.io/pandocs/CGB_Registers.html#ff70--svbk-cgb-mode-only-wram-bank
         // TODO: Implement CGB variant where this should return the selected ram bank ;
         0xFF
+    }
+}
+
+impl Default for RamController {
+    fn default() -> Self {
+        Self::new()
     }
 }

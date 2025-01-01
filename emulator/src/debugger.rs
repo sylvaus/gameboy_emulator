@@ -15,6 +15,12 @@ impl NoOpDebugger {
     }
 }
 
+impl Default for NoOpDebugger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Debugger for NoOpDebugger {
     fn handle_instruction(&mut self, _opcode: u16, _state: &mut EmulatorState) {}
 }

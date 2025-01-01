@@ -26,8 +26,6 @@ pub const NOT_USABLE_START_ADDRESS: u16 = 0xFEA0;
 pub const NOT_USABLE_END_ADDRESS: u16 = 0xFEFF;
 pub const IO_RANGE_START_ADDRESS: u16 = 0xFF00;
 pub const IO_RANGE_END_ADDRESS: u16 = 0xFF7F;
-pub const IO_RANGE_SIZE: usize = ((IO_RANGE_END_ADDRESS - IO_RANGE_START_ADDRESS) + 1) as usize;
-
 /// Information from: https://gbdev.io/pandocs/Audio_Registers.html
 pub const SOUND_START_ADDRESS: u16 = 0xFF10;
 pub const SOUND_END_ADDRESS: u16 = 0xFF3F;
@@ -111,7 +109,7 @@ impl GBMemory {
     pub fn get_enabled_interrupt(&self) -> Option<Interrupt> {
         for interrupt in ALL_INTERRUPTS {
             if interrupt.is_set(self.interrupt_flag) && interrupt.is_set(self.interrupt_enable) {
-                return Some(interrupt.clone());
+                return Some(*interrupt);
             }
         }
         None

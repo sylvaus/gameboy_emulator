@@ -16,7 +16,6 @@ pub struct LcdControl {
 }
 
 /// Structure defined here: https://gbdev.io/pandocs/STAT.html
-
 pub const LCD_STATUS_UNUSED_BITS: u8 = 0b1000_0000;
 
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]

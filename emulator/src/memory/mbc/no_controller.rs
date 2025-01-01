@@ -11,7 +11,7 @@ pub struct NoMemoryBankController {
 }
 
 impl NoMemoryBankController {
-    pub fn new(
+    pub fn create(
         rom_reader: &mut BufReader<File>,
         num_ram_banks: usize,
     ) -> Result<Box<dyn MemoryBankController>, String> {
