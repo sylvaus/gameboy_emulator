@@ -1,6 +1,7 @@
 use macros::BitAccessor;
 
 /// Structure defined here: https://gbdev.io/pandocs/LCDC.html
+///
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct LcdControl {
     #[bit_offset_size(lcd_enable, 7, 1)]
@@ -15,6 +16,9 @@ pub struct LcdControl {
 }
 
 /// Structure defined here: https://gbdev.io/pandocs/STAT.html
+
+pub const LCD_STATUS_UNUSED_BITS: u8 = 0b1000_0000;
+
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct LcdStatus {
     #[bit_offset_size(enable_lyc_stat_interrupt, 6, 1)]
@@ -34,7 +38,7 @@ impl LcdStatus {
     }
 
     pub fn read(&self) -> u8 {
-        self.value
+        self.value | LCD_STATUS_UNUSED_BITS
     }
 }
 

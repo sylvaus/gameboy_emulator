@@ -315,7 +315,7 @@ impl VideoController {
 
     pub fn read_vram_bank(&self) -> u8 {
         // TODO: implement CGB mode https://gbdev.io/pandocs/CGB_Registers.html#ff4f--vbk-cgb-mode-only-vram-bank
-        0
+        0xFF
     }
 
     pub fn write_cgb_lcd_color_palette(&mut self, _address: u16, _value: u8) {
@@ -324,7 +324,7 @@ impl VideoController {
 
     pub fn read_cgb_lcd_color_palette(&self, _address: u16) -> u8 {
         // TODO: implement CGB mode https://gbdev.io/pandocs/Palettes.html#lcd-color-palettes-cgb-only
-        0
+        0xFF
     }
 
     /// Indicates that the renderer can start generating the image for the current line.
