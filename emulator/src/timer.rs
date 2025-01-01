@@ -22,6 +22,8 @@ pub fn convert_cycles_to_duration(nb_cycles: u64) -> Duration {
     Duration::from_secs(nb_cycles).div(CPU_INSTRUCTION_PER_SECONDS)
 }
 
+const TIMER_CONTROL_UNUSED_BITS: u8 = 0b1111_1000;
+
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct Timer {
     divide_cycles: u64,
@@ -92,7 +94,7 @@ impl Timer {
             DIVIDE_REGISTER_ADDRESS => self.divide_register,
             TIME_COUNTER_ADDRESS => self.timer_counter,
             TIMER_MODULO_ADDRESS => self.timer_modulo,
-            TIMER_CONTROL_ADDRESS => self.timer_control,
+            TIMER_CONTROL_ADDRESS => self.timer_control | TIMER_CONTROL_UNUSED_BITS,
             _ => panic!("Invalid address for timer {}", address),
         }
     }
