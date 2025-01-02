@@ -123,6 +123,10 @@ impl GBMemory {
         self.interrupt_flag = interrupt.set(self.interrupt_flag);
     }
 
+    pub fn is_interrupt_enabled(&self, interrupt: Interrupt) -> bool {
+        interrupt.is_set(self.interrupt_enable)
+    }
+
     fn write_oam_dma(&mut self, value: u8) {
         // This should add some machine cycles somewhere
         // Source: https://gbdev.io/pandocs/OAM_DMA_Transfer.html

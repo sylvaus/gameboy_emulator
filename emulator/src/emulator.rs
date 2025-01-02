@@ -67,19 +67,36 @@ fn handle_interrupt(state: &mut EmulatorState, interrupt: Interrupt) -> u64 {
     // Information from: https://gbdev.io/pandocs/Interrupts.html#interrupt-handling
     // step 1: Reset ime flag and interrupt flag
     state.registers.ime_flag = false;
-    state.memory.reset_interrupt_flag(interrupt);
 
     // step 2: push program counter on the stack and jump to interrupt address
     state.memory.write(
-        state.registers.sp - 1u16,
+        state.registers.sp.wrapping_sub(1),
         ((state.registers.pc >> 8u16) & 0xFFu16) as u8,
     );
+    let interrupt_is_cancelled = !state.memory.is_interrupt_enabled(interrupt);
     state.memory.write(
-        state.registers.sp - 2u16,
+        state.registers.sp.wrapping_sub(2),
         (state.registers.pc & 0xFFu16) as u8,
     );
-    state.registers.sp -= 2u16;
-    state.registers.pc = interrupt.get_address();
+    state.registers.sp = state.registers.sp.wrapping_sub(2);
+
+
+    // Handle the case where the memory write clears the interrupt enable flag.
+    // This code tries to find another interrupt to handle.
+    let interrupt = if interrupt_is_cancelled {
+        state.memory.get_enabled_interrupt()
+    } else {
+        Some(interrupt)
+    };
+
+    if let Some(interrupt) = interrupt {
+        state.memory.reset_interrupt_flag(interrupt);
+        state.registers.pc = interrupt.get_address();
+    } else {
+        // No interrupt to handle anymore.
+        state.registers.pc = 0;
+    }
+
 
     // 5 M-cycles
     20

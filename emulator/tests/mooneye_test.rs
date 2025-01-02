@@ -35,8 +35,6 @@ fn is_success(state: &EmulatorState) -> bool {
 }
 
 fn run_acceptance_test(path: &Path) {
-    println!("Running acceptance test: {:?}", path.file_name().unwrap());
-
     let cartridge = load_cartridge(path).expect("Unable to load cartridge");
     let mut state = EmulatorState::new(cartridge);
     let mut gui = NoOpGui::new();
@@ -70,4 +68,9 @@ fn bits_unused_hwio() {
 #[test]
 fn instr_daa() {
     run_acceptance_test(Path::new("./tests/mts/acceptance/instr/daa.gb"));
+}
+
+#[test]
+fn interrupts_ie_push() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/interrupts/ie_push.gb"));
 }
