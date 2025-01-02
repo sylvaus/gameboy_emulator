@@ -19,7 +19,7 @@ impl MooneyeDebugger {
 }
 
 impl Debugger for MooneyeDebugger {
-    fn handle_instruction(&mut self, opcode: u16, state: &mut EmulatorState) {
+    fn handle_instruction(&mut self, opcode: u16, _state: &mut EmulatorState) {
         // LD B B opcode is the end opcode
         self.completed = opcode == 0x40;
     }
@@ -65,4 +65,9 @@ fn bits_reg_f() {
 #[test]
 fn bits_unused_hwio() {
     run_acceptance_test(Path::new("./tests/mts/acceptance/bits/unused_hwio-GS.gb"));
+}
+
+#[test]
+fn instr_daa() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/instr/daa.gb"));
 }
