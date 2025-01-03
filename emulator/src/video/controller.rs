@@ -49,10 +49,11 @@ pub const MODE_3_TRANSFER_VALUE: u8 = 3;
 /// * Mode 2 + 3 + 0 for 144 lines (0-143): (173 + 80 + 203) * 144
 /// * Mode 1 for 10 lines (144-153): 456 * 10
 ///   (173 + 80 + 203) * 144 + 456 * 10 = 70224
-pub const MODE_0_HBLANK_CYCLES: u64 = 173;
+pub const MODE_0_HBLANK_CYCLES: u64 = 376 - MODE_3_TRANSFER_CYCLES;
 pub const MODE_1_VBLANK_CYCLES: u64 = 456;
 pub const MODE_2_SEARCH_OAM_CYCLES: u64 = 80;
 pub const MODE_3_TRANSFER_CYCLES: u64 = 203;
+pub const FRAME_CYCLES: u64 = (MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES + MODE_0_HBLANK_CYCLES) * 144 + MODE_1_VBLANK_CYCLES * 10;
 
 pub const MODE_0_HBLANK: VideoMode = VideoMode {
     value: MODE_0_HBLANK_VALUE,
@@ -176,6 +177,7 @@ impl VideoController {
         } else {
             self.update_mode(MODE_1_VBLANK);
         }
+        self.triggers.reset();
     }
 
     pub fn update(&mut self, nb_cycles: u64) -> Vec<Interrupt> {
@@ -188,8 +190,8 @@ impl VideoController {
             // According to https://www.reddit.com/r/Gameboy/comments/a1c8h0/what_happens_when_a_gameboy_screen_is_disabled/
             // Clock is reset to zero
             self.cycles = 0;
-            self.next_cycles_event =
-                MODE_0_HBLANK_CYCLES + MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES;
+            // First frame is blank: https://gbdev.io/pandocs/LCDC.html#lcdc7--lcd-enable
+            self.next_cycles_event = FRAME_CYCLES;
             self.status.write_mode(MODE_0_HBLANK_VALUE)
         }
         self.triggers.reset();

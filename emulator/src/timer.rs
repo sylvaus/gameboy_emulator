@@ -49,7 +49,7 @@ impl Timer {
         self.divide_cycles = self.divide_cycles.wrapping_add(nb_cycles);
         self.divide_register = ((self.divide_cycles >> 8) & 0xFF) as u8;
 
-        if self.read_timer_enable() == 0u8 {
+        if self.read_timer_enable() == 0 {
             return None;
         }
 
@@ -61,13 +61,16 @@ impl Timer {
             _ => unreachable!("This should never happen"),
         };
 
-        self.timer_cycles = self.timer_cycles.saturating_add(nb_cycles);
+        self.timer_cycles += nb_cycles;
         if self.timer_cycles >= divider {
+            let increment = self.timer_cycles / divider;
             self.timer_cycles %= divider;
-            self.timer_counter = self.timer_counter.wrapping_add(1);
-            if self.timer_counter == 0 {
+            let counter = self.timer_counter as u64 + increment;
+            if counter > 0xFF {
                 self.timer_counter = self.timer_modulo;
                 return Some(Interrupt::Timer);
+            } else {
+                self.timer_counter = counter as u8;
             }
         }
 
@@ -177,6 +180,16 @@ mod tests {
 
         assert_eq!(timer.update(1), None);
         assert_eq!(timer.timer_counter, 1);
+    }
+
+    #[test]
+    fn timer_increment_counter_twice() {
+        let mut timer = Timer::new();
+        timer.timer_control = 0b101;
+        assert_eq!(timer.timer_counter, 0);
+
+        assert_eq!(timer.update(32), None);
+        assert_eq!(timer.timer_counter, 2);
     }
 
     #[test]
