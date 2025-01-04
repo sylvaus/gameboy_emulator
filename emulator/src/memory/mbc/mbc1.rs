@@ -1,6 +1,8 @@
+use crate::memory::mbc::interface::{
+    MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_SIZE,
+};
 use std::fs::File;
 use std::io::{BufReader, Read, Seek};
-use crate::memory::mbc::interface::{MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_SIZE};
 use std::ops::Shl;
 use std::time::Duration;
 
@@ -100,7 +102,9 @@ impl MemoryBankController for MBC1BankController {
     }
 
     fn write_ext_ram(&mut self, address: u16, value: u8) {
-        if !self.is_ram_enabled {
+        // Some blargg test roms write to the ext ram even if the ram information was configured
+        // with 0 external ram banks.
+        if !self.is_ram_enabled || self.ram.is_empty() {
             return;
         }
         self.ram[get_ext_ram_relative_address(
