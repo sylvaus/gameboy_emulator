@@ -1,9 +1,19 @@
+//! This file assumes that the mooneye tests have been downloaded and unpacked in a folder
+//! called mts in this folder. Expected structure:
+//! tests/
+//!   | mts/
+//!     | acceptance/
+//!     ...
+//!   mooneye_tests.rs
+//! Download link can be found on the mooneye GitHub page: https://github.com/Gekkio/mooneye-test-suite
+
 use emulator::cartridge::load_cartridge;
 use emulator::debugger::Debugger;
 use emulator::emulator::update_next_instruction;
 use emulator::gui::NoOpGui;
 use emulator::state::EmulatorState;
 use std::path::Path;
+
 
 // Do not let the emulator run for more than 1 minute.
 const MAX_NB_CYCLES: usize = 4_000_000 * 60;
@@ -73,4 +83,22 @@ fn instr_daa() {
 #[test]
 fn interrupts_ie_push() {
     run_acceptance_test(Path::new("./tests/mts/acceptance/interrupts/ie_push.gb"));
+}
+
+#[test]
+fn oam_dma_basic() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/basic.gb"))
+}
+
+#[test]
+fn oam_dma_reg_read() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/reg_read.gb"))
+}
+
+// TODO: fix
+// Test currently no passing but tested on PyBoy and it also does not pass
+#[ignore]
+#[test]
+fn oam_dma_sources_gs() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/sources-GS.gb"))
 }
