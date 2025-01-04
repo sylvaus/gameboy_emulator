@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 use std::{error, fmt};
+use crate::memory::mbc::mbc5::MBC5BankController;
 
 /// Information from: https://gbdev.io/pandocs/The_Cartridge_Header.html#the-cartridge-header
 const CARTRIDGE_HEADER_SIZE: usize = 0x14F + 1;
@@ -252,6 +253,9 @@ fn get_memory_controller(
         }
         MBCType::MBC3 => {
             MBC3BankController::create(rom_reader, rom_info.num_banks, ram_info.num_banks)
+        }
+        MBCType::MBC5 => {
+            MBC5BankController::create(rom_reader, rom_info.num_banks, ram_info.num_banks)
         }
         value => Err(format!("Unsupported bank type {:?}", value.get_name())),
     }

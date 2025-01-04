@@ -1,8 +1,7 @@
-use crate::memory::mbc::interface::{
-    MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_SIZE,
-};
+use crate::memory::mbc::common::{get_rom_ram_banks, RomRamBanks};
+use crate::memory::mbc::interface::{MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE};
 use std::fs::File;
-use std::io::{BufReader, Read, Seek};
+use std::io::BufReader;
 use std::ops::Shl;
 use std::time::Duration;
 
@@ -24,19 +23,13 @@ impl MBC1BankController {
         num_rom_banks: usize,
         num_ram_banks: usize,
     ) -> Result<Box<dyn MemoryBankController>, String> {
-        rom_reader
-            .rewind()
-            .map_err(|e| format!("Could not rewind the reader {:?}", e))?;
-        let mut rom = vec![0; num_rom_banks * ROM_BANK_SIZE];
-        rom_reader
-            .read_exact(&mut rom)
-            .map_err(|e| format!("Could not get the rom data {:?}", e))?;
+        let RomRamBanks { rom, ram } = get_rom_ram_banks(rom_reader, num_rom_banks, num_ram_banks)?;
 
         let max_rom_bank_number = num_rom_banks.saturating_sub(1) as u8;
 
         Ok(Box::new(Self {
             rom,
-            ram: vec![0; num_ram_banks * RAM_BANK_SIZE],
+            ram,
             // The num_rom_banks is always a power of 2.
             // This make the number of rom banks - 1, the mask for the rom bank number.
             mask_rom_bank_number: max_rom_bank_number,

@@ -1,8 +1,7 @@
-use crate::memory::mbc::interface::{
-    MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_SIZE,
-};
+use crate::memory::mbc::common::{get_rom_ram_banks, RomRamBanks};
+use crate::memory::mbc::interface::{MemoryBankController, EXT_RAM_START_ADDRESS};
 use std::fs::File;
-use std::io::{BufReader, Read, Seek};
+use std::io::BufReader;
 use std::time::Duration;
 
 pub struct NoMemoryBankController {
@@ -15,18 +14,9 @@ impl NoMemoryBankController {
         rom_reader: &mut BufReader<File>,
         num_ram_banks: usize,
     ) -> Result<Box<dyn MemoryBankController>, String> {
-        rom_reader
-            .rewind()
-            .map_err(|e| format!("Could not rewind the reader {:?}", e))?;
-        let mut rom = vec![0; 2 * ROM_BANK_SIZE];
-        rom_reader
-            .read_exact(&mut rom)
-            .map_err(|e| format!("Could not get the rom data {:?}", e))?;
+        let RomRamBanks { rom, ram } = get_rom_ram_banks(rom_reader, 2, num_ram_banks)?;
 
-        Ok(Box::new(Self {
-            rom,
-            ram: vec![0; num_ram_banks * RAM_BANK_SIZE],
-        }))
+        Ok(Box::new(Self { rom, ram }))
     }
 }
 

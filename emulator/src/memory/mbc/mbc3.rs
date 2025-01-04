@@ -1,3 +1,4 @@
+use crate::memory::mbc::common::{get_rom_ram_banks, RomRamBanks};
 use crate::memory::mbc::interface::{
     MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_0_END_ADDRESS,
     ROM_BANK_1_N_END_ADDRESS, ROM_BANK_1_N_START_ADDRESS, ROM_BANK_SIZE,
@@ -5,7 +6,7 @@ use crate::memory::mbc::interface::{
 use macros::BitAccessor;
 use std::cmp::max;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek};
+use std::io::BufReader;
 use std::time::Duration;
 
 pub struct MBC3BankController {
@@ -26,17 +27,11 @@ impl MBC3BankController {
         num_rom_banks: usize,
         num_ram_banks: usize,
     ) -> Result<Box<dyn MemoryBankController>, String> {
-        rom_reader
-            .rewind()
-            .map_err(|e| format!("Could not rewind the reader {:?}", e))?;
-        let mut rom = vec![0; num_rom_banks * ROM_BANK_SIZE];
-        rom_reader
-            .read_exact(&mut rom)
-            .map_err(|e| format!("Could not get the rom data {:?}", e))?;
+        let RomRamBanks { rom, ram } = get_rom_ram_banks(rom_reader, num_rom_banks, num_ram_banks)?;
 
         Ok(Box::new(Self {
             rom,
-            ram: vec![0; num_ram_banks * RAM_BANK_SIZE],
+            ram,
             rtc: RealTimeCounter::new(),
             rom_index: 0,
             max_rom_index: num_rom_banks.saturating_sub(1) as u8,
@@ -119,9 +114,7 @@ impl MemoryBankController for MBC3BankController {
             0..=3 if self.ram_rtc_index <= self.max_ram_index => {
                 self.ram[get_ext_ram_relative_address(address, self.max_ram_index)]
             }
-            8..=0xC => {
-                self.rtc.read(self.ram_rtc_index)
-            }
+            8..=0xC => self.rtc.read(self.ram_rtc_index),
             _ => panic!("Trying to read invalid address {} is invalid ", address),
         }
     }
@@ -132,8 +125,7 @@ impl MemoryBankController for MBC3BankController {
 }
 
 fn get_ext_ram_relative_address(absolute_address: u16, ram_index: u8) -> usize {
-    (absolute_address - EXT_RAM_START_ADDRESS) as usize
-        + (ram_index as usize * RAM_BANK_SIZE)
+    (absolute_address - EXT_RAM_START_ADDRESS) as usize + (ram_index as usize * RAM_BANK_SIZE)
 }
 
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
