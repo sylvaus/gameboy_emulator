@@ -67,7 +67,10 @@ impl Timer {
             self.timer_cycles %= divider;
             let counter = self.timer_counter as u64 + increment;
             if counter > 0xFF {
-                self.timer_counter = self.timer_modulo;
+                let overflow = counter - 0x100;
+                let modulo = 0x100 -  (self.timer_modulo as u64);
+                let increment_after_wrap = overflow % modulo;
+                self.timer_counter = self.timer_modulo + (increment_after_wrap as u8);
                 return Some(Interrupt::Timer);
             } else {
                 self.timer_counter = counter as u8;
@@ -203,13 +206,70 @@ mod tests {
     }
 
     #[test]
-    fn timer_wrap() {
+    fn timer_wrap_exact() {
         let mut timer = Timer::new();
         timer.timer_control = 0b101;
         timer.timer_counter = 0xFF;
         timer.timer_modulo = 0xF4;
 
-        assert_eq!(timer.update(256), Some(Interrupt::Timer));
+        assert_eq!(timer.update(16), Some(Interrupt::Timer));
         assert_eq!(timer.timer_counter, 0xF4);
+    }
+
+    #[test]
+    fn timer_wrap_overflow() {
+        let mut timer = Timer::new();
+        timer.timer_control = 0b101;
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xF4;
+
+        assert_eq!(timer.update(32), Some(Interrupt::Timer));
+        assert_eq!(timer.timer_counter, 0xF5);
+    }
+
+    #[test]
+    fn timer_wrap_multiple_times() {
+        let mut timer = Timer::new();
+        timer.timer_control = 0b101;
+        // 6 * 16 = 96 cycles to trigger an interrupt
+        timer.timer_counter = 0xFA;
+        timer.timer_modulo = 0xFA;
+
+        assert_eq!(timer.update(96 * 2 + 32), Some(Interrupt::Timer));
+        assert_eq!(timer.timer_counter, 0xFC);
+    }
+
+    #[test]
+    fn timer_every_4_m_cycles_no_interrupt() {
+        let mut timer = Timer::new();
+        timer.timer_control = 0b101;
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xFF;
+
+        assert_eq!(timer.update(10), None);
+        assert_eq!(timer.timer_counter, 0xFF);
+    }
+
+    #[test]
+    fn timer_every_4_m_cycles_interrupt_no_overflow() {
+        let mut timer = Timer::new();
+        timer.timer_control = 0b101;
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xFF;
+
+        assert_eq!(timer.update(16), Some(Interrupt::Timer));
+        assert_eq!(timer.timer_counter, 0xFF);
+    }
+
+    #[test]
+    fn timer_every_4_m_cycles_interrupt_and_overflow() {
+        let mut timer = Timer::new();
+        timer.timer_control = 0b101;
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xFF;
+
+        assert_eq!(timer.update(16*2 + 5), Some(Interrupt::Timer));
+        assert_eq!(timer.timer_counter, 0xFF);
+        assert_eq!(timer.timer_cycles, 5);
     }
 }
