@@ -57,7 +57,7 @@ fn run_acceptance_test(path: &Path) {
         }
     }
 
-    assert!(debugger.completed && is_success(&state));
+    assert!(debugger.completed && is_success(&state), "Failed acceptance test: {:?}", path);
 }
 
 #[test]
@@ -101,4 +101,135 @@ fn oam_dma_reg_read() {
 #[test]
 fn oam_dma_sources_gs() {
     run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/sources-GS.gb"))
+}
+
+#[test]
+fn hblank_ly_scx_timing_gs() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/hblank_ly_scx_timing-GS.gb"))
+}
+
+
+#[test]
+fn intr_1_2_timing_gs() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_1_2_timing-GS.gb"))
+}
+
+#[test]
+fn intr_2_0_timing() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_0_timing.gb"))
+}
+
+#[test]
+fn intr_2_mode0_timing() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode0_timing.gb"))
+}
+
+#[test]
+fn intr_2_mode0_timing_sprites() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode0_timing_sprites.gb"))
+}
+
+#[test]
+fn intr_2_mode3_timing() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode3_timing.gb.gb"))
+}
+
+#[test]
+fn intr_2_oam_ok_timing() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_oam_ok_timing.gb"))
+}
+
+#[test]
+fn lcdon_timing_gs() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/lcdon_timing-GS.gb"))
+}
+
+#[test]
+fn lcdon_write_timing_gs() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/lcdon_write_timing-GS.gb"))
+}
+
+#[test]
+fn stat_irq_blocking() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/stat_irq_blocking.gb"))
+}
+
+#[test]
+fn stat_lyc_onoff() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/stat_lyc_onoff.gb"))
+}
+
+#[test]
+fn vblank_stat_intr_gs() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/vblank_stat_intr-GS.gb"))
+}
+
+#[test]
+fn timer_div_write() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/div_write.gb"))
+}
+
+#[test]
+fn timer_rapid_toggle() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/rapid_toggle.gb"))
+}
+
+#[test]
+fn timer_tim00() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00.gb"))
+}
+
+#[test]
+fn timer_tim00_div_trigger() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00_div_trigger.gb"))
+}
+
+#[test]
+fn timer_tim01() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim01.gb"))
+}
+
+#[test]
+fn timer_tim01_div_trigger() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim01_div_trigger.gb"))
+}
+
+#[test]
+fn timer_tim10() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim10.gb"))
+}
+
+#[test]
+fn timer_tim10_div_trigger() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim10_div_trigger.gb"))
+}
+
+#[test]
+fn timer_tim11() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00.gb"))
+}
+
+#[test]
+fn timer_tim11_div_trigger() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim11_div_trigger.gb"))
+}
+
+#[test]
+fn timer_tima_reload() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_reload.gb"))
+}
+
+#[test]
+fn timer_tima_write_reloading() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_write_reloading.gb"))
+}
+
+#[test]
+fn timer_tma_write_reloading() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_write_reloading.gb"))
+}
+
+#[test]
+fn add_sp_e_timing() {
+    run_acceptance_test(Path::new("./tests/mts/acceptance/add_sp_e_timing.gb"))
 }

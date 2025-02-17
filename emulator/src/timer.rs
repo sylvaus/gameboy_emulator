@@ -53,13 +53,7 @@ impl Timer {
             return None;
         }
 
-        let divider = match self.read_input_clock_select() {
-            0 => TIMER_0_DIVIDER,
-            1 => TIMER_1_DIVIDER,
-            2 => TIMER_2_DIVIDER,
-            3 => TIMER_3_DIVIDER,
-            _ => unreachable!("This should never happen"),
-        };
+        let divider = self.get_timer_divider();
 
         self.timer_cycles += nb_cycles;
         if self.timer_cycles >= divider {
@@ -67,7 +61,7 @@ impl Timer {
             self.timer_cycles %= divider;
             let counter = self.timer_counter as u64 + increment;
             if counter > 0xFF {
-                let overflow = counter - 0x100;
+                let overflow = counter & 0xFF;
                 let modulo = 0x100 -  (self.timer_modulo as u64);
                 let increment_after_wrap = overflow % modulo;
                 self.timer_counter = self.timer_modulo + (increment_after_wrap as u8);
@@ -87,6 +81,12 @@ impl Timer {
             DIVIDE_REGISTER_ADDRESS => {
                 self.divide_cycles = 0;
                 self.divide_register = 0;
+                // Timer
+                self.timer_cycles = if self.is_falling_edge(self.timer_cycles) {
+                    self.get_timer_divider()
+                } else {
+                    0
+                };
             }
             TIME_COUNTER_ADDRESS => self.timer_counter = value,
             TIMER_MODULO_ADDRESS => self.timer_modulo = value,
@@ -102,6 +102,26 @@ impl Timer {
             TIMER_MODULO_ADDRESS => self.timer_modulo,
             TIMER_CONTROL_ADDRESS => self.timer_control | TIMER_CONTROL_UNUSED_BITS,
             _ => panic!("Invalid address for timer {}", address),
+        }
+    }
+
+    fn is_falling_edge(&self, timer_cycles: u64) -> bool {
+        match self.read_input_clock_select() {
+            0 => (timer_cycles & 0b10_0000_0000) > 0,
+            1 => (timer_cycles & 0b1000) > 0,
+            2 => (timer_cycles & 0b10_0000) > 0,
+            3 => (timer_cycles & 0b1000_0000) > 0,
+            _ => unreachable!("This should never happen"),
+        }
+    }
+
+    fn get_timer_divider(&self) -> u64 {
+        match self.read_input_clock_select() {
+            0 => TIMER_0_DIVIDER,
+            1 => TIMER_1_DIVIDER,
+            2 => TIMER_2_DIVIDER,
+            3 => TIMER_3_DIVIDER,
+            _ => unreachable!("This should never happen"),
         }
     }
 }
