@@ -60,176 +60,213 @@ fn run_acceptance_test(path: &Path) {
     assert!(debugger.completed && is_success(&state), "Failed acceptance test: {:?}", path);
 }
 
-#[test]
-fn bits_mem_oam() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/bits/mem_oam.gb"));
+// Complete
+mod acceptance {
+    use std::path::Path;
+    use crate::run_acceptance_test;
+
+    #[test]
+    fn mem_oam() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/bits/mem_oam.gb"));
+    }
+
+    #[test]
+    fn reg_f() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/bits/reg_f.gb"));
+    }
+    
+    #[test]
+    fn unused_hwio_gs() {run_acceptance_test(Path::new("./tests/mts/acceptance/bits/unused_hwio-GS.gb"));}
 }
 
-#[test]
-fn bits_reg_f() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/bits/reg_f.gb"));
+// Complete
+mod instr {
+    use std::path::Path;
+    use crate::run_acceptance_test;
+
+    #[test]
+    fn instr_daa() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/instr/daa.gb"));
+    }
+    
 }
 
-#[test]
-fn bits_unused_hwio() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/bits/unused_hwio-GS.gb"));
-}
-
-#[test]
-fn instr_daa() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/instr/daa.gb"));
-}
-
-#[test]
-fn interrupts_ie_push() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/interrupts/ie_push.gb"));
-}
-
-#[test]
-fn oam_dma_basic() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/basic.gb"))
-}
-
-#[test]
-fn oam_dma_reg_read() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/reg_read.gb"))
-}
-
-// TODO: fix
-// Test currently no passing but tested on PyBoy and it also does not pass
-#[ignore]
-#[test]
-fn oam_dma_sources_gs() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/sources-GS.gb"))
-}
-
-#[test]
-fn hblank_ly_scx_timing_gs() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/hblank_ly_scx_timing-GS.gb"))
+// Complete
+mod interrupts {
+    use std::path::Path;
+    use crate::run_acceptance_test;
+    #[test]
+    fn ie_push() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/interrupts/ie_push.gb"));
+    }
 }
 
 
-#[test]
-fn intr_1_2_timing_gs() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_1_2_timing-GS.gb"))
+mod oam_dma {
+    use std::path::Path;
+    use crate::run_acceptance_test;
+
+    #[test]
+    fn basic() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/basic.gb"))
+    }
+
+    #[test]
+    fn reg_read() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/reg_read.gb"))
+    }
+
+    // TODO: fix
+    // Test currently no passing but tested on PyBoy, and it also does not pass
+    #[ignore]
+    #[test]
+    fn sources_gs() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/oam_dma/sources-GS.gb"))
+    }
+} 
+
+mod ppu {
+    use std::path::Path;
+    use crate::run_acceptance_test;
+
+    #[test]
+    fn hblank_ly_scx_timing_gs() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/hblank_ly_scx_timing-GS.gb"))
+    }
+
+
+    #[test]
+    fn intr_1_2_timing_gs() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_1_2_timing-GS.gb"))
+    }
+
+    #[test]
+    fn intr_2_0_timing() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_0_timing.gb"))
+    }
+
+    #[test]
+    fn intr_2_mode0_timing() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode0_timing.gb"))
+    }
+
+    #[test]
+    fn intr_2_mode0_timing_sprites() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode0_timing_sprites.gb"))
+    }
+
+    #[test]
+    fn intr_2_mode3_timing() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode3_timing.gb.gb"))
+    }
+
+    #[test]
+    fn intr_2_oam_ok_timing() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_oam_ok_timing.gb"))
+    }
+
+    #[test]
+    fn lcdon_timing_gs() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/lcdon_timing-GS.gb"))
+    }
+
+    #[test]
+    fn lcdon_write_timing_gs() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/lcdon_write_timing-GS.gb"))
+    }
+
+    #[test]
+    fn stat_irq_blocking() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/stat_irq_blocking.gb"))
+    }
+
+    #[test]
+    fn stat_lyc_onoff() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/stat_lyc_onoff.gb"))
+    }
+
+    #[test]
+    fn vblank_stat_intr_gs() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/vblank_stat_intr-GS.gb"))
+    }
 }
 
-#[test]
-fn intr_2_0_timing() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_0_timing.gb"))
+mod timer {
+    use std::path::Path;
+    use crate::run_acceptance_test;
+
+    #[test]
+    fn div_write() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/div_write.gb"))
+    }
+
+    #[test]
+    fn rapid_toggle() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/rapid_toggle.gb"))
+    }
+
+    #[test]
+    fn tim00() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00.gb"))
+    }
+
+    #[test]
+    fn tim00_div_trigger() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00_div_trigger.gb"))
+    }
+
+    #[test]
+    fn tim01() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim01.gb"))
+    }
+
+    #[test]
+    fn tim01_div_trigger() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim01_div_trigger.gb"))
+    }
+
+    #[test]
+    fn tim10() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim10.gb"))
+    }
+
+    #[test]
+    fn tim10_div_trigger() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim10_div_trigger.gb"))
+    }
+
+    #[test]
+    fn tim11() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00.gb"))
+    }
+
+    #[test]
+    fn tim11_div_trigger() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim11_div_trigger.gb"))
+    }
+
+    #[test]
+    fn tima_reload() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_reload.gb"))
+    }
+
+    #[test]
+    fn tima_write_reloading() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_write_reloading.gb"))
+    }
+
+    #[test]
+    fn tma_write_reloading() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tma_write_reloading.gb"))
+    }
 }
 
-#[test]
-fn intr_2_mode0_timing() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode0_timing.gb"))
-}
+mod root {
+    use std::path::Path;
+    use crate::run_acceptance_test;
 
-#[test]
-fn intr_2_mode0_timing_sprites() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode0_timing_sprites.gb"))
-}
-
-#[test]
-fn intr_2_mode3_timing() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_mode3_timing.gb.gb"))
-}
-
-#[test]
-fn intr_2_oam_ok_timing() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/intr_2_oam_ok_timing.gb"))
-}
-
-#[test]
-fn lcdon_timing_gs() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/lcdon_timing-GS.gb"))
-}
-
-#[test]
-fn lcdon_write_timing_gs() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/lcdon_write_timing-GS.gb"))
-}
-
-#[test]
-fn stat_irq_blocking() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/stat_irq_blocking.gb"))
-}
-
-#[test]
-fn stat_lyc_onoff() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/stat_lyc_onoff.gb"))
-}
-
-#[test]
-fn vblank_stat_intr_gs() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/ppu/vblank_stat_intr-GS.gb"))
-}
-
-#[test]
-fn timer_div_write() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/div_write.gb"))
-}
-
-#[test]
-fn timer_rapid_toggle() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/rapid_toggle.gb"))
-}
-
-#[test]
-fn timer_tim00() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00.gb"))
-}
-
-#[test]
-fn timer_tim00_div_trigger() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00_div_trigger.gb"))
-}
-
-#[test]
-fn timer_tim01() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim01.gb"))
-}
-
-#[test]
-fn timer_tim01_div_trigger() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim01_div_trigger.gb"))
-}
-
-#[test]
-fn timer_tim10() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim10.gb"))
-}
-
-#[test]
-fn timer_tim10_div_trigger() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim10_div_trigger.gb"))
-}
-
-#[test]
-fn timer_tim11() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim00.gb"))
-}
-
-#[test]
-fn timer_tim11_div_trigger() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tim11_div_trigger.gb"))
-}
-
-#[test]
-fn timer_tima_reload() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_reload.gb"))
-}
-
-#[test]
-fn timer_tima_write_reloading() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_write_reloading.gb"))
-}
-
-#[test]
-fn timer_tma_write_reloading() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_write_reloading.gb"))
-}
-
-#[test]
-fn add_sp_e_timing() {
-    run_acceptance_test(Path::new("./tests/mts/acceptance/add_sp_e_timing.gb"))
+    #[test]
+    fn add_sp_e_timing() {
+        run_acceptance_test(Path::new("./tests/mts/acceptance/add_sp_e_timing.gb"))
+    }
 }
