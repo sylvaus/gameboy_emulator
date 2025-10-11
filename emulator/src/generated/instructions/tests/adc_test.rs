@@ -18,7 +18,7 @@ fn test_adc_8bits() {
         let mut memory = FakeMemory::new();
         let argument = Argument::new_empty();
         register.a = 0x45u8;
-        // In the case of register A it just double the value.
+        // In the case of register A, it just doubles the value.
         if register_info != &REGISTER_A {
             (register_info.setter)(&mut register, 0xA2u8);
         }
