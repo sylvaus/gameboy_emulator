@@ -22,19 +22,13 @@ impl Default for NoOpGui {
 }
 
 impl Screen for NoOpGui {
-    fn write_pixel(&mut self, _x: usize, _y: usize, _color: &Color) {
+    fn write_pixel(&mut self, _x: usize, _y: usize, _color: &Color) {}
 
-    }
-
-    fn update_frame(&mut self) {
-
-    }
+    fn update_frame(&mut self) {}
 }
 
-
 impl InputProvider for NoOpGui {
-    fn update_inputs(&mut self) {
-    }
+    fn update_inputs(&mut self) {}
 
     fn get_inputs(&self) -> JoypadState {
         JoypadState::default()

@@ -53,7 +53,9 @@ pub const MODE_0_HBLANK_CYCLES: u64 = 376 - MODE_3_TRANSFER_CYCLES;
 pub const MODE_1_VBLANK_CYCLES: u64 = 456;
 pub const MODE_2_SEARCH_OAM_CYCLES: u64 = 80;
 pub const MODE_3_TRANSFER_CYCLES: u64 = 203;
-pub const FRAME_CYCLES: u64 = (MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES + MODE_0_HBLANK_CYCLES) * 144 + MODE_1_VBLANK_CYCLES * 10;
+pub const FRAME_CYCLES: u64 =
+    (MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES + MODE_0_HBLANK_CYCLES) * 144
+        + MODE_1_VBLANK_CYCLES * 10;
 
 pub const MODE_0_HBLANK: VideoMode = VideoMode {
     value: MODE_0_HBLANK_VALUE,
@@ -279,7 +281,7 @@ impl VideoController {
                 let old = self.control.read_lcd_enable();
                 self.control.value = value;
                 self.triggers.init_lcd = (old ^ self.control.read_lcd_enable()) == 1;
-            },
+            }
             LCD_STATUS_ADDRESS => self.status.write(value),
             LCD_SCROLL_Y_ADDRESS => self.coordinates.scroll_y = value,
             LCD_SCROLL_X_ADDRESS => self.coordinates.scroll_x = value,

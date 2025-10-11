@@ -1,6 +1,7 @@
 use crate::memory::mbc::interface::MemoryBankController;
 use crate::memory::mbc::mbc1::MBC1BankController;
 use crate::memory::mbc::mbc3::MBC3BankController;
+use crate::memory::mbc::mbc5::MBC5BankController;
 use crate::memory::mbc::no_controller::NoMemoryBankController;
 use macros::AddEnumName;
 use std::fmt::{Display, Formatter};
@@ -8,7 +9,6 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 use std::{error, fmt};
-use crate::memory::mbc::mbc5::MBC5BankController;
 
 /// Information from: https://gbdev.io/pandocs/The_Cartridge_Header.html#the-cartridge-header
 const CARTRIDGE_HEADER_SIZE: usize = 0x14F + 1;

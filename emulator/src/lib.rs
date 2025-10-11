@@ -1,4 +1,5 @@
 pub mod cartridge;
+pub mod debugger;
 pub mod emulator;
 mod generated;
 pub mod gui;
@@ -7,9 +8,8 @@ mod joypad;
 mod memory;
 mod serial;
 mod sound;
+pub mod state;
+mod statistics;
+mod throttler;
 mod timer;
 mod video;
-mod throttler;
-mod statistics;
-pub mod state;
-pub mod debugger;

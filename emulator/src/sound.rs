@@ -4,7 +4,6 @@ use macros::BitAccessor;
 
 const AUDIO_CONTROL_UNUSED_BITS: u8 = 0b0111_0000u8;
 
-
 // https://gbdev.io/pandocs/Audio_Registers.html#ff26--nr52-audio-master-control
 #[derive(BitAccessor, Default, Debug)]
 struct AudioControl {

@@ -1,7 +1,7 @@
-use std::ops::Div;
-use std::time::Duration;
 use crate::interrupts::Interrupt;
 use macros::BitAccessor;
+use std::ops::Div;
+use std::time::Duration;
 
 // https://gbdev.io/pandocs/Specifications.html#specifications
 const CPU_INSTRUCTION_PER_SECONDS: u32 = 1 << 22;
@@ -62,7 +62,7 @@ impl Timer {
             let counter = self.timer_counter as u64 + increment;
             if counter > 0xFF {
                 let overflow = counter & 0xFF;
-                let modulo = 0x100 -  (self.timer_modulo as u64);
+                let modulo = 0x100 - (self.timer_modulo as u64);
                 let increment_after_wrap = overflow % modulo;
                 self.timer_counter = self.timer_modulo + (increment_after_wrap as u8);
                 return Some(Interrupt::Timer);
@@ -288,7 +288,7 @@ mod tests {
         timer.timer_counter = 0xFF;
         timer.timer_modulo = 0xFF;
 
-        assert_eq!(timer.update(16*2 + 5), Some(Interrupt::Timer));
+        assert_eq!(timer.update(16 * 2 + 5), Some(Interrupt::Timer));
         assert_eq!(timer.timer_counter, 0xFF);
         assert_eq!(timer.timer_cycles, 5);
     }

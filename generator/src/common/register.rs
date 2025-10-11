@@ -49,7 +49,9 @@ pub fn get_sub_registers_from_name<'a>(
     language: &'a Language,
     name: &str,
 ) -> (&'a Box<dyn Register>, &'a Box<dyn Register>) {
-    match RegisterName::from_name(name).unwrap_or_else(|| panic!("No u16 register for name {}", name)) {
+    match RegisterName::from_name(name)
+        .unwrap_or_else(|| panic!("No u16 register for name {}", name))
+    {
         RegisterName::AF => (&language.registers.f, &language.registers.a),
         RegisterName::BC => (&language.registers.c, &language.registers.b),
         RegisterName::DE => (&language.registers.e, &language.registers.d),

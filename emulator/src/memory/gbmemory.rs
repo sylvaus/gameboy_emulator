@@ -13,13 +13,13 @@ use crate::memory::ram::{
 use crate::memory::Memory;
 use crate::serial::{SerialTransfer, SERIAL_TRANSFER_END_ADDRESS, SERIAL_TRANSFER_START_ADDRESS};
 use crate::sound::SoundController;
+use crate::timer::convert_cycles_to_duration;
 use crate::timer::{Timer, TIMER_END_ADDRESS, TIMER_START_ADDRESS};
 use crate::video::controller::{
     VideoController, BG_OBJ_PALETTES_START_ADDRESS, BG_OBJ_PALETTES__END_ADDRESS,
     IO_LCD_END_ADDRESS, IO_LCD_START_ADDRESS, OAM_DMA_ADDRESS, OAM_END_ADDRESS, OAM_SIZE,
     OAM_START_ADDRESS, VRAM_BANK_SELECT, VRAM_END_ADDRESS, VRAM_START_ADDRESS,
 };
-use crate::timer::convert_cycles_to_duration;
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const NOT_USABLE_START_ADDRESS: u16 = 0xFEA0;
@@ -200,7 +200,7 @@ impl GBMemory {
             }
             SELECT_WORK_RAM_BANK_ADDRESS => self.ram.write_selected_work_ram_bank(value),
 
-            _address => {/* Unused IO register: nothing to do. */ },
+            _address => { /* Unused IO register: nothing to do. */ }
         }
     }
 }

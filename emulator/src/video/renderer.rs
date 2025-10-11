@@ -1,5 +1,8 @@
 use crate::video::controller::VideoController;
-use crate::video::sprite::{get_intersected_sprites, get_pixel_value_from_sprite, SpriteSize, SPRITE_X_OFFSET, SPRITE_Y_OFFSET};
+use crate::video::sprite::{
+    get_intersected_sprites, get_pixel_value_from_sprite, SpriteSize, SPRITE_X_OFFSET,
+    SPRITE_Y_OFFSET,
+};
 use crate::video::tile::{
     get_pixel_value_from_tile, get_tile_address, get_vram_tile_offset_from_area,
 };
@@ -173,8 +176,7 @@ impl CoreNonCgbRenderer {
 
         let tile_x = x % 8;
         let tile_y = y % 8;
-        let color_index =
-            get_pixel_value_from_tile(video.get_vram(), tile_address, tile_x, tile_y);
+        let color_index = get_pixel_value_from_tile(video.get_vram(), tile_address, tile_x, tile_y);
 
         get_non_cgb_color(color_index, video.get_bg_palette_data().value)
     }
@@ -207,7 +209,10 @@ impl CoreNonCgbRenderer {
             };
 
             let min_x: usize = SPRITE_X_OFFSET.saturating_sub(sprite.x);
-            let max_x = min(8usize, (SCREEN_WIDTH as usize + SPRITE_X_OFFSET).saturating_sub(sprite.x));
+            let max_x = min(
+                8usize,
+                (SCREEN_WIDTH as usize + SPRITE_X_OFFSET).saturating_sub(sprite.x),
+            );
             let sprite_y = (y + SPRITE_Y_OFFSET) - sprite.y;
 
             for sprite_x in min_x..max_x {

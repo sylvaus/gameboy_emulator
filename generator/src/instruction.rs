@@ -167,8 +167,19 @@ pub const FLAG_NAME_NON_ZERO: &str = "nz";
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum RegisterName {
-    A, B, C, D, E, H, L,
-    AF, BC, DE, HL, SP, PC
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    AF,
+    BC,
+    DE,
+    HL,
+    SP,
+    PC,
 }
 
 impl RegisterName {
@@ -187,7 +198,7 @@ impl RegisterName {
             "hl" => Some(Self::HL),
             "sp" => Some(Self::SP),
             "pc" => Some(Self::PC),
-            _ => None
+            _ => None,
         }
     }
 }

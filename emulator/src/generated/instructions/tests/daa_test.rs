@@ -214,10 +214,12 @@ fn test_daa_add() {
             expected.set_carry_flag(a_value + b_value > 99);
             expected.set_half_carry_flag(false);
             expected.set_zero_flag(result == 0);
-            assert_eq!(registers, expected, "Testing with A: {:0X}, B: {:0X}", a_value, b_value);
+            assert_eq!(
+                registers, expected,
+                "Testing with A: {:0X}, B: {:0X}",
+                a_value, b_value
+            );
             assert_eq!(argument_type, ImmediateArgumentType::None);
-
-
         }
     }
 }

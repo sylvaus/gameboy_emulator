@@ -1,6 +1,5 @@
 //! Interrupts are listed here: https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable
 
-
 const VBLANK_ENABLE_FLAG: u8 = 1u8 << 0;
 const LCD_STATS_ENABLE_FLAG: u8 = 1u8 << 1;
 const TIMER_ENABLE_FLAG: u8 = 1u8 << 2;

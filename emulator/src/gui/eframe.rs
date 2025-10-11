@@ -127,9 +127,7 @@ impl GBEmulatorApp {
 
     fn handle_dialog_answer(&mut self, handle: JoinHandle<AppDialogAnswer>) {
         if let Ok(AppDialogAnswer::OpenFile(Some(path))) = handle.join() {
-            if let (Some(handle), Ok(cartridge)) =
-                (&self.texture, load_cartridge(path.as_path()))
-            {
+            if let (Some(handle), Ok(cartridge)) = (&self.texture, load_cartridge(path.as_path())) {
                 self.emulator
                     .start(cartridge, Box::new(AppScreen::new(handle.clone())));
             }
@@ -149,7 +147,8 @@ impl Screen for AppScreen {
     }
 
     fn update_frame(&mut self) {
-        self.texture.set(self.image.clone(), TextureOptions::NEAREST);
+        self.texture
+            .set(self.image.clone(), TextureOptions::NEAREST);
     }
 }
 

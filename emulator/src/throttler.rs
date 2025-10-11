@@ -1,6 +1,6 @@
-use std::time::{Duration, Instant};
-use spin_sleep::sleep;
 use crate::timer::convert_cycles_to_duration;
+use spin_sleep::sleep;
+use std::time::{Duration, Instant};
 
 pub struct Throttler {
     previous: Instant,
