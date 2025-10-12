@@ -283,7 +283,6 @@ mod timer {
         ))
     }
 
-    #[ignore] // TODO: fix
     #[test]
     fn tima_reload() {
         run_acceptance_test(Path::new("./tests/mts/acceptance/timer/tima_reload.gb"))
