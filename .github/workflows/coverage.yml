@@ -32,7 +32,7 @@ jobs:
     - name: Build and Run tests with coverage
       run: |
         cargo build --verbose
-        cargo test --verbose --lib
+        cargo test --verbose
       env:
         RUSTFLAGS: -Cinstrument-coverage
         LLVM_PROFILE_FILE: emulator-%p-%m.profraw
