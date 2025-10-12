@@ -295,7 +295,6 @@ mod timer {
         ))
     }
 
-    #[ignore] // TODO: fix
     #[test]
     fn tma_write_reloading() {
         run_acceptance_test(Path::new(

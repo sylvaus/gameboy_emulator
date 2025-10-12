@@ -151,7 +151,16 @@ impl Timer {
                     }
                 }
             }
-            TIMER_MODULO_ADDRESS => self.timer_modulo = value,
+            TIMER_MODULO_ADDRESS => {
+                // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+                match self.timer_reload_state {
+                    TimerReloadState::ReloadingFirst4Cycles | TimerReloadState::ReloadingSecond4Cycles => {
+                        self.timer_counter = value
+                    }
+                    _ => {}
+                };
+                self.timer_modulo = value
+            },
             TIMER_CONTROL_ADDRESS => self.timer_control = value,
             _ => panic!("Invalid address for timer {}", address),
         }
@@ -485,5 +494,47 @@ mod tests {
         assert_eq!(interrupt, None);
         timer.write(TIME_COUNTER_ADDRESS, 0x66);
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0x66);
+    }
+
+    #[test]
+    fn tma_write_works_within_first_4_cycles_after_reload() {
+        let mut timer = Timer::new();
+        // Enable timer, clock select = 16 cycles per increment
+        timer.timer_control = 0b101;
+        // Force an overflow on next increment
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xF4;
+
+        // Trigger overflow and enter the first 4-cycle window (timer_cycles = 0)
+        let interrupt = timer.update(16);
+        assert_eq!(interrupt, None);
+
+        // Update TMA
+        timer.write(TIMER_MODULO_ADDRESS, 0x45);
+        // Move time forward to update
+        let interrupt = timer.update(8);
+        assert_eq!(interrupt, Some(Interrupt::Timer));
+
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0x45);
+    }
+
+    #[test]
+    fn tma_write_works_within_second_4_cycles_after_reload() {
+        let mut timer = Timer::new();
+        // Enable timer, clock select = 16 cycles per increment
+        timer.timer_control = 0b101;
+        // Force an overflow on next increment
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xF4;
+
+        // Trigger overflow and enter the first 4-cycle window (timer_cycles = 0)
+        let interrupt = timer.update(16 + 4);
+        assert_eq!(interrupt, Some(Interrupt::Timer));
+        // Update TMA
+        timer.write(TIMER_MODULO_ADDRESS, 0x45);
+        // Move time forward to update
+        let _ = timer.update(8);
+
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0x45);
     }
 }
