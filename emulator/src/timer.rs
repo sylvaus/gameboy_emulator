@@ -29,6 +29,14 @@ pub fn convert_cycles_to_duration(nb_cycles: u64) -> Duration {
 
 const TIMER_CONTROL_UNUSED_BITS: u8 = 0b1111_1000;
 
+#[derive(Copy, Clone, Debug, Default)]
+enum TimerReloadState {
+    #[default]
+    NotReloading,
+    ReloadingFirst4Cycles,
+    ReloadingSecond4Cycles,
+}
+
 #[derive(BitAccessor, Debug, Copy, Clone, Default)]
 pub struct Timer {
     divide_cycles: u64,
@@ -44,10 +52,12 @@ pub struct Timer {
     #[bit_offset_size(timer_enable, 2, 1)]
     #[bit_offset_size(input_clock_select, 0, 2)]
     timer_control: u8,
-    
-    /// Flag indicating that the timer just reloaded and should return 0 for the first 4 cycles.
-    /// Documented in https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
-    timer_control_just_reloaded: bool,
+
+    /// Flag indicating the timer state after reload.
+    /// Documented in:
+    /// - https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
+    /// - https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+    timer_reload_state: TimerReloadState,
 }
 
 impl Timer {
@@ -67,32 +77,51 @@ impl Timer {
         }
 
         let divider = self.get_timer_divider();
-        self.timer_control_just_reloaded = false;
         self.timer_cycles += nb_cycles;
+
+        let mut result = None;
+        // The interrupt is set only 4 cycles after the overflow:
+        // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+        self.timer_reload_state = match self.timer_reload_state {
+            TimerReloadState::ReloadingFirst4Cycles => {
+                result = Some(Interrupt::Timer);
+                if self.timer_cycles < 8 {
+                    TimerReloadState::ReloadingSecond4Cycles
+                } else {
+                    TimerReloadState::NotReloading
+                }
+            }
+            TimerReloadState::ReloadingSecond4Cycles => TimerReloadState::NotReloading,
+            value => value,
+        };
         if self.timer_cycles >= divider {
             let increment = self.timer_cycles / divider;
             self.timer_cycles %= divider;
             let counter = self.timer_counter as u64 + increment;
             if counter > 0xFF {
-                self.handle_timer_overflow(counter);
-                return Some(Interrupt::Timer);
+                return self.handle_timer_overflow(counter);
             } else {
                 self.timer_counter = counter as u8;
             }
         }
 
-        None
+        result
     }
-    
-    fn handle_timer_overflow(&mut self, counter: u64) {
+
+    fn handle_timer_overflow(&mut self, counter: u64) -> Option<Interrupt> {
         let overflow = counter & 0xFF;
         let modulo = 0x100 - (self.timer_modulo as u64);
         let increment_after_wrap = overflow % modulo;
-        if increment_after_wrap == 0 && self.timer_cycles < 4 {
-            self.timer_control_just_reloaded = true;
-        }
         self.timer_counter = self.timer_modulo + (increment_after_wrap as u8);
-        
+        if increment_after_wrap == 0 && self.timer_cycles < 4 {
+            self.timer_reload_state = TimerReloadState::ReloadingFirst4Cycles;
+            None
+        } else if increment_after_wrap == 0 && self.timer_cycles < 8 {
+            self.timer_reload_state = TimerReloadState::ReloadingSecond4Cycles;
+            Some(Interrupt::Timer)
+        } else {
+            Some(Interrupt::Timer)
+        }
     }
 
     pub fn write(&mut self, address: u16, value: u8) {
@@ -103,13 +132,25 @@ impl Timer {
                 self.divide_cycles = 0;
                 self.divide_register = 0;
                 // Timer
+                // Behavior explained in: https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#relation-between-timer-and-divider-register
                 self.timer_cycles = if self.is_falling_edge(self.timer_cycles) {
                     self.get_timer_divider()
                 } else {
                     0
                 };
             }
-            TIME_COUNTER_ADDRESS => self.timer_counter = value,
+            TIME_COUNTER_ADDRESS => {
+                // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+                match self.timer_reload_state {
+                    TimerReloadState::ReloadingFirst4Cycles | TimerReloadState::NotReloading => {
+                        self.timer_reload_state = TimerReloadState::NotReloading;
+                        self.timer_counter = value
+                    }
+                    TimerReloadState::ReloadingSecond4Cycles => {
+                        // During the second 4 cycles after reload, writes to the time counter are ignored.
+                    }
+                }
+            }
             TIMER_MODULO_ADDRESS => self.timer_modulo = value,
             TIMER_CONTROL_ADDRESS => self.timer_control = value,
             _ => panic!("Invalid address for timer {}", address),
@@ -120,13 +161,14 @@ impl Timer {
         match address {
             DIVIDE_REGISTER_ADDRESS => self.divide_register,
             TIME_COUNTER_ADDRESS => {
-                // Behavior documented here: https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
-                if self.timer_control_just_reloaded && self.timer_cycles < 4 {
-                    0
-                } else {
-                    self.timer_counter
+                // Behavior documented in:
+                // - https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
+                // - https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+                match self.timer_reload_state {
+                    TimerReloadState::ReloadingFirst4Cycles => 0,
+                    TimerReloadState::ReloadingSecond4Cycles | TimerReloadState::NotReloading => self.timer_counter,
                 }
-            },
+            }
             TIMER_MODULO_ADDRESS => self.timer_modulo,
             TIMER_CONTROL_ADDRESS => self.timer_control | TIMER_CONTROL_UNUSED_BITS,
             _ => panic!("Invalid address for timer {}", address),
@@ -154,6 +196,9 @@ impl Timer {
     }
 }
 
+/// Documentation:
+/// - https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
+/// - https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -262,7 +307,12 @@ mod tests {
         timer.timer_counter = 0xFF;
         timer.timer_modulo = 0xF4;
 
-        assert_eq!(timer.update(16), Some(Interrupt::Timer));
+        // No interrupt.
+        assert_eq!(timer.update(16), None);
+        assert_eq!(timer.timer_counter, 0xF4);
+
+        // Interrupt only happens after the next M-cycle
+        assert_eq!(timer.update(4), Some(Interrupt::Timer));
         assert_eq!(timer.timer_counter, 0xF4);
     }
 
@@ -313,7 +363,7 @@ mod tests {
         timer.timer_counter = 0xFF;
         timer.timer_modulo = 0xFF;
 
-        assert_eq!(timer.update(16), Some(Interrupt::Timer));
+        assert_eq!(timer.update(16 + 5), Some(Interrupt::Timer));
         assert_eq!(timer.timer_counter, 0xFF);
     }
 
@@ -333,6 +383,8 @@ mod tests {
 
     #[test]
     fn tima_returns_zero_first_4_cycles_after_reload() {
+        // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
         timer.timer_control = 0b101;
@@ -342,20 +394,23 @@ mod tests {
 
         // Advance 16 + 2 cycles: increment once (overflow), with 2 cycles remaining (< 4)
         let interrupt = timer.update(16 + 2);
-        assert_eq!(interrupt, Some(Interrupt::Timer));
+        assert_eq!(interrupt, None);
         // Internal counter has been reloaded to TMA
         assert_eq!(timer.timer_counter, 0xF4);
         // But reads should return 0 during the first 4 cycles after reload
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0);
 
         // After reaching 4 cycles since reload, reads should return actual TIMA value
-        let _ = timer.update(2); // total remainder now 4
+        let interrupt = timer.update(2); // total remainder now 4
+        assert_eq!(interrupt, Some(Interrupt::Timer));
         assert_eq!(timer.timer_cycles, 4);
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF4);
     }
 
     #[test]
-    fn tima_read_not_zero_if_reload_incremented() {
+    fn tima_read_not_zero_after_first_4_cycles_after_reload() {
+        // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
         timer.timer_control = 0b101;
@@ -372,5 +427,63 @@ mod tests {
         // the overflow happened more than 4 cycles in the past.
         assert_eq!(timer.timer_cycles, 0x00);
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF5);
+    }
+
+    #[test]
+    fn tima_write_within_first_4_cycles_after_reload_prevent_interrupt_and_reset() {
+        // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+
+        let mut timer = Timer::new();
+        // Enable timer, clock select = 16 cycles per increment
+        timer.timer_control = 0b101;
+        // Force an overflow on next increment
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xF4;
+
+        // Advance 16 + 2 cycles: increment once (overflow), with 2 cycles remaining (< 4)
+        let interrupt = timer.update(16 + 2);
+        assert_eq!(interrupt, None);
+        // During the first 4 cycles after reload, reads return 0
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0);
+
+        // Write to TIMA during the first 4 cycles should cancel the pending interrupt and reset the state
+        timer.write(TIME_COUNTER_ADDRESS, 0xAA);
+
+        // Advancing to a total of 4 cycles since reload would normally raise the interrupt,
+        // but since we wrote during the first 4 cycles, the interrupt must not be raised now
+        let interrupt = timer.update(2);
+        assert_eq!(interrupt, None);
+        assert_eq!(timer.timer_counter, 0xAA);
+    }
+
+    #[test]
+    fn tima_write_within_second_4_cycles_after_reload_is_ignored() {
+        // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
+
+        let mut timer = Timer::new();
+        // Enable timer, clock select = 16 cycles per increment
+        timer.timer_control = 0b101;
+        // Force an overflow on next increment
+        timer.timer_counter = 0xFF;
+        timer.timer_modulo = 0xF4;
+
+        // Trigger overflow and enter the first 4-cycle window (timer_cycles = 0)
+        let interrupt = timer.update(16);
+        assert_eq!(interrupt, None);
+        // Move into the second 4-cycle window; this also triggers the delayed interrupt
+        let interrupt = timer.update(4);
+        assert_eq!(interrupt, Some(Interrupt::Timer));
+        // In the second 4 cycles, reads return the real TIMA value (TMA)
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF4);
+
+        // Write during the second 4-cycle window must be ignored
+        timer.write(TIME_COUNTER_ADDRESS, 0x55);
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF4);
+
+        // After the 8-cycle window ends, writes should take effect again
+        let interrupt = timer.update(4);
+        assert_eq!(interrupt, None);
+        timer.write(TIME_COUNTER_ADDRESS, 0x66);
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0x66);
     }
 }
