@@ -42,6 +42,7 @@ pub struct Timer {
     divide_cycles: u64,
     /// https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff04--div-divider-register
     divide_register: u8,
+    /// Similar to divide_cycles and is used to compute the number of increment for the time counter.
     timer_cycles: u64,
     /// TIMA: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff05--tima-timer-counter
     timer_counter: u8,
@@ -58,6 +59,8 @@ pub struct Timer {
     /// - https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
     /// - https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
     timer_reload_state: TimerReloadState,
+
+    unexpected_tick_increase: bool,
 }
 
 impl Timer {
@@ -67,12 +70,16 @@ impl Timer {
         }
     }
 
+    fn is_timer_enabled(&self) -> bool {
+        self.read_timer_enable() > 0
+    }
+
     pub fn update(&mut self, nb_cycles: u64) -> Option<Interrupt> {
         // Information from: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
         self.divide_cycles = self.divide_cycles.wrapping_add(nb_cycles);
         self.divide_register = ((self.divide_cycles >> 8) & 0xFF) as u8;
 
-        if self.read_timer_enable() == 0 {
+        if !self.is_timer_enabled() {
             return None;
         }
 
@@ -94,8 +101,11 @@ impl Timer {
             TimerReloadState::ReloadingSecond4Cycles => TimerReloadState::NotReloading,
             value => value,
         };
-        if self.timer_cycles >= divider {
-            let increment = self.timer_cycles / divider;
+        if self.timer_cycles >= divider || self.unexpected_tick_increase {
+            let unexpected_increment: u64 = if self.unexpected_tick_increase {divider} else {0};
+            self.unexpected_tick_increase = false;
+
+            let increment = (unexpected_increment + self.timer_cycles) / divider;
             self.timer_cycles %= divider;
             let counter = self.timer_counter as u64 + increment;
             if counter > 0xFF {
@@ -129,15 +139,14 @@ impl Timer {
             // Divide register is reset when written to:
             // https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff04--div-divider-register
             DIVIDE_REGISTER_ADDRESS => {
-                self.divide_cycles = 0;
-                self.divide_register = 0;
                 // Timer
                 // Behavior explained in: https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#relation-between-timer-and-divider-register
-                self.timer_cycles = if self.is_falling_edge(self.timer_cycles) {
-                    self.get_timer_divider()
-                } else {
-                    0
-                };
+                if self.is_falling_edge_bit_set(self.divide_cycles) {
+                    self.unexpected_tick_increase = true;
+                }
+                self.divide_cycles = 0;
+                self.divide_register = 0;
+                self.timer_cycles = 0;
             }
             TIME_COUNTER_ADDRESS => {
                 // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
@@ -159,9 +168,25 @@ impl Timer {
                     }
                     _ => {}
                 };
-                self.timer_modulo = value
+                self.timer_modulo = value;
             },
-            TIMER_CONTROL_ADDRESS => self.timer_control = value,
+            TIMER_CONTROL_ADDRESS => {
+                let was_enabled = self.is_timer_enabled();
+                let was_bit_set = self.is_falling_edge_bit_set(self.divide_cycles);
+                self.timer_control = value;
+
+                // The timer is being enabled.
+                if !was_enabled && self.is_timer_enabled() {
+                    self.timer_cycles = self.divide_cycles % self.get_timer_divider();
+                }
+
+                // The timer is being disabled.
+                if was_enabled && !self.is_timer_enabled() {
+                    if was_bit_set {
+                        self.unexpected_tick_increase = true;
+                    }
+                }
+            },
             _ => panic!("Invalid address for timer {}", address),
         }
     }
@@ -184,7 +209,7 @@ impl Timer {
         }
     }
 
-    fn is_falling_edge(&self, timer_cycles: u64) -> bool {
+    fn is_falling_edge_bit_set(&self, timer_cycles: u64) -> bool {
         match self.read_input_clock_select() {
             0 => (timer_cycles & 0b10_0000_0000) > 0,
             1 => (timer_cycles & 0b1000) > 0,
@@ -536,5 +561,49 @@ mod tests {
         let _ = timer.update(8);
 
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0x45);
+    }
+
+    #[test]
+    fn disabling_timer_while_tac_selected_bit_is_set_result_in_tick() {
+        // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-obscure-behaviour
+        let mut timer = Timer::new();
+        // Enable timer, clock select = 16 cycles per increment
+        timer.timer_control = 0b101;
+        // Force an overflow on next increment
+        timer.timer_counter = 0xF4;
+        timer.timer_modulo = 0x00;
+        // Set bit
+        timer.divide_cycles = 8 + 1;
+
+        // Disable timer.
+        timer.write(TIMER_CONTROL_ADDRESS, 0x0);
+        // Enable timer
+        timer.write(TIMER_CONTROL_ADDRESS, 0b101);
+        // Advance timer less than one tick
+        timer.update(4);
+
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF5);
+    }
+
+    #[test]
+    fn disabling_timer_while_tac_selected_bit_is_not_set_result_in_not_tick() {
+        // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-obscure-behaviour
+        let mut timer = Timer::new();
+        // Enable timer, clock select = 16 cycles per increment
+        timer.timer_control = 0b101;
+        // Force an overflow on next increment
+        timer.timer_counter = 0xF4;
+        timer.timer_modulo = 0x00;
+        // Set bit
+        timer.divide_cycles = 0 + 1;
+
+        // Disable timer.
+        timer.write(TIMER_CONTROL_ADDRESS, 0x0);
+        // Enable timer
+        timer.write(TIMER_CONTROL_ADDRESS, 0b101);
+        // Advance timer less than one tick
+        timer.update(4);
+
+        assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF4);
     }
 }

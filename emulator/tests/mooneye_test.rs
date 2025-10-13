@@ -229,7 +229,10 @@ mod timer {
         run_acceptance_test(Path::new("./tests/mts/acceptance/timer/div_write.gb"))
     }
 
-    #[ignore] // TODO: fix
+    // This test seems to fail due to an initial condition since the expected interrupt happens only one tick late.
+    // Forcing the DIV reset to trigger a tick update makes the test pass.
+    // TODO: re-check this tests after all the other tests passes.
+    #[ignore]
     #[test]
     fn rapid_toggle() {
         run_acceptance_test(Path::new("./tests/mts/acceptance/timer/rapid_toggle.gb"))
