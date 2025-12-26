@@ -1,4 +1,5 @@
 pub mod cartridge;
+mod data_completion;
 pub mod debugger;
 pub mod emulator;
 mod generated;
@@ -10,6 +11,8 @@ mod serial;
 mod sound;
 pub mod state;
 mod statistics;
+mod storage;
 mod throttler;
+mod testing;
 mod timer;
 mod video;

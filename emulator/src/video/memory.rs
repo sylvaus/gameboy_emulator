@@ -1,8 +1,9 @@
+use serde::{Deserialize, Serialize};
 use macros::BitAccessor;
 
 /// Structure defined here: https://gbdev.io/pandocs/LCDC.html
 ///
-#[derive(BitAccessor, Debug, Copy, Clone, Default)]
+#[derive(BitAccessor, Debug, Copy, Clone, Default, Serialize, Deserialize)]
 pub struct LcdControl {
     #[bit_offset_size(lcd_enable, 7, 1)]
     #[bit_offset_size(window_tile_map_area, 6, 1)]
@@ -18,7 +19,7 @@ pub struct LcdControl {
 /// Structure defined here: https://gbdev.io/pandocs/STAT.html
 pub const LCD_STATUS_UNUSED_BITS: u8 = 0b1000_0000;
 
-#[derive(BitAccessor, Debug, Copy, Clone, Default)]
+#[derive(BitAccessor, Debug, Copy, Clone, Default, Serialize, Deserialize)]
 pub struct LcdStatus {
     #[bit_offset_size(enable_lyc_stat_interrupt, 6, 1)]
     #[bit_offset_size(mode2_interrupt_source, 5, 1)]

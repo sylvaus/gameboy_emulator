@@ -11,9 +11,11 @@ use crate::statistics::StatisticsRecorder;
 use crate::throttler::Throttler;
 use crate::video::renderer::{Color, Screen};
 use std::convert::Into;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::thread;
 use std::thread::JoinHandle;
+use crate::data_completion::{CompletionStatus, DataWithCompletion};
 
 pub struct InstructionUpdate {
     pub nb_cycles: u64,
@@ -245,6 +247,34 @@ fn update_state(state: &mut State, action: Action) {
         Action::Inputs(inputs) => {
             state.input.joypad = inputs;
         }
+        Action::Save(mut data) => {
+            data.process(|path| save_state(state, path))
+        }
+        Action::Load(mut data) => {
+            data.process(|path| load_state(state, path))
+        }
+    }
+}
+
+fn save_state(state: &mut State, path: &mut Path) -> CompletionStatus {
+    if let Some((emulator, _)) = &state.emulator {
+        match emulator.memory.save(path) {
+            Ok(_) => CompletionStatus::Success,
+            Err(error) => CompletionStatus::Failure(format!("Failed to save the data: {}", error.message))
+        }
+    } else {
+        CompletionStatus::Failure("No cartridge is running".to_string())
+    }
+}
+
+fn load_state(state: &mut State, path: &mut Path) -> CompletionStatus {
+    if let Some((emulator, _)) = &mut state.emulator {
+        match emulator.memory.load(path) {
+            Ok(_) => CompletionStatus::Success,
+            Err(error) => CompletionStatus::Failure(format!("Failed to load the data: {}", error.message))
+        }
+    } else {
+        CompletionStatus::Failure("No cartridge is running".to_string())
     }
 }
 
@@ -267,6 +297,8 @@ enum Action {
     Resume(),
     Stop(),
     Inputs(JoypadState),
+    Save(DataWithCompletion<PathBuf>),
+    Load(DataWithCompletion<PathBuf>)
 }
 
 struct GuiMiddleware<'a> {

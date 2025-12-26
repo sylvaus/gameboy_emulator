@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
 use crate::interrupts::Interrupt;
 use crate::video::memory::{LcdControl, LcdStatus};
 use macros::BitAccessor;
+use crate::storage::helpers::{load_from_str, store_to_string};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 
 /// Information from: https://gbdev.io/pandocs/Memory_Map.html#memory-map
 pub const VRAM_SIZE: usize = 0x2000;
@@ -53,9 +56,7 @@ pub const MODE_0_HBLANK_CYCLES: u64 = 376 - MODE_3_TRANSFER_CYCLES;
 pub const MODE_1_VBLANK_CYCLES: u64 = 456;
 pub const MODE_2_SEARCH_OAM_CYCLES: u64 = 80;
 pub const MODE_3_TRANSFER_CYCLES: u64 = 203;
-pub const FRAME_CYCLES: u64 =
-    (MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES + MODE_0_HBLANK_CYCLES) * 144
-        + MODE_1_VBLANK_CYCLES * 10;
+pub const FRAME_CYCLES: u64 = (MODE_2_SEARCH_OAM_CYCLES + MODE_3_TRANSFER_CYCLES + MODE_0_HBLANK_CYCLES) * 144 + MODE_1_VBLANK_CYCLES * 10;
 
 pub const MODE_0_HBLANK: VideoMode = VideoMode {
     value: MODE_0_HBLANK_VALUE,
@@ -84,7 +85,7 @@ pub struct VideoMode {
 }
 
 /// Structure defined here: https://gbdev.io/pandocs/Palettes.html
-#[derive(BitAccessor, Debug, Copy, Clone, Default)]
+#[derive(BitAccessor, Debug, Copy, Clone, Default, Serialize, Deserialize)]
 pub struct MonochromePalette {
     #[bit_offset_size(color_3, 6, 2)]
     #[bit_offset_size(color_2, 4, 2)]
@@ -93,7 +94,7 @@ pub struct MonochromePalette {
     pub value: u8,
 }
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, Serialize, Deserialize)]
 struct Triggers {
     pub init_lcd: bool,
     pub should_scanline: bool,
@@ -116,7 +117,7 @@ impl Triggers {
     }
 }
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, Serialize, Deserialize)]
 pub struct Coordinates {
     pub scroll_y: u8,
     pub scroll_x: u8,
@@ -132,26 +133,30 @@ impl Coordinates {
     }
 }
 
-pub struct VideoController {
+#[derive(Serialize, Deserialize)]
+pub struct VideoControllerData {
     vram: Vec<u8>,
     oam: Vec<u8>,
     control: LcdControl,
     status: LcdStatus,
     triggers: Triggers,
-
     coordinates: Coordinates,
-
     bg_palette_data: MonochromePalette,
     obj_palette_data_0: MonochromePalette,
     obj_palette_data_1: MonochromePalette,
-
     cycles: u64,
-    next_cycles_event: u64,
+    next_cycles_event: u64
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct VideoController {
+    data: VideoControllerData,
 }
 
 impl VideoController {
     pub fn new() -> Self {
         Self {
+            data: VideoControllerData {
             vram: vec![0u8; VRAM_SIZE],
             oam: vec![0u8; OAM_SIZE],
 
@@ -169,89 +174,90 @@ impl VideoController {
             next_cycles_event: 0,
         }
     }
+    }
 
     /// Function to call before starting the emulator if data was written to the VideoController
     ///
     /// This function ensures that the change detection works as expected.
     pub fn init(&mut self) {
-        if self.coordinates.y <= MAX_MOD_0_2_3_Y {
+        if self.data.coordinates.y <= MAX_MOD_0_2_3_Y {
             self.update_mode(MODE_2_SEARCH_OAM);
         } else {
             self.update_mode(MODE_1_VBLANK);
         }
-        self.triggers.reset();
+        self.data.triggers.reset();
     }
 
     pub fn update(&mut self, nb_cycles: u64) -> Vec<Interrupt> {
         // Change from Enable/Disable LCD
-        if self.triggers.init_lcd {
+        if self.data.triggers.init_lcd {
             // According to Gameboy Programming Manual page 59:
             // Writing a value of 0 to bit 7 of the LCDC register when its value is 1 stops the LCD controller, and
             // the value of register LY immediately becomes 0
-            self.coordinates.y = 0;
+            self.data.coordinates.y = 0;
             // According to https://www.reddit.com/r/Gameboy/comments/a1c8h0/what_happens_when_a_gameboy_screen_is_disabled/
             // Clock is reset to zero
-            self.cycles = 0;
+            self.data.cycles = 0;
             // First frame is blank: https://gbdev.io/pandocs/LCDC.html#lcdc7--lcd-enable
-            self.next_cycles_event = FRAME_CYCLES;
-            self.status.write_mode(MODE_0_HBLANK_VALUE)
+            self.data.next_cycles_event = FRAME_CYCLES;
+            self.data.status.write_mode(MODE_0_HBLANK_VALUE)
         }
-        self.triggers.reset();
+        self.data.triggers.reset();
 
         // LCD not enabled
-        if self.control.read_lcd_enable() == 0 {
+        if self.data.control.read_lcd_enable() == 0 {
             return Vec::default();
         }
 
-        self.cycles += nb_cycles;
+        self.data.cycles += nb_cycles;
         // TODO: Probably should need to have a loop handling all the events if nb_cycles is big
         // Nothing to process
-        if self.cycles < self.next_cycles_event {
+        if self.data.cycles < self.data.next_cycles_event {
             return Vec::default();
         }
-        self.cycles -= self.next_cycles_event;
+        self.data.cycles -= self.data.next_cycles_event;
 
         // https://gbdev.io/pandocs/STAT.html
         //        Mode 2  2_____2_____2_____2_____2_____2___________________2____
         //        Mode 3  _33____33____33____33____33____33__________________3___
         //        Mode 0  ___000___000___000___000___000___000________________000
         //        Mode 1  ____________________________________11111111111111_____
-        let previous_y = self.coordinates.y;
-        let previous_mode = self.status.read_mode();
+        let previous_y = self.data.coordinates.y;
+        let previous_mode = self.data.status.read_mode();
         match previous_mode {
             MODE_2_SEARCH_OAM_VALUE => self.update_mode(MODE_3_TRANSFER),
             MODE_3_TRANSFER_VALUE => self.update_mode(MODE_0_HBLANK),
             MODE_0_HBLANK_VALUE => {
-                self.coordinates.y += 1;
-                self.triggers.should_scanline = true;
-                if self.coordinates.y <= MAX_MOD_0_2_3_Y {
+                self.data.coordinates.y += 1;
+                self.data.triggers.should_scanline = true;
+                if self.data.coordinates.y <= MAX_MOD_0_2_3_Y {
                     self.update_mode(MODE_2_SEARCH_OAM);
                 } else {
                     self.update_mode(MODE_1_VBLANK);
                 }
             }
             MODE_1_VBLANK_VALUE => {
-                self.coordinates.y += 1;
-                if self.coordinates.y <= MAX_MOD_1_Y {
+                self.data.coordinates.y += 1;
+                if self.data.coordinates.y <= MAX_MOD_1_Y {
                     self.update_mode(MODE_1_VBLANK);
                 } else {
-                    self.coordinates.y = 0;
-                    self.triggers.should_update_frame = true;
+                    self.data.coordinates.y = 0;
+                    self.data.triggers.should_update_frame = true;
                     self.update_mode(MODE_2_SEARCH_OAM);
                 }
             }
             _ => unreachable!("There are only 4 video modes"),
         }
 
-        self.status
-            .write_lyc_ly_flag(self.coordinates.get_lyc_ly_flag() as u8);
+        self.data.status
+            .write_lyc_ly_flag(self.data.coordinates.get_lyc_ly_flag() as u8);
 
         let mut interrupts = Vec::new();
         if self.is_stat_interrupt_triggered(previous_y, previous_mode) {
             interrupts.push(Interrupt::LCDStat);
         }
-        if (previous_mode != self.status.read_mode())
-            && (self.status.read_mode() == MODE_1_VBLANK_VALUE)
+        if (previous_mode != self.data.status.read_mode())
+            && (self.data.status.read_mode() == MODE_1_VBLANK_VALUE)
         {
             interrupts.push(Interrupt::VBlank);
         }
@@ -260,55 +266,55 @@ impl VideoController {
     }
 
     pub fn write_vram(&mut self, address: u16, value: u8) {
-        self.vram[(address - VRAM_START_ADDRESS) as usize] = value;
+        self.data.vram[(address - VRAM_START_ADDRESS) as usize] = value;
     }
 
     pub fn read_vram(&self, address: u16) -> u8 {
-        self.vram[(address - VRAM_START_ADDRESS) as usize]
+        self.data.vram[(address - VRAM_START_ADDRESS) as usize]
     }
 
     pub fn write_oam(&mut self, address: u16, value: u8) {
-        self.oam[(address - OAM_START_ADDRESS) as usize] = value;
+        self.data.oam[(address - OAM_START_ADDRESS) as usize] = value;
     }
 
     pub fn read_oam(&self, address: u16) -> u8 {
-        self.oam[(address - OAM_START_ADDRESS) as usize]
+        self.data.oam[(address - OAM_START_ADDRESS) as usize]
     }
 
     pub fn write_lcd(&mut self, address: u16, value: u8) {
         match address {
             LCD_CONTROL_ADDRESS => {
-                let old = self.control.read_lcd_enable();
-                self.control.value = value;
-                self.triggers.init_lcd = (old ^ self.control.read_lcd_enable()) == 1;
+                let old = self.data.control.read_lcd_enable();
+                self.data.control.value = value;
+                self.data.triggers.init_lcd = (old ^ self.data.control.read_lcd_enable()) == 1;
             }
-            LCD_STATUS_ADDRESS => self.status.write(value),
-            LCD_SCROLL_Y_ADDRESS => self.coordinates.scroll_y = value,
-            LCD_SCROLL_X_ADDRESS => self.coordinates.scroll_x = value,
-            LCD_COORDINATE_Y_ADDRESS => self.coordinates.y = value,
-            LCD_LY_COMPARE_ADDRESS => self.coordinates.compare_y = value,
-            BGP_PALETTE_DATA_ADDRESS => self.bg_palette_data.value = value,
-            OBJ_PALETTE_DATA_0_ADDRESS => self.obj_palette_data_0.value = value,
-            OBJ_PALETTE_DATA_1_ADDRESS => self.obj_palette_data_1.value = value,
-            LCD_WINDOWS_Y_ADDRESS => self.coordinates.window_position_y = value,
-            LCD_WINDOWS_X_ADDRESS => self.coordinates.window_position_x = value,
+            LCD_STATUS_ADDRESS => self.data.status.write(value),
+            LCD_SCROLL_Y_ADDRESS => self.data.coordinates.scroll_y = value,
+            LCD_SCROLL_X_ADDRESS => self.data.coordinates.scroll_x = value,
+            LCD_COORDINATE_Y_ADDRESS => self.data.coordinates.y = value,
+            LCD_LY_COMPARE_ADDRESS => self.data.coordinates.compare_y = value,
+            BGP_PALETTE_DATA_ADDRESS => self.data.bg_palette_data.value = value,
+            OBJ_PALETTE_DATA_0_ADDRESS => self.data.obj_palette_data_0.value = value,
+            OBJ_PALETTE_DATA_1_ADDRESS => self.data.obj_palette_data_1.value = value,
+            LCD_WINDOWS_Y_ADDRESS => self.data.coordinates.window_position_y = value,
+            LCD_WINDOWS_X_ADDRESS => self.data.coordinates.window_position_x = value,
             _ => panic!("Address {} is not valid for the video controller", address),
         }
     }
 
     pub fn read_lcd(&self, address: u16) -> u8 {
         match address {
-            LCD_CONTROL_ADDRESS => self.control.value,
-            LCD_STATUS_ADDRESS => self.status.read(),
-            LCD_SCROLL_Y_ADDRESS => self.coordinates.scroll_y,
-            LCD_SCROLL_X_ADDRESS => self.coordinates.scroll_x,
-            LCD_COORDINATE_Y_ADDRESS => self.coordinates.y,
-            LCD_LY_COMPARE_ADDRESS => self.coordinates.compare_y,
-            BGP_PALETTE_DATA_ADDRESS => self.bg_palette_data.value,
-            OBJ_PALETTE_DATA_0_ADDRESS => self.obj_palette_data_0.value,
-            OBJ_PALETTE_DATA_1_ADDRESS => self.obj_palette_data_1.value,
-            LCD_WINDOWS_Y_ADDRESS => self.coordinates.window_position_y,
-            LCD_WINDOWS_X_ADDRESS => self.coordinates.window_position_x,
+            LCD_CONTROL_ADDRESS => self.data.control.value,
+            LCD_STATUS_ADDRESS => self.data.status.read(),
+            LCD_SCROLL_Y_ADDRESS => self.data.coordinates.scroll_y,
+            LCD_SCROLL_X_ADDRESS => self.data.coordinates.scroll_x,
+            LCD_COORDINATE_Y_ADDRESS => self.data.coordinates.y,
+            LCD_LY_COMPARE_ADDRESS => self.data.coordinates.compare_y,
+            BGP_PALETTE_DATA_ADDRESS => self.data.bg_palette_data.value,
+            OBJ_PALETTE_DATA_0_ADDRESS => self.data.obj_palette_data_0.value,
+            OBJ_PALETTE_DATA_1_ADDRESS => self.data.obj_palette_data_1.value,
+            LCD_WINDOWS_Y_ADDRESS => self.data.coordinates.window_position_y,
+            LCD_WINDOWS_X_ADDRESS => self.data.coordinates.window_position_x,
             _ => panic!("Address {} is not valid for the video controller", address),
         }
     }
@@ -334,33 +340,33 @@ impl VideoController {
     /// Indicates that the renderer can start generating the image for the current line.
     pub fn should_scanline(&self) -> bool {
         // See: https://gbdev.io/pandocs/Rendering.html?highlight=frame%20update#ppu-modes
-        self.triggers.should_scanline
+        self.data.triggers.should_scanline
     }
 
     pub fn should_update_frame(&self) -> bool {
         // See: https://gbdev.io/pandocs/Rendering.html?highlight=frame%20update#ppu-modes
-        self.triggers.should_update_frame
+        self.data.triggers.should_update_frame
     }
 
     fn update_mode(&mut self, mode: VideoMode) {
-        self.status.write_mode(mode.value);
-        self.next_cycles_event = mode.nb_cycles;
+        self.data.status.write_mode(mode.value);
+        self.data.next_cycles_event = mode.nb_cycles;
     }
 
     fn is_stat_interrupt_triggered(&self, previous_y: u8, previous_mode: u8) -> bool {
         // https://gbdev.io/pandocs/Interrupt_Sources.html#int-48---stat-interrupt
-        if (previous_y != self.coordinates.y)
-            && (self.status.read_lyc_ly_flag() == 1)
-            && (self.status.read_enable_lyc_stat_interrupt() == 1)
+        if (previous_y != self.data.coordinates.y)
+            && (self.data.status.read_lyc_ly_flag() == 1)
+            && (self.data.status.read_enable_lyc_stat_interrupt() == 1)
         {
             return true;
         }
-        let current_mode = self.status.read_mode();
+        let current_mode = self.data.status.read_mode();
         if previous_mode != current_mode {
             return match current_mode {
-                MODE_0_HBLANK_VALUE => self.status.read_mode0_interrupt_source() == 1,
-                MODE_1_VBLANK_VALUE => self.status.read_mode1_interrupt_source() == 1,
-                MODE_2_SEARCH_OAM_VALUE => self.status.read_mode2_interrupt_source() == 1,
+                MODE_0_HBLANK_VALUE => self.data.status.read_mode0_interrupt_source() == 1,
+                MODE_1_VBLANK_VALUE => self.data.status.read_mode1_interrupt_source() == 1,
+                MODE_2_SEARCH_OAM_VALUE => self.data.status.read_mode2_interrupt_source() == 1,
                 _ => false,
             };
         }
@@ -368,37 +374,49 @@ impl VideoController {
     }
 
     pub fn get_vram(&self) -> &[u8] {
-        &self.vram
+        &self.data.vram
     }
 
     pub fn get_oam(&self) -> &[u8] {
-        &self.oam
+        &self.data.oam
     }
 
     pub fn get_control(&self) -> &LcdControl {
-        &self.control
+        &self.data.control
     }
 
     pub fn get_coordinates(&self) -> &Coordinates {
-        &self.coordinates
+        &self.data.coordinates
     }
 
     pub fn get_bg_palette_data(&self) -> &MonochromePalette {
-        &self.bg_palette_data
+        &self.data.bg_palette_data
     }
 
     pub fn get_obj_palette_data_0(&self) -> &MonochromePalette {
-        &self.obj_palette_data_0
+        &self.data.obj_palette_data_0
     }
 
     pub fn get_obj_palette_data_1(&self) -> &MonochromePalette {
-        &self.obj_palette_data_1
+        &self.data.obj_palette_data_1
     }
 }
 
 impl Default for VideoController {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl SaveState for VideoController {
+    fn save(&self) -> Result<String, StoreError> {
+        store_to_string(&self.data)
+    }
+
+    fn load(&mut self, state: &str, _version: StorageVersion) -> Result<(), LoadError> {
+        self.data = load_from_str(state)?;
+
+        Ok(())
     }
 }
 
@@ -409,7 +427,7 @@ mod tests {
     #[test]
     fn update_cycles_through_modes() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
+        controller.data.control.write_lcd_enable(1);
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -418,37 +436,37 @@ mod tests {
         // Mode 0  ___000___000___000___000___000___000________________000
         // Mode 1  ____________________________________11111111111111_____
         for i in 0..=143 {
-            assert_eq!(controller.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
-            assert_eq!(controller.coordinates.y, i);
+            assert_eq!(controller.data.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
+            assert_eq!(controller.data.coordinates.y, i);
             // This behavior seems weird.
             // assert_eq!(controller.should_scanline(), false);
             assert_eq!(controller.should_update_frame(), false);
             controller.update(MODE_2_SEARCH_OAM_CYCLES);
-            assert_eq!(controller.status.read_mode(), MODE_3_TRANSFER_VALUE);
-            assert_eq!(controller.coordinates.y, i);
+            assert_eq!(controller.data.status.read_mode(), MODE_3_TRANSFER_VALUE);
+            assert_eq!(controller.data.coordinates.y, i);
             assert_eq!(controller.should_scanline(), false);
             assert_eq!(controller.should_update_frame(), false);
             controller.update(MODE_3_TRANSFER_CYCLES);
-            assert_eq!(controller.status.read_mode(), MODE_0_HBLANK_VALUE);
-            assert_eq!(controller.coordinates.y, i);
+            assert_eq!(controller.data.status.read_mode(), MODE_0_HBLANK_VALUE);
+            assert_eq!(controller.data.coordinates.y, i);
             assert_eq!(controller.should_scanline(), false);
             assert_eq!(controller.should_update_frame(), false);
             controller.update(MODE_0_HBLANK_CYCLES);
         }
-        assert_eq!(controller.status.read_mode(), MODE_1_VBLANK_VALUE);
-        assert_eq!(controller.coordinates.y, 144);
+        assert_eq!(controller.data.status.read_mode(), MODE_1_VBLANK_VALUE);
+        assert_eq!(controller.data.coordinates.y, 144);
         assert_eq!(controller.should_scanline(), true);
         assert_eq!(controller.should_update_frame(), false);
         controller.update(MODE_1_VBLANK_CYCLES);
         for i in 145..=153 {
-            assert_eq!(controller.status.read_mode(), MODE_1_VBLANK_VALUE);
-            assert_eq!(controller.coordinates.y, i);
+            assert_eq!(controller.data.status.read_mode(), MODE_1_VBLANK_VALUE);
+            assert_eq!(controller.data.coordinates.y, i);
             assert_eq!(controller.should_scanline(), false);
             assert_eq!(controller.should_update_frame(), false);
             controller.update(MODE_1_VBLANK_CYCLES);
         }
-        assert_eq!(controller.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
-        assert_eq!(controller.coordinates.y, 0);
+        assert_eq!(controller.data.status.read_mode(), MODE_2_SEARCH_OAM_VALUE);
+        assert_eq!(controller.data.coordinates.y, 0);
         assert_eq!(controller.should_scanline(), false);
         assert_eq!(controller.should_update_frame(), true);
     }
@@ -456,7 +474,7 @@ mod tests {
     #[test]
     fn vblank_interrupt_is_triggered() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
+        controller.data.control.write_lcd_enable(1);
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -480,8 +498,8 @@ mod tests {
     #[test]
     fn mode_0_interrupt_is_triggered() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
-        controller.status.write_mode0_interrupt_source(1);
+        controller.data.control.write_lcd_enable(1);
+        controller.data.status.write_mode0_interrupt_source(1);
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -504,8 +522,8 @@ mod tests {
     #[test]
     fn mode_1_interrupt_is_triggered() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
-        controller.status.write_mode1_interrupt_source(1);
+        controller.data.control.write_lcd_enable(1);
+        controller.data.status.write_mode1_interrupt_source(1);
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -529,8 +547,8 @@ mod tests {
     #[test]
     fn mode_2_interrupt_is_triggered() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
-        controller.status.write_mode2_interrupt_source(1);
+        controller.data.control.write_lcd_enable(1);
+        controller.data.status.write_mode2_interrupt_source(1);
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -555,9 +573,9 @@ mod tests {
     #[test]
     fn lcy_lc_interrupt_is_triggered() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
-        controller.status.write_enable_lyc_stat_interrupt(1);
-        controller.coordinates.compare_y = 125;
+        controller.data.control.write_lcd_enable(1);
+        controller.data.status.write_enable_lyc_stat_interrupt(1);
+        controller.data.coordinates.compare_y = 125;
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -581,23 +599,23 @@ mod tests {
     #[test]
     fn nothing_should_happen_lc_is_disabled() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(0);
+        controller.data.control.write_lcd_enable(0);
 
-        assert_eq!(controller.coordinates.y, 0);
-        controller.control.write_lcd_enable(0);
-        assert_eq!(controller.coordinates.y, 0);
+        assert_eq!(controller.data.coordinates.y, 0);
+        controller.data.control.write_lcd_enable(0);
+        assert_eq!(controller.data.coordinates.y, 0);
         controller.update(MODE_2_SEARCH_OAM_CYCLES);
-        assert_eq!(controller.coordinates.y, 0);
+        assert_eq!(controller.data.coordinates.y, 0);
         controller.update(MODE_3_TRANSFER_CYCLES);
-        assert_eq!(controller.coordinates.y, 0);
+        assert_eq!(controller.data.coordinates.y, 0);
         controller.update(MODE_0_HBLANK_CYCLES);
-        assert_eq!(controller.coordinates.y, 0);
+        assert_eq!(controller.data.coordinates.y, 0);
     }
 
     #[test]
     fn disabling_lcd_reset_coordinate_and_mode() {
         let mut controller = VideoController::new();
-        controller.control.write_lcd_enable(1);
+        controller.data.control.write_lcd_enable(1);
         controller.update_mode(MODE_2_SEARCH_OAM);
         controller.init();
 
@@ -607,15 +625,15 @@ mod tests {
             controller.update(MODE_0_HBLANK_CYCLES);
         }
         controller.update(MODE_2_SEARCH_OAM_CYCLES);
-        assert_eq!(controller.status.read_mode(), MODE_3_TRANSFER_VALUE);
-        assert_eq!(controller.coordinates.y, 4);
+        assert_eq!(controller.data.status.read_mode(), MODE_3_TRANSFER_VALUE);
+        assert_eq!(controller.data.coordinates.y, 4);
 
         let mut control = LcdControl::default();
         control.write_lcd_enable(0);
         controller.write_lcd(LCD_CONTROL_ADDRESS, control.value);
 
         controller.update(1);
-        assert_eq!(controller.status.read_mode(), MODE_0_HBLANK_VALUE);
-        assert_eq!(controller.coordinates.y, 0);
+        assert_eq!(controller.data.status.read_mode(), MODE_0_HBLANK_VALUE);
+        assert_eq!(controller.data.coordinates.y, 0);
     }
 }

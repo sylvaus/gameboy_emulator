@@ -2,6 +2,9 @@ use crate::interrupts::Interrupt;
 use macros::BitAccessor;
 use std::ops::Div;
 use std::time::Duration;
+use serde::{Deserialize, Serialize};
+use crate::storage::helpers::{load_from_str, store_to_string};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 
 // https://gbdev.io/pandocs/Specifications.html#specifications
 const CPU_INSTRUCTION_PER_SECONDS: u32 = 1 << 22;
@@ -29,7 +32,7 @@ pub fn convert_cycles_to_duration(nb_cycles: u64) -> Duration {
 
 const TIMER_CONTROL_UNUSED_BITS: u8 = 0b1111_1000;
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, Deserialize, Serialize)]
 enum TimerReloadState {
     #[default]
     NotReloading,
@@ -37,8 +40,8 @@ enum TimerReloadState {
     ReloadingSecond4Cycles,
 }
 
-#[derive(BitAccessor, Debug, Copy, Clone, Default)]
-pub struct Timer {
+#[derive(BitAccessor, Debug, Copy, Clone, Default, Deserialize, Serialize)]
+pub struct TimerSaveData {
     divide_cycles: u64,
     /// https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff04--div-divider-register
     divide_register: u8,
@@ -48,19 +51,21 @@ pub struct Timer {
     timer_counter: u8,
     /// TMA: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff06--tma-timer-modulo
     timer_modulo: u8,
-
     /// TAC: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html#ff07--tac-timer-control
     #[bit_offset_size(timer_enable, 2, 1)]
     #[bit_offset_size(input_clock_select, 0, 2)]
     timer_control: u8,
-
     /// Flag indicating the timer state after reload.
     /// Documented in:
     /// - https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
     /// - https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
     timer_reload_state: TimerReloadState,
+    unexpected_tick_increase: bool
+}
 
-    unexpected_tick_increase: bool,
+#[derive(Debug, Copy, Clone, Default)]
+pub struct Timer {
+    data: TimerSaveData,
 }
 
 impl Timer {
@@ -71,28 +76,28 @@ impl Timer {
     }
 
     fn is_timer_enabled(&self) -> bool {
-        self.read_timer_enable() > 0
+        self.data.read_timer_enable() > 0
     }
 
     pub fn update(&mut self, nb_cycles: u64) -> Option<Interrupt> {
         // Information from: https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
-        self.divide_cycles = self.divide_cycles.wrapping_add(nb_cycles);
-        self.divide_register = ((self.divide_cycles >> 8) & 0xFF) as u8;
+        self.data.divide_cycles = self.data.divide_cycles.wrapping_add(nb_cycles);
+        self.data.divide_register = ((self.data.divide_cycles >> 8) & 0xFF) as u8;
 
         if !self.is_timer_enabled() {
             return None;
         }
 
         let divider = self.get_timer_divider();
-        self.timer_cycles += nb_cycles;
+        self.data.timer_cycles += nb_cycles;
 
         let mut result = None;
         // The interrupt is set only 4 cycles after the overflow:
         // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
-        self.timer_reload_state = match self.timer_reload_state {
+        self.data.timer_reload_state = match self.data.timer_reload_state {
             TimerReloadState::ReloadingFirst4Cycles => {
                 result = Some(Interrupt::Timer);
-                if self.timer_cycles < 8 {
+                if self.data.timer_cycles < 8 {
                     TimerReloadState::ReloadingSecond4Cycles
                 } else {
                     TimerReloadState::NotReloading
@@ -101,17 +106,17 @@ impl Timer {
             TimerReloadState::ReloadingSecond4Cycles => TimerReloadState::NotReloading,
             value => value,
         };
-        if self.timer_cycles >= divider || self.unexpected_tick_increase {
-            let unexpected_increment: u64 = if self.unexpected_tick_increase {divider} else {0};
-            self.unexpected_tick_increase = false;
+        if self.data.timer_cycles >= divider || self.data.unexpected_tick_increase {
+            let unexpected_increment: u64 = if self.data.unexpected_tick_increase {divider} else {0};
+            self.data.unexpected_tick_increase = false;
 
-            let increment = (unexpected_increment + self.timer_cycles) / divider;
-            self.timer_cycles %= divider;
-            let counter = self.timer_counter as u64 + increment;
+            let increment = (unexpected_increment + self.data.timer_cycles) / divider;
+            self.data.timer_cycles %= divider;
+            let counter = self.data.timer_counter as u64 + increment;
             if counter > 0xFF {
                 return self.handle_timer_overflow(counter);
             } else {
-                self.timer_counter = counter as u8;
+                self.data.timer_counter = counter as u8;
             }
         }
 
@@ -120,14 +125,14 @@ impl Timer {
 
     fn handle_timer_overflow(&mut self, counter: u64) -> Option<Interrupt> {
         let overflow = counter & 0xFF;
-        let modulo = 0x100 - (self.timer_modulo as u64);
+        let modulo = 0x100 - (self.data.timer_modulo as u64);
         let increment_after_wrap = overflow % modulo;
-        self.timer_counter = self.timer_modulo + (increment_after_wrap as u8);
-        if increment_after_wrap == 0 && self.timer_cycles < 4 {
-            self.timer_reload_state = TimerReloadState::ReloadingFirst4Cycles;
+        self.data.timer_counter = self.data.timer_modulo + (increment_after_wrap as u8);
+        if increment_after_wrap == 0 && self.data.timer_cycles < 4 {
+            self.data.timer_reload_state = TimerReloadState::ReloadingFirst4Cycles;
             None
-        } else if increment_after_wrap == 0 && self.timer_cycles < 8 {
-            self.timer_reload_state = TimerReloadState::ReloadingSecond4Cycles;
+        } else if increment_after_wrap == 0 && self.data.timer_cycles < 8 {
+            self.data.timer_reload_state = TimerReloadState::ReloadingSecond4Cycles;
             Some(Interrupt::Timer)
         } else {
             Some(Interrupt::Timer)
@@ -141,19 +146,19 @@ impl Timer {
             DIVIDE_REGISTER_ADDRESS => {
                 // Timer
                 // Behavior explained in: https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#relation-between-timer-and-divider-register
-                if self.is_falling_edge_bit_set(self.divide_cycles) {
-                    self.unexpected_tick_increase = true;
+                if self.is_falling_edge_bit_set(self.data.divide_cycles) {
+                    self.data.unexpected_tick_increase = true;
                 }
-                self.divide_cycles = 0;
-                self.divide_register = 0;
-                self.timer_cycles = 0;
+                self.data.divide_cycles = 0;
+                self.data.divide_register = 0;
+                self.data.timer_cycles = 0;
             }
             TIME_COUNTER_ADDRESS => {
                 // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
-                match self.timer_reload_state {
+                match self.data.timer_reload_state {
                     TimerReloadState::ReloadingFirst4Cycles | TimerReloadState::NotReloading => {
-                        self.timer_reload_state = TimerReloadState::NotReloading;
-                        self.timer_counter = value
+                        self.data.timer_reload_state = TimerReloadState::NotReloading;
+                        self.data.timer_counter = value
                     }
                     TimerReloadState::ReloadingSecond4Cycles => {
                         // During the second 4 cycles after reload, writes to the time counter are ignored.
@@ -162,28 +167,28 @@ impl Timer {
             }
             TIMER_MODULO_ADDRESS => {
                 // Behavior documented in https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
-                match self.timer_reload_state {
+                match self.data.timer_reload_state {
                     TimerReloadState::ReloadingFirst4Cycles | TimerReloadState::ReloadingSecond4Cycles => {
-                        self.timer_counter = value
+                        self.data.timer_counter = value
                     }
                     _ => {}
                 };
-                self.timer_modulo = value;
+                self.data.timer_modulo = value;
             },
             TIMER_CONTROL_ADDRESS => {
                 let was_enabled = self.is_timer_enabled();
-                let was_bit_set = self.is_falling_edge_bit_set(self.divide_cycles);
-                self.timer_control = value;
+                let was_bit_set = self.is_falling_edge_bit_set(self.data.divide_cycles);
+                self.data.timer_control = value;
 
                 // The timer is being enabled.
                 if !was_enabled && self.is_timer_enabled() {
-                    self.timer_cycles = self.divide_cycles % self.get_timer_divider();
+                    self.data.timer_cycles = self.data.divide_cycles % self.get_timer_divider();
                 }
 
                 // The timer is being disabled.
                 if was_enabled && !self.is_timer_enabled() {
                     if was_bit_set {
-                        self.unexpected_tick_increase = true;
+                        self.data.unexpected_tick_increase = true;
                     }
                 }
             },
@@ -193,24 +198,24 @@ impl Timer {
 
     pub fn read(&self, address: u16) -> u8 {
         match address {
-            DIVIDE_REGISTER_ADDRESS => self.divide_register,
+            DIVIDE_REGISTER_ADDRESS => self.data.divide_register,
             TIME_COUNTER_ADDRESS => {
                 // Behavior documented in:
                 // - https://github.com/Gekkio/mooneye-test-suite/blob/main/acceptance/timer/tima_reload.s#L24
                 // - https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-overflow-behavior
-                match self.timer_reload_state {
+                match self.data.timer_reload_state {
                     TimerReloadState::ReloadingFirst4Cycles => 0,
-                    TimerReloadState::ReloadingSecond4Cycles | TimerReloadState::NotReloading => self.timer_counter,
+                    TimerReloadState::ReloadingSecond4Cycles | TimerReloadState::NotReloading => self.data.timer_counter,
                 }
             }
-            TIMER_MODULO_ADDRESS => self.timer_modulo,
-            TIMER_CONTROL_ADDRESS => self.timer_control | TIMER_CONTROL_UNUSED_BITS,
+            TIMER_MODULO_ADDRESS => self.data.timer_modulo,
+            TIMER_CONTROL_ADDRESS => self.data.timer_control | TIMER_CONTROL_UNUSED_BITS,
             _ => panic!("Invalid address for timer {}", address),
         }
     }
 
     fn is_falling_edge_bit_set(&self, timer_cycles: u64) -> bool {
-        match self.read_input_clock_select() {
+        match self.data.read_input_clock_select() {
             0 => (timer_cycles & 0b10_0000_0000) > 0,
             1 => (timer_cycles & 0b1000) > 0,
             2 => (timer_cycles & 0b10_0000) > 0,
@@ -220,13 +225,25 @@ impl Timer {
     }
 
     fn get_timer_divider(&self) -> u64 {
-        match self.read_input_clock_select() {
+        match self.data.read_input_clock_select() {
             0 => TIMER_0_DIVIDER,
             1 => TIMER_1_DIVIDER,
             2 => TIMER_2_DIVIDER,
             3 => TIMER_3_DIVIDER,
             _ => unreachable!("This should never happen"),
         }
+    }
+}
+
+impl SaveState for Timer {
+    fn save(&self) -> Result<String, StoreError> {
+        store_to_string(&self.data)
+    }
+
+    fn load(&mut self, state: &str, _version: StorageVersion) -> Result<(), LoadError> {
+        self.data = load_from_str(state)?;
+
+        Ok(())
     }
 }
 
@@ -240,13 +257,13 @@ mod tests {
     #[test]
     fn divider_increment() {
         let mut timer = Timer::new();
-        assert_eq!(timer.divide_register, 0);
+        assert_eq!(timer.data.divide_register, 0);
 
         timer.update(250);
-        assert_eq!(timer.divide_register, 0);
+        assert_eq!(timer.data.divide_register, 0);
 
         timer.update(250);
-        assert_eq!(timer.divide_register, 1);
+        assert_eq!(timer.data.divide_register, 1);
     }
 
     #[test]
@@ -254,165 +271,165 @@ mod tests {
         let mut timer = Timer::new();
 
         timer.update(255 * 256 + 255);
-        assert_eq!(timer.divide_register, 255);
+        assert_eq!(timer.data.divide_register, 255);
 
         timer.update(1);
-        assert_eq!(timer.divide_register, 0);
+        assert_eq!(timer.data.divide_register, 0);
     }
 
     #[test]
     fn timer_increment_clock_select_0() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b100;
-        assert_eq!(timer.timer_counter, 0);
+        timer.data.timer_control = 0b100;
+        assert_eq!(timer.data.timer_counter, 0);
 
         timer.update(1023);
-        assert_eq!(timer.timer_counter, 0);
+        assert_eq!(timer.data.timer_counter, 0);
 
         assert_eq!(timer.update(1), None);
-        assert_eq!(timer.timer_counter, 1);
+        assert_eq!(timer.data.timer_counter, 1);
     }
 
     #[test]
     fn timer_increment_clock_select_1() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b101;
-        assert_eq!(timer.timer_counter, 0);
+        timer.data.timer_control = 0b101;
+        assert_eq!(timer.data.timer_counter, 0);
 
         timer.update(15);
-        assert_eq!(timer.timer_counter, 0);
+        assert_eq!(timer.data.timer_counter, 0);
 
         assert_eq!(timer.update(1), None);
-        assert_eq!(timer.timer_counter, 1);
+        assert_eq!(timer.data.timer_counter, 1);
     }
 
     #[test]
     fn timer_increment_clock_select_2() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b110;
-        assert_eq!(timer.timer_counter, 0);
+        timer.data.timer_control = 0b110;
+        assert_eq!(timer.data.timer_counter, 0);
 
         timer.update(63);
-        assert_eq!(timer.timer_counter, 0);
+        assert_eq!(timer.data.timer_counter, 0);
 
         assert_eq!(timer.update(1), None);
-        assert_eq!(timer.timer_counter, 1);
+        assert_eq!(timer.data.timer_counter, 1);
     }
 
     #[test]
     fn timer_increment_clock_select_3() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b111;
-        assert_eq!(timer.timer_counter, 0);
+        timer.data.timer_control = 0b111;
+        assert_eq!(timer.data.timer_counter, 0);
 
         timer.update(255);
-        assert_eq!(timer.timer_counter, 0);
+        assert_eq!(timer.data.timer_counter, 0);
 
         assert_eq!(timer.update(1), None);
-        assert_eq!(timer.timer_counter, 1);
+        assert_eq!(timer.data.timer_counter, 1);
     }
 
     #[test]
     fn timer_increment_counter_twice() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b101;
-        assert_eq!(timer.timer_counter, 0);
+        timer.data.timer_control = 0b101;
+        assert_eq!(timer.data.timer_counter, 0);
 
         assert_eq!(timer.update(32), None);
-        assert_eq!(timer.timer_counter, 2);
+        assert_eq!(timer.data.timer_counter, 2);
     }
 
     #[test]
     fn timer_does_not_increment_if_disabled() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b000;
-        assert_eq!(timer.timer_counter, 0);
+        timer.data.timer_control = 0b000;
+        assert_eq!(timer.data.timer_counter, 0);
 
         assert_eq!(timer.update(1025), None);
-        assert_eq!(timer.timer_counter, 0);
+        assert_eq!(timer.data.timer_counter, 0);
     }
 
     #[test]
     fn timer_wrap_exact() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // No interrupt.
         assert_eq!(timer.update(16), None);
-        assert_eq!(timer.timer_counter, 0xF4);
+        assert_eq!(timer.data.timer_counter, 0xF4);
 
         // Interrupt only happens after the next M-cycle
         assert_eq!(timer.update(4), Some(Interrupt::Timer));
-        assert_eq!(timer.timer_counter, 0xF4);
+        assert_eq!(timer.data.timer_counter, 0xF4);
     }
 
     #[test]
     fn timer_wrap_overflow() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         assert_eq!(timer.update(32), Some(Interrupt::Timer));
-        assert_eq!(timer.timer_counter, 0xF5);
+        assert_eq!(timer.data.timer_counter, 0xF5);
     }
 
     #[test]
     fn timer_wrap_multiple_times() {
         let mut timer = Timer::new();
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // 6 * 16 = 96 cycles to trigger an interrupt
-        timer.timer_counter = 0xFA;
-        timer.timer_modulo = 0xFA;
+        timer.data.timer_counter = 0xFA;
+        timer.data.timer_modulo = 0xFA;
 
         assert_eq!(timer.update(96 * 2 + 32), Some(Interrupt::Timer));
-        assert_eq!(timer.timer_counter, 0xFC);
+        assert_eq!(timer.data.timer_counter, 0xFC);
     }
 
     #[test]
     fn timer_every_4_m_cycles_no_interrupt() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xFF;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xFF;
 
         assert_eq!(timer.update(10), None);
-        assert_eq!(timer.timer_counter, 0xFF);
+        assert_eq!(timer.data.timer_counter, 0xFF);
     }
 
     #[test]
     fn timer_every_4_m_cycles_interrupt_no_overflow() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xFF;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xFF;
 
         assert_eq!(timer.update(16 + 5), Some(Interrupt::Timer));
-        assert_eq!(timer.timer_counter, 0xFF);
+        assert_eq!(timer.data.timer_counter, 0xFF);
     }
 
     #[test]
     fn timer_every_4_m_cycles_interrupt_and_overflow() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xFF;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xFF;
 
         assert_eq!(timer.update(16 * 2 + 5), Some(Interrupt::Timer));
-        assert_eq!(timer.timer_counter, 0xFF);
-        assert_eq!(timer.timer_cycles, 5);
+        assert_eq!(timer.data.timer_counter, 0xFF);
+        assert_eq!(timer.data.timer_cycles, 5);
     }
 
     #[test]
@@ -421,23 +438,23 @@ mod tests {
 
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // Advance 16 + 2 cycles: increment once (overflow), with 2 cycles remaining (< 4)
         let interrupt = timer.update(16 + 2);
         assert_eq!(interrupt, None);
         // Internal counter has been reloaded to TMA
-        assert_eq!(timer.timer_counter, 0xF4);
+        assert_eq!(timer.data.timer_counter, 0xF4);
         // But reads should return 0 during the first 4 cycles after reload
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0);
 
         // After reaching 4 cycles since reload, reads should return actual TIMA value
         let interrupt = timer.update(2); // total remainder now 4
         assert_eq!(interrupt, Some(Interrupt::Timer));
-        assert_eq!(timer.timer_cycles, 4);
+        assert_eq!(timer.data.timer_cycles, 4);
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF4);
     }
 
@@ -447,19 +464,19 @@ mod tests {
 
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // Advance 32 + 1 cycles: two increments (overflow + 1)
         let interrupt = timer.update(32);
         assert_eq!(interrupt, Some(Interrupt::Timer));
         // increment after overflow = 1, so TIMA = TMA + 1
-        assert_eq!(timer.timer_counter, 0xF5);
+        assert_eq!(timer.data.timer_counter, 0xF5);
         // Even with timer_cycles == 0, the timer counter returned is properly updated since
         // the overflow happened more than 4 cycles in the past.
-        assert_eq!(timer.timer_cycles, 0x00);
+        assert_eq!(timer.data.timer_cycles, 0x00);
         assert_eq!(timer.read(TIME_COUNTER_ADDRESS), 0xF5);
     }
 
@@ -469,10 +486,10 @@ mod tests {
 
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // Advance 16 + 2 cycles: increment once (overflow), with 2 cycles remaining (< 4)
         let interrupt = timer.update(16 + 2);
@@ -487,7 +504,7 @@ mod tests {
         // but since we wrote during the first 4 cycles, the interrupt must not be raised now
         let interrupt = timer.update(2);
         assert_eq!(interrupt, None);
-        assert_eq!(timer.timer_counter, 0xAA);
+        assert_eq!(timer.data.timer_counter, 0xAA);
     }
 
     #[test]
@@ -496,10 +513,10 @@ mod tests {
 
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // Trigger overflow and enter the first 4-cycle window (timer_cycles = 0)
         let interrupt = timer.update(16);
@@ -525,10 +542,10 @@ mod tests {
     fn tma_write_works_within_first_4_cycles_after_reload() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // Trigger overflow and enter the first 4-cycle window (timer_cycles = 0)
         let interrupt = timer.update(16);
@@ -547,10 +564,10 @@ mod tests {
     fn tma_write_works_within_second_4_cycles_after_reload() {
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xFF;
-        timer.timer_modulo = 0xF4;
+        timer.data.timer_counter = 0xFF;
+        timer.data.timer_modulo = 0xF4;
 
         // Trigger overflow and enter the first 4-cycle window (timer_cycles = 0)
         let interrupt = timer.update(16 + 4);
@@ -568,12 +585,12 @@ mod tests {
         // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-obscure-behaviour
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xF4;
-        timer.timer_modulo = 0x00;
+        timer.data.timer_counter = 0xF4;
+        timer.data.timer_modulo = 0x00;
         // Set bit
-        timer.divide_cycles = 8 + 1;
+        timer.data.divide_cycles = 8 + 1;
 
         // Disable timer.
         timer.write(TIMER_CONTROL_ADDRESS, 0x0);
@@ -590,12 +607,12 @@ mod tests {
         // https://gbdev.io/pandocs/Timer_Obscure_Behaviour.html#timer-obscure-behaviour
         let mut timer = Timer::new();
         // Enable timer, clock select = 16 cycles per increment
-        timer.timer_control = 0b101;
+        timer.data.timer_control = 0b101;
         // Force an overflow on next increment
-        timer.timer_counter = 0xF4;
-        timer.timer_modulo = 0x00;
+        timer.data.timer_counter = 0xF4;
+        timer.data.timer_modulo = 0x00;
         // Set bit
-        timer.divide_cycles = 0 + 1;
+        timer.data.divide_cycles = 0 + 1;
 
         // Disable timer.
         timer.write(TIMER_CONTROL_ADDRESS, 0x0);

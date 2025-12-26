@@ -1,16 +1,20 @@
-use crate::memory::mbc::common::{get_rom_ram_banks, RomRamBanks};
-use crate::memory::mbc::interface::{
-    MemoryBankController, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_0_END_ADDRESS,
-    ROM_BANK_1_N_END_ADDRESS, ROM_BANK_1_N_START_ADDRESS, ROM_BANK_SIZE,
-};
+use crate::memory::mbc::common::{get_rom_ram_banks, RomRamBanks, EXT_RAM_START_ADDRESS, RAM_BANK_SIZE, ROM_BANK_0_END_ADDRESS, ROM_BANK_1_N_END_ADDRESS, ROM_BANK_1_N_START_ADDRESS, ROM_BANK_SIZE};
 use macros::BitAccessor;
 use std::cmp::max;
 use std::fs::File;
 use std::io::BufReader;
 use std::time::Duration;
+use serde::{Deserialize, Serialize};
+use crate::storage::helpers::{load_from_str, store_to_string};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MBC3BankController {
     rom: Vec<u8>,
+    data: MBC3BankControllerSaveData,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MBC3BankControllerSaveData {
     ram: Vec<u8>,
     rtc: RealTimeCounter,
 
@@ -26,61 +30,61 @@ impl MBC3BankController {
         rom_reader: &mut BufReader<File>,
         num_rom_banks: usize,
         num_ram_banks: usize,
-    ) -> Result<Box<dyn MemoryBankController>, String> {
+    ) -> Result<Self, String> {
         let RomRamBanks { rom, ram } = get_rom_ram_banks(rom_reader, num_rom_banks, num_ram_banks)?;
 
-        Ok(Box::new(Self {
+        Ok(Self {
             rom,
-            ram,
-            rtc: RealTimeCounter::new(),
-            rom_index: 0,
-            max_rom_index: num_rom_banks.saturating_sub(1) as u8,
-            ram_rtc_index: 0,
-            max_ram_index: num_ram_banks.saturating_sub(1) as u8,
-            ram_rtc_enabled: false,
-        }))
+            data: MBC3BankControllerSaveData {
+                ram,
+                rtc: RealTimeCounter::new(),
+                rom_index: 0,
+                max_rom_index: num_rom_banks.saturating_sub(1) as u8,
+                ram_rtc_index: 0,
+                max_ram_index: num_ram_banks.saturating_sub(1) as u8,
+                ram_rtc_enabled: false,
+            }
+        })
     }
-}
 
-impl MemoryBankController for MBC3BankController {
-    fn write_rom(&mut self, address: u16, value: u8) {
+    pub fn write_rom(&mut self, address: u16, value: u8) {
         match address {
             // https://gbdev.io/pandocs/MBC3.html#0000-1fff---ram-and-timer-enable-write-only
             0x0000..=0x1FFF => {
                 if value == 0x0A {
-                    self.ram_rtc_enabled = true;
+                    self.data.ram_rtc_enabled = true;
                 }
                 if value == 0x00 {
-                    self.ram_rtc_enabled = false;
+                    self.data.ram_rtc_enabled = false;
                 }
             }
             // https://gbdev.io/pandocs/MBC3.html#2000-3fff---rom-bank-number-write-only
             0x2000..=0x3FFF => {
-                if value <= self.max_rom_index {
-                    self.rom_index = value;
+                if value <= self.data.max_rom_index {
+                    self.data.rom_index = value;
                 } else {
                     panic!("Unhandled rom index {}", value);
                 }
             }
             // https://gbdev.io/pandocs/MBC3.html#4000-5fff---ram-bank-number---or---rtc-register-select-write-only
             0x4000..=0x5FFF => {
-                self.ram_rtc_index = value;
+                self.data.ram_rtc_index = value;
             }
             // https://gbdev.io/pandocs/MBC3.html#6000-7fff---latch-clock-data-write-only
             0x6000..=0x7FFF => {
-                self.rtc.latch(value);
+                self.data.rtc.latch(value);
             }
             address => panic!("Unhandled address {:X}", address),
         }
     }
 
-    fn read_rom(&self, address: u16) -> u8 {
+    pub fn read_rom(&self, address: u16) -> u8 {
         match address {
             // https://gbdev.io/pandocs/MBC3.html#0000-3fff---rom-bank-00-read-only
             0..=ROM_BANK_0_END_ADDRESS => self.rom[address as usize],
             // https://gbdev.io/pandocs/MBC3.html#4000-7fff---rom-bank-01-7f-read-only
             ROM_BANK_1_N_START_ADDRESS..=ROM_BANK_1_N_END_ADDRESS => {
-                let index = max(self.rom_index, 1) as usize;
+                let index = max(self.data.rom_index, 1) as usize;
                 let relative_address = (address - ROM_BANK_1_N_START_ADDRESS) as usize;
                 let final_address = relative_address + index * ROM_BANK_SIZE;
                 self.rom[final_address]
@@ -89,16 +93,16 @@ impl MemoryBankController for MBC3BankController {
         }
     }
 
-    fn write_ext_ram(&mut self, address: u16, value: u8) {
-        if !self.ram_rtc_enabled {
+    pub fn write_ext_ram(&mut self, address: u16, value: u8) {
+        if !self.data.ram_rtc_enabled {
             return;
         }
-        match self.ram_rtc_index {
-            0..=3 if self.ram_rtc_index <= self.max_ram_index => {
-                self.ram[get_ext_ram_relative_address(address, self.max_ram_index)] = value
+        match self.data.ram_rtc_index {
+            0..=3 if self.data.ram_rtc_index <= self.data.max_ram_index => {
+                self.data.ram[get_ext_ram_relative_address(address, self.data.max_ram_index)] = value
             }
             8..=0xC => {
-                self.rtc.write(self.ram_rtc_index, value);
+                self.data.rtc.write(self.data.ram_rtc_index, value);
             }
             _ => panic!("Trying to read invalid address {} is invalid ", address),
         }
@@ -106,21 +110,21 @@ impl MemoryBankController for MBC3BankController {
 
     /// Read external RAM or RTC
     /// Doc: https://gbdev.io/pandocs/MBC3.html#a000-bfff---rtc-register-08-0c-readwrite
-    fn read_ext_ram(&self, address: u16) -> u8 {
-        if !self.ram_rtc_enabled {
+    pub fn read_ext_ram(&self, address: u16) -> u8 {
+        if !self.data.ram_rtc_enabled {
             return 0;
         }
-        match self.ram_rtc_index {
-            0..=3 if self.ram_rtc_index <= self.max_ram_index => {
-                self.ram[get_ext_ram_relative_address(address, self.max_ram_index)]
+        match self.data.ram_rtc_index {
+            0..=3 if self.data.ram_rtc_index <= self.data.max_ram_index => {
+                self.data.ram[get_ext_ram_relative_address(address, self.data.max_ram_index)]
             }
-            8..=0xC => self.rtc.read(self.ram_rtc_index),
+            8..=0xC => self.data.rtc.read(self.data.ram_rtc_index),
             _ => panic!("Trying to read invalid address {} is invalid ", address),
         }
     }
 
-    fn update(&mut self, duration: Duration) {
-        self.rtc.update(duration);
+    pub fn update(&mut self, duration: Duration) {
+        self.data.rtc.update(duration);
     }
 }
 
@@ -128,14 +132,14 @@ fn get_ext_ram_relative_address(absolute_address: u16, ram_index: u8) -> usize {
     (absolute_address - EXT_RAM_START_ADDRESS) as usize + (ram_index as usize * RAM_BANK_SIZE)
 }
 
-#[derive(BitAccessor, Debug, Copy, Clone, Default)]
+#[derive(BitAccessor, Debug, Copy, Clone, Default, Serialize, Deserialize)]
 struct DayHighFlag {
     #[bit_offset_size(day_carry, 7, 1)]
     #[bit_offset_size(halt, 6, 1)]
     #[bit_offset_size(day_high, 0, 1)]
     pub value: u8,
 }
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 struct RealTimeCounterRegister {
     microseconds: u64,
     seconds: u8,
@@ -172,6 +176,7 @@ const RTC_HOURS_SELECT_VALUE: u8 = 0x0A;
 const RTC_DAY_LOW_SELECT_VALUE: u8 = 0x0B;
 const RTC_DAY_HIGH_SELECT_VALUE: u8 = 0x0C;
 
+#[derive(Debug, Serialize, Deserialize)]
 struct RealTimeCounter {
     register: RealTimeCounterRegister,
     latched: RealTimeCounterRegister,
@@ -247,5 +252,17 @@ impl RealTimeCounter {
 
     pub fn update(&mut self, duration: Duration) {
         self.register.add_time(duration);
+    }
+}
+
+impl SaveState for MBC3BankController {
+    fn save(&self) -> Result<String, StoreError> {
+        store_to_string(&self.data)
+    }
+
+    fn load(&mut self, state: &str, _version: StorageVersion) -> Result<(), LoadError> {
+        self.data = load_from_str(state)?;
+
+        Ok(())
     }
 }

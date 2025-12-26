@@ -1,4 +1,4 @@
-use crate::memory::mbc::interface::MemoryBankController;
+use crate::memory::mbc::mbc::MemoryBankController;
 use crate::memory::mbc::mbc1::MBC1BankController;
 use crate::memory::mbc::mbc3::MBC3BankController;
 use crate::memory::mbc::mbc5::MBC5BankController;
@@ -54,7 +54,7 @@ pub struct Cartridge {
     pub rom_info: ROMSizeInfo,
     pub ram_info: RAMSizeInfo,
     pub valid_header_checksum: bool,
-    pub memory_controller: Box<dyn MemoryBankController>,
+    pub memory_controller: MemoryBankController,
 }
 
 impl Display for Cartridge {
@@ -245,17 +245,22 @@ fn get_memory_controller(
     rom_reader: &mut BufReader<File>,
     rom_info: &ROMSizeInfo,
     ram_info: &RAMSizeInfo,
-) -> Result<Box<dyn MemoryBankController>, String> {
+) -> Result<MemoryBankController, String> {
     match &info.bank_type {
-        MBCType::RomOnly => NoMemoryBankController::create(rom_reader, ram_info.num_banks),
+        MBCType::RomOnly =>
+            NoMemoryBankController::create(rom_reader, ram_info.num_banks)
+                .map(MemoryBankController::NoController),
         MBCType::MBC1 => {
             MBC1BankController::create(rom_reader, rom_info.num_banks, ram_info.num_banks)
+                .map(MemoryBankController::Mbc1)
         }
         MBCType::MBC3 => {
             MBC3BankController::create(rom_reader, rom_info.num_banks, ram_info.num_banks)
+            .map(MemoryBankController::Mbc3)
         }
         MBCType::MBC5 => {
             MBC5BankController::create(rom_reader, rom_info.num_banks, ram_info.num_banks)
+            .map(MemoryBankController::Mbc5)
         }
         value => Err(format!("Unsupported bank type {:?}", value.get_name())),
     }

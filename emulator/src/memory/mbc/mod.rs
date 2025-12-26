@@ -1,5 +1,5 @@
-mod common;
-pub(crate) mod interface;
+pub(crate) mod common;
+pub(crate) mod mbc;
 pub(crate) mod mbc1;
 pub(crate) mod mbc3;
 pub(crate) mod mbc5;

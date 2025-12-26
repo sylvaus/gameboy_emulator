@@ -1,10 +1,13 @@
+use std::path::Path;
+use serde::{Deserialize, Serialize};
 use crate::interrupts::{Interrupt, ALL_INTERRUPTS};
 use crate::joypad::{JoypadInput, JOYPAD_INPUT_ADDRESS};
 use crate::memory::cgb::{CGBRegisters, INFRARED_CONTROL_ADDRESS, KEY_1_ADDRESS};
-use crate::memory::mbc::interface::{
-    MemoryBankController, EXT_RAM_END_ADDRESS, EXT_RAM_START_ADDRESS, ROM_BANK_1_N_END_ADDRESS,
+use crate::memory::mbc::common::{
+    EXT_RAM_END_ADDRESS, EXT_RAM_START_ADDRESS, ROM_BANK_1_N_END_ADDRESS,
     ROM_START_ADDRESS,
 };
+use crate::memory::mbc::mbc::MemoryBankController;
 use crate::memory::ram::{
     RamController, ECHO_RAM_END_ADDRESS, ECHO_RAM_START_ADDRESS, HIGH_RAM_END_ADDRESS,
     HIGH_RAM_START_ADDRESS, SELECT_WORK_RAM_BANK_ADDRESS, WORK_RAM_END_ADDRESS,
@@ -14,6 +17,8 @@ use crate::memory::Memory;
 use crate::serial::{SerialTransfer, SERIAL_TRANSFER_END_ADDRESS, SERIAL_TRANSFER_START_ADDRESS};
 use crate::sound::SoundController;
 use crate::timer::convert_cycles_to_duration;
+use crate::storage::helpers::{load_from_file, store_to_file};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 use crate::timer::{Timer, TIMER_END_ADDRESS, TIMER_START_ADDRESS};
 use crate::video::controller::{
     VideoController, BG_OBJ_PALETTES_START_ADDRESS, BG_OBJ_PALETTES__END_ADDRESS,
@@ -41,7 +46,7 @@ pub const INTERRUPT_FLAG_UNUSED_BITS: u8 = 0b1110_0000;
 pub const INTERRUPT_ENABLE_ADDRESS: u16 = 0xFFFF;
 
 pub struct GBMemory {
-    mbc: Box<dyn MemoryBankController>,
+    mbc: MemoryBankController,
     pub video: VideoController,
     ram: RamController,
     pub joypad: JoypadInput,
@@ -58,7 +63,7 @@ pub struct GBMemory {
 
 impl GBMemory {
     pub fn new(
-        mbc: Box<dyn MemoryBankController>,
+        mbc: MemoryBankController,
         video: VideoController,
         ram: RamController,
         joypad: JoypadInput,
@@ -251,5 +256,69 @@ impl Memory for GBMemory {
             }
             INTERRUPT_ENABLE_ADDRESS => self.interrupt_enable = value,
         }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct GBMemorySave {
+    version: StorageVersion,
+    mbc: String,
+    video: String,
+    ram: String,
+    joypad: String,
+    serial: String,
+    sound: String,
+    timer: String,
+    cgb_registers: String,
+
+    oam_dma_high_bits: u8,
+    interrupt_flag: u8,
+    interrupt_enable: u8,
+    boot_rom_disabled: u8,
+}
+
+const CURRENT_STORAGE_VERSION: StorageVersion = StorageVersion::Version1;
+impl GBMemory {
+    pub fn save(&self, path: &Path) -> Result<(), StoreError> {
+
+        let value = GBMemorySave {
+            version: CURRENT_STORAGE_VERSION,
+            mbc: self.mbc.save()?,
+            video: self.video.save()?,
+            ram: self.ram.save()?,
+            joypad: self.joypad.save()?,
+            serial: self.serial.save()?,
+            sound: self.sound.save()?,
+            timer: self.timer.save()?,
+            cgb_registers: self.cgb_registers.save()?,
+
+            oam_dma_high_bits: self.oam_dma_high_bits,
+            interrupt_flag: self.interrupt_flag,
+            interrupt_enable: self.interrupt_enable,
+            boot_rom_disabled: self.boot_rom_disabled,
+        };
+
+        store_to_file(&value, path)
+    }
+
+    pub fn load(&mut self, path: &Path) -> Result<(), LoadError> {
+        let raw_data: GBMemorySave = load_from_file(path)?;
+
+
+        self.mbc.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.video.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.ram.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.joypad.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.serial.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.sound.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.timer.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.cgb_registers.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+
+        self.oam_dma_high_bits = raw_data.oam_dma_high_bits;
+        self.interrupt_flag = raw_data.interrupt_flag;
+        self.interrupt_enable = raw_data.interrupt_enable;
+        self.boot_rom_disabled = raw_data.boot_rom_disabled;
+
+        Ok(())
     }
 }

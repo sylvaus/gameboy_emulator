@@ -1,11 +1,13 @@
+use serde::{Deserialize, Serialize};
 use macros::BitAccessor;
-
+use crate::storage::helpers::{load_from_str, store_to_string};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 // TODO: Implement sound.
 
 const AUDIO_CONTROL_UNUSED_BITS: u8 = 0b0111_0000u8;
 
 // https://gbdev.io/pandocs/Audio_Registers.html#ff26--nr52-audio-master-control
-#[derive(BitAccessor, Default, Debug)]
+#[derive(BitAccessor, Default, Debug, Serialize, Deserialize)]
 struct AudioControl {
     #[bit_offset_size(on_off, 7, 1)]
     #[bit_offset_size(unused, 4, 3)]
@@ -17,7 +19,7 @@ struct AudioControl {
 }
 
 // https://gbdev.io/pandocs/Audio_Registers.html#ff25--nr51-sound-panning
-#[derive(BitAccessor, Default, Debug)]
+#[derive(BitAccessor, Default, Debug, Serialize, Deserialize)]
 struct Panning {
     #[bit_offset_size(ch4_left, 7, 1)]
     #[bit_offset_size(ch3_left, 6, 1)]
@@ -31,7 +33,7 @@ struct Panning {
 }
 
 // https://gbdev.io/pandocs/Audio_Registers.html#ff24--nr50-master-volume--vin-panning
-#[derive(BitAccessor, Default, Debug)]
+#[derive(BitAccessor, Default, Debug, Serialize, Deserialize)]
 struct VolumeAndVinPanning {
     #[bit_offset_size(vin_left, 7, 1)]
     #[bit_offset_size(volume_left, 4, 1)]
@@ -44,7 +46,7 @@ const SWEEP_UNUSED_BITS: u8 = 0b1000_0000u8;
 const PERIOD_HIGH_AND_CONTROL_UNUSED_BITS: u8 = 0b0011_1000u8;
 const PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS: u8 = 0b1000_0111u8;
 
-#[derive(BitAccessor, Debug, Default)]
+#[derive(BitAccessor, Debug, Default, Serialize, Deserialize)]
 struct Channel1 {
     // https://gbdev.io/pandocs/Audio_Registers.html#ff10--nr10-channel-1-sweep
     #[bit_offset_size(sweep_unused, 7, 1)]
@@ -76,7 +78,7 @@ struct Channel1 {
 }
 
 // https://gbdev.io/pandocs/Audio_Registers.html?search=FF15
-#[derive(BitAccessor, Debug, Default)]
+#[derive(BitAccessor, Debug, Default, Serialize, Deserialize)]
 struct Channel2 {
     #[bit_offset_size(wave_duty, 6, 2)]
     #[bit_offset_size(initial_length_timer, 0, 6)]
@@ -99,7 +101,7 @@ struct Channel2 {
 const DAC_ENABLE_UNUSED_BITS: u8 = 0b0111_1111u8;
 const OUTPUT_LEVEL_UNUSED_BITS: u8 = 0b1001_1111u8;
 
-#[derive(BitAccessor, Debug, Default)]
+#[derive(BitAccessor, Debug, Default, Serialize, Deserialize)]
 struct Channel3 {
     // https://gbdev.io/pandocs/Audio_Registers.html#ff1a--nr30-channel-3-dac-enable
     #[bit_offset_size(dac_on_off, 7, 1)]
@@ -130,7 +132,7 @@ struct Channel3 {
 }
 const CHANNEL_4_CONTROL_UNUSED_BITS: u8 = 0b0011_1111u8;
 
-#[derive(BitAccessor, Debug, Default)]
+#[derive(BitAccessor, Debug, Default, Serialize, Deserialize)]
 struct Channel4 {
     // https://gbdev.io/pandocs/Audio_Registers.html#ff20--nr41-channel-4-length-timer-write-only
     #[bit_offset_size(length_timer_unused, 6, 2)]
@@ -156,45 +158,51 @@ struct Channel4 {
     control: u8,
 }
 
+
 #[derive(Debug, Default)]
 pub struct SoundController {
+    data: SoundControllerSaveData,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct SoundControllerSaveData {
     audio_control: AudioControl,
     panning: Panning,
     volume: VolumeAndVinPanning,
     channel_1: Channel1,
     channel_2: Channel2,
     channel_3: Channel3,
-    channel_4: Channel4,
+    channel_4: Channel4
 }
 
 impl SoundController {
     pub fn read(&self, address: u16) -> u8 {
         match address {
-            0xFF10 => self.channel_1.sweep | SWEEP_UNUSED_BITS,
-            0xFF11 => self.channel_1.length_timer_duty_cycle,
-            0xFF12 => self.channel_1.volume_envelope,
+            0xFF10 => self.data.channel_1.sweep | SWEEP_UNUSED_BITS,
+            0xFF11 => self.data.channel_1.length_timer_duty_cycle,
+            0xFF12 => self.data.channel_1.volume_envelope,
             0xFF13 => /* this field is write only */ 0xFF ,
-            0xFF14 => self.channel_1.period_high_and_control | PERIOD_HIGH_AND_CONTROL_UNUSED_BITS | PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS,
+            0xFF14 => self.data.channel_1.period_high_and_control | PERIOD_HIGH_AND_CONTROL_UNUSED_BITS | PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS,
             0xFF15 => /* unused address */ 0xFF,
-            0xFF16 => self.channel_2.length_timer_duty_cycle,
-            0xFF17 => self.channel_2.volume_envelope,
+            0xFF16 => self.data.channel_2.length_timer_duty_cycle,
+            0xFF17 => self.data.channel_2.volume_envelope,
             0xFF18 => /* this field is write only */ 0xFF ,
-            0xFF19 => self.channel_2.period_high_and_control | PERIOD_HIGH_AND_CONTROL_UNUSED_BITS | PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS,
-            0xFF1A => self.channel_3.dac_enable | DAC_ENABLE_UNUSED_BITS,
+            0xFF19 => self.data.channel_2.period_high_and_control | PERIOD_HIGH_AND_CONTROL_UNUSED_BITS | PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS,
+            0xFF1A => self.data.channel_3.dac_enable | DAC_ENABLE_UNUSED_BITS,
             0xFF1B => /* this field is write only */ 0xFF ,
-            0xFF1C => self.channel_3.output_level | OUTPUT_LEVEL_UNUSED_BITS,
+            0xFF1C => self.data.channel_3.output_level | OUTPUT_LEVEL_UNUSED_BITS,
             0xFF1D => /* this field is write only */ 0xFF ,
-            0xFF1E => self.channel_3.period_high_and_control | PERIOD_HIGH_AND_CONTROL_UNUSED_BITS | PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS,
+            0xFF1E => self.data.channel_3.period_high_and_control | PERIOD_HIGH_AND_CONTROL_UNUSED_BITS | PERIOD_HIGH_AND_CONTROL_WRITE_ONLY_BITS,
             0xFF1F => /* unused address */ 0xFF,
             0xFF20 => /* this field is write only */ 0xFF ,
-            0xFF21 => self.channel_1.volume_envelope,
-            0xFF22 => self.channel_4.frequency_randomness,
-            0xFF23 => self.channel_4.control | CHANNEL_4_CONTROL_UNUSED_BITS,
-            0xFF24 => self.volume.value,
-            0xFF25 => self.panning.value,
-            0xFF26 => self.audio_control.value | AUDIO_CONTROL_UNUSED_BITS,
+            0xFF21 => self.data.channel_1.volume_envelope,
+            0xFF22 => self.data.channel_4.frequency_randomness,
+            0xFF23 => self.data.channel_4.control | CHANNEL_4_CONTROL_UNUSED_BITS,
+            0xFF24 => self.data.volume.value,
+            0xFF25 => self.data.panning.value,
+            0xFF26 => self.data.audio_control.value | AUDIO_CONTROL_UNUSED_BITS,
             0xFF27..=0xFF29 => /* unused address */ 0xFF,
-            0xFF30..=0xFF3F => self.channel_3.wave_pattern[address as usize - 0xFF30],
+            0xFF30..=0xFF3F => self.data.channel_3.wave_pattern[address as usize - 0xFF30],
 
             _ => panic!("This function should never be called with address outside range [0xFF10, 0xFF3F], called with {}", address),
         }
@@ -202,34 +210,46 @@ impl SoundController {
 
     pub fn write(&mut self, address: u16, value: u8) {
         match address {
-            0xFF10 => self.channel_1.sweep = value,
-            0xFF11 => self.channel_1.length_timer_duty_cycle = value,
-            0xFF12 => self.channel_1.volume_envelope = value,
-            0xFF13 => self.channel_1.period_low = value,
-            0xFF14 => self.channel_1.period_high_and_control = value,
+            0xFF10 => self.data.channel_1.sweep = value,
+            0xFF11 => self.data.channel_1.length_timer_duty_cycle = value,
+            0xFF12 => self.data.channel_1.volume_envelope = value,
+            0xFF13 => self.data.channel_1.period_low = value,
+            0xFF14 => self.data.channel_1.period_high_and_control = value,
             0xFF15 => {/* Unused address */}
-            0xFF16 => self.channel_2.length_timer_duty_cycle = value,
-            0xFF17 => self.channel_2.volume_envelope = value,
-            0xFF18 => self.channel_2.period_low = value,
-            0xFF19 => self.channel_2.period_high_and_control = value,
-            0xFF1A => self.channel_3.dac_enable = value,
-            0xFF1B => self.channel_3.length_timer = value,
-            0xFF1C => self.channel_3.output_level = value,
-            0xFF1D => self.channel_3.period_low = value,
-            0xFF1E => self.channel_3.period_high_and_control = value,
+            0xFF16 => self.data.channel_2.length_timer_duty_cycle = value,
+            0xFF17 => self.data.channel_2.volume_envelope = value,
+            0xFF18 => self.data.channel_2.period_low = value,
+            0xFF19 => self.data.channel_2.period_high_and_control = value,
+            0xFF1A => self.data.channel_3.dac_enable = value,
+            0xFF1B => self.data.channel_3.length_timer = value,
+            0xFF1C => self.data.channel_3.output_level = value,
+            0xFF1D => self.data.channel_3.period_low = value,
+            0xFF1E => self.data.channel_3.period_high_and_control = value,
             0xFF1F => {/* unused address */},
-            0xFF20 => self.channel_4.length_timer = value,
-            0xFF21 => self.channel_4.volume_envelope = value,
-            0xFF22 => self.channel_4.frequency_randomness = value,
-            0xFF23 => self.channel_4.control = value,
-            0xFF24 => self.volume.value = value,
-            0xFF25 => self.panning.value = value,
-            0xFF26 => self.audio_control.value = value,
+            0xFF20 => self.data.channel_4.length_timer = value,
+            0xFF21 => self.data.channel_4.volume_envelope = value,
+            0xFF22 => self.data.channel_4.frequency_randomness = value,
+            0xFF23 => self.data.channel_4.control = value,
+            0xFF24 => self.data.volume.value = value,
+            0xFF25 => self.data.panning.value = value,
+            0xFF26 => self.data.audio_control.value = value,
             0xFF27..=0xFF29 => {/* Unused addresses */}
-            0xFF30..=0xFF3F => self.channel_3.wave_pattern[address as usize - 0xFF30] = value,
+            0xFF30..=0xFF3F => self.data.channel_3.wave_pattern[address as usize - 0xFF30] = value,
 
             _ => panic!("This function should never be called with address outside range [0xFF10, 0xFF3F], called with {}", address),
         }
+    }
+}
+
+impl SaveState for SoundController {
+    fn save(&self) -> Result<String, StoreError> {
+        store_to_string(&self.data)
+    }
+
+    fn load(&mut self, state: &str, _version: StorageVersion) -> Result<(), LoadError> {
+        self.data = load_from_str(state)?;
+
+        Ok(())
     }
 }
 
