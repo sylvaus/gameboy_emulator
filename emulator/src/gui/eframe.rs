@@ -3,11 +3,9 @@ use crate::emulator::ThreadedEmulator;
 use crate::joypad::JoypadState;
 use crate::video::renderer::{Color, Screen, SCREEN_HEIGHT, SCREEN_WIDTH};
 use eframe::egui;
-use eframe::egui::{Color32, ColorImage, Key, TextureOptions};
-use std::path::PathBuf;
+use eframe::egui::{Button, Color32, ColorImage, Key, TextureOptions};
 use std::sync::Arc;
-use std::thread;
-use std::thread::JoinHandle;
+use crate::data_completion::CompletionStatus;
 
 pub fn run_emulator() -> eframe::Result {
     let options = eframe::NativeOptions {
@@ -20,18 +18,10 @@ pub fn run_emulator() -> eframe::Result {
     )
 }
 
-/// Enum containing all the possible dialog answers
-///
-/// This allows spawning the dialog in a new thread.
-enum AppDialogAnswer {
-    OpenFile(Option<PathBuf>),
-}
-
 #[derive()]
 struct GBEmulatorApp {
     texture: Option<egui::TextureHandle>,
     emulator: ThreadedEmulator,
-    dialog: Option<JoinHandle<AppDialogAnswer>>,
 }
 
 impl GBEmulatorApp {
@@ -39,22 +29,12 @@ impl GBEmulatorApp {
         Self {
             texture: Default::default(),
             emulator: ThreadedEmulator::new(),
-            dialog: None,
         }
     }
 }
 
 impl eframe::App for GBEmulatorApp {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
-        if self
-            .dialog
-            .as_ref()
-            .map_or(false, |handle| handle.is_finished())
-        {
-            let handle = self.dialog.take().unwrap();
-            self.handle_dialog_answer(handle);
-        }
-
         ctx.input(|state| {
             let joypad = JoypadState {
                 right: state.key_down(Key::ArrowRight),
@@ -77,11 +57,7 @@ impl eframe::App for GBEmulatorApp {
 impl GBEmulatorApp {
     fn add_top_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            if self.is_dialog_open() {
-                ui.disable();
-            }
-
-            egui::menu::bar(ui, |ui| {
+            egui::MenuBar::new().ui(ui, |ui| {
                 ui.menu_button("File", |ui| self.menu_file_buttons(ui));
                 ui.add_space(16.0);
 
@@ -91,10 +67,6 @@ impl GBEmulatorApp {
     }
     fn add_central_panel(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            if self.is_dialog_open() {
-                ui.disable();
-            }
-
             self.texture.get_or_insert_with(|| {
                 ui.ctx()
                     .load_texture("gb_image", default_gb_image(), TextureOptions::NEAREST)
@@ -110,28 +82,100 @@ impl GBEmulatorApp {
     }
 
     fn menu_file_buttons(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Open Rom").clicked() && self.dialog.is_none() {
-            self.dialog = Some(thread::spawn(|| {
-                let answer = rfd::FileDialog::new()
-                    .set_title("Select ROM to Play")
-                    .add_filter("ROM", &["gb", "gbc", "gba"])
-                    .pick_file();
-                AppDialogAnswer::OpenFile(answer)
-            }));
+        if ui.button("Open Rom").clicked() {
+            self.open_rom();
+        }
+
+        if ui.add_enabled(self.emulator.is_running(), Button::new("Load State File")).clicked() {
+            self.load_save_file();
+        }
+
+        if ui.add_enabled(self.emulator.is_running(), Button::new("Save State File")).clicked() {
+            self.save_save_file();
+        }
+
+        if ui.button("Quit").clicked() {
+            self.quit();
         }
     }
 
-    fn is_dialog_open(&self) -> bool {
-        self.dialog.is_some()
-    }
+    fn open_rom(&mut self) {
+        let answer = rfd::FileDialog::new()
+            .set_title("Select ROM to Play")
+            .add_filter("ROM", &["gb", "gbc", "gba"])
+            .pick_file();
 
-    fn handle_dialog_answer(&mut self, handle: JoinHandle<AppDialogAnswer>) {
-        if let Ok(AppDialogAnswer::OpenFile(Some(path))) = handle.join() {
+        if let Some(path) = answer {
             if let (Some(handle), Ok(cartridge)) = (&self.texture, load_cartridge(path.as_path())) {
                 self.emulator
                     .start(cartridge, Box::new(AppScreen::new(handle.clone())));
             }
+        }
+    }
+
+    fn load_save_file(&mut self) {
+        let answer = rfd::FileDialog::new()
+            .set_title("Select State File")
+            .add_filter("State File", &["save"])
+            .pick_file();
+
+        let status = if let Some(path) = answer {
+            self.emulator.load_state(path)
+        } else {
+            return;
         };
+
+        match status {
+            CompletionStatus::Success => {}
+            CompletionStatus::Failure(status) => {
+                rfd::MessageDialog::new()
+                    .set_title("Error Loading State File")
+                    .set_description(status)
+                    .show();
+            }
+            CompletionStatus::Timeout => {
+                rfd::MessageDialog::new()
+                    .set_title("Error Loading State File")
+                    .set_description("State file loading operation timed out")
+                    .show();
+            }
+        }
+    }
+
+    fn save_save_file(&mut self) {
+        let answer = rfd::FileDialog::new()
+            .set_title("Select State File")
+            .add_filter("State File", &["save"])
+            .save_file();
+
+        let status = if let Some(path) = answer {
+            self.emulator.save_state(path)
+        } else {
+            return;
+        };
+
+        match status {
+            CompletionStatus::Success => {}
+            CompletionStatus::Failure(status) => {
+                rfd::MessageDialog::new()
+                    .set_title("Error Saving State File")
+                    .set_description(status)
+                    .show();
+            }
+            CompletionStatus::Timeout => {
+                rfd::MessageDialog::new()
+                    .set_title("Error Saving State File")
+                    .set_description("State file saving operation timed out")
+                    .show();
+            }
+        }
+
+    }
+
+    fn quit(&mut self) {
+        // TODO: handle exit more gracefully
+        self.emulator.stop();
+        std::process::exit(0);
     }
 }
 
@@ -162,7 +206,7 @@ impl AppScreen {
 }
 
 fn default_gb_image() -> Arc<ColorImage> {
-    Arc::new(ColorImage::new(
+    Arc::new(ColorImage::filled(
         [SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize],
         Color32::BLACK,
     ))

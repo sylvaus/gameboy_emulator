@@ -45,15 +45,16 @@ impl<T> DataWithCompletion<T> {
     }
 }
 
-struct CompletionReceiver {
+pub struct CompletionReceiver {
     sync: Arc<CompletionCondition>,
 }
+
 impl CompletionReceiver {
     pub fn wait(&self) -> CompletionStatus {
         let value = self
             .sync
             .condition
-            .wait_while(self.sync.status.lock().unwrap(), Self::is_processed)
+            .wait_while(self.sync.status.lock().unwrap(), Self::is_still_processing)
             .unwrap();
         (*value).clone().unwrap()
     }
@@ -65,7 +66,7 @@ impl CompletionReceiver {
             .wait_timeout_while(
                 self.sync.status.lock().unwrap(),
                 timeout,
-                Self::is_processed,
+                Self::is_still_processing,
             )
             .unwrap();
         if timeout_result.timed_out() {
@@ -75,8 +76,8 @@ impl CompletionReceiver {
         }
     }
 
-    fn is_processed(completed: &mut Option<CompletionStatus>) -> bool {
-        completed.is_some()
+    fn is_still_processing(completed: &mut Option<CompletionStatus>) -> bool {
+        completed.is_none()
     }
 }
 

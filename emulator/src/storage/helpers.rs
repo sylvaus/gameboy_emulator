@@ -11,7 +11,7 @@ pub fn store_to_string(value: &impl Serialize) -> Result<String, StoreError> {
 }
 
 pub fn store_to_file(value: &impl Serialize, path: &Path) -> Result<(), StoreError> {
-    let file = File::open(path)
+    let file = File::create(path)
         .map_err(|err| StoreError::new(format!("Failed to open file: {}", err)) )?;
 
     let writer = BufWriter::new(file);

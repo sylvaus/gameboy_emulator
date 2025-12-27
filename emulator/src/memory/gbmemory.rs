@@ -1,4 +1,3 @@
-use std::path::Path;
 use serde::{Deserialize, Serialize};
 use crate::interrupts::{Interrupt, ALL_INTERRUPTS};
 use crate::joypad::{JoypadInput, JOYPAD_INPUT_ADDRESS};
@@ -17,7 +16,7 @@ use crate::memory::Memory;
 use crate::serial::{SerialTransfer, SERIAL_TRANSFER_END_ADDRESS, SERIAL_TRANSFER_START_ADDRESS};
 use crate::sound::SoundController;
 use crate::timer::convert_cycles_to_duration;
-use crate::storage::helpers::{load_from_file, store_to_file};
+use crate::storage::helpers::{load_from_str, store_to_string};
 use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 use crate::timer::{Timer, TIMER_END_ADDRESS, TIMER_START_ADDRESS};
 use crate::video::controller::{
@@ -261,7 +260,6 @@ impl Memory for GBMemory {
 
 #[derive(Serialize, Deserialize)]
 struct GBMemorySave {
-    version: StorageVersion,
     mbc: String,
     video: String,
     ram: String,
@@ -277,12 +275,9 @@ struct GBMemorySave {
     boot_rom_disabled: u8,
 }
 
-const CURRENT_STORAGE_VERSION: StorageVersion = StorageVersion::Version1;
-impl GBMemory {
-    pub fn save(&self, path: &Path) -> Result<(), StoreError> {
-
+impl SaveState for GBMemory {
+    fn save(&self) -> Result<String, StoreError> {
         let value = GBMemorySave {
-            version: CURRENT_STORAGE_VERSION,
             mbc: self.mbc.save()?,
             video: self.video.save()?,
             ram: self.ram.save()?,
@@ -298,21 +293,20 @@ impl GBMemory {
             boot_rom_disabled: self.boot_rom_disabled,
         };
 
-        store_to_file(&value, path)
+        store_to_string(&value)
     }
 
-    pub fn load(&mut self, path: &Path) -> Result<(), LoadError> {
-        let raw_data: GBMemorySave = load_from_file(path)?;
+    fn load(&mut self, state: &str, version: StorageVersion) -> Result<(), LoadError> {
+        let raw_data: GBMemorySave = load_from_str(state)?;
 
-
-        self.mbc.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.video.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.ram.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.joypad.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.serial.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.sound.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.timer.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
-        self.cgb_registers.load(&raw_data.mbc, CURRENT_STORAGE_VERSION)?;
+        self.mbc.load(&raw_data.mbc, version)?;
+        self.video.load(&raw_data.video, version)?;
+        self.ram.load(&raw_data.ram, version)?;
+        self.joypad.load(&raw_data.joypad, version)?;
+        self.serial.load(&raw_data.serial, version)?;
+        self.sound.load(&raw_data.sound, version)?;
+        self.timer.load(&raw_data.timer, version)?;
+        self.cgb_registers.load(&raw_data.cgb_registers, version)?;
 
         self.oam_dma_high_bits = raw_data.oam_dma_high_bits;
         self.interrupt_flag = raw_data.interrupt_flag;

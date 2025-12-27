@@ -1,3 +1,7 @@
+use serde::{Deserialize, Serialize};
+use crate::storage::helpers::{load_from_str, store_to_string};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
+
 pub const OFFSET_CARRY_FLAG: u8 = 0x4;
 pub const OFFSET_HALF_CARRY_FLAG: u8 = 0x5;
 pub const OFFSET_ADD_SUB_FLAG: u8 = 0x6;
@@ -13,7 +17,7 @@ pub const HALF_CARRY_FLAG_INV_MASK: u8 = 0xFF - HALF_CARRY_FLAG_MASK;
 pub const ADD_SUB_FLAG_INV_MASK: u8 = 0xFF - ADD_SUB_FLAG_MASK;
 pub const ZERO_FLAG_INV_MASK: u8 = 0xFF - ZERO_FLAG_MASK;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Default)]
 pub struct Registers {
     pub flags: u8,
     pub a: u8,
@@ -147,8 +151,13 @@ impl Registers {
     }
 }
 
-impl Default for Registers {
-    fn default() -> Self {
-        Self::new()
+impl SaveState for Registers {
+    fn save(&self) -> Result<String, StoreError> {
+        store_to_string(self)
+    }
+
+    fn load(&mut self, state: &str, _version: StorageVersion) -> Result<(), LoadError> {
+        *self = load_from_str(state)?;
+        Ok(())
     }
 }

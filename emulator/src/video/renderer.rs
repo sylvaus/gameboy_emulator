@@ -7,6 +7,9 @@ use crate::video::tile::{
     get_pixel_value_from_tile, get_tile_address, get_vram_tile_offset_from_area,
 };
 use std::cmp::min;
+use serde::{Deserialize, Serialize};
+use crate::storage::helpers::{load_from_str, store_to_string};
+use crate::storage::interface::{LoadError, SaveState, StorageVersion, StoreError};
 
 pub const SCREEN_WIDTH: u32 = 160;
 pub const SCREEN_HEIGHT: u32 = 144;
@@ -62,16 +65,22 @@ pub trait Screen: Send {
     fn update_frame(&mut self);
 }
 
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct CoreNonCgbRendererSaveData {
+    window_y: usize
+}
+
 /// This class provides the common implementation of the video renderer for non-cgb mode.
 ///
 /// The final renderer only has to provide a write_pixel function and update the frame.
+#[derive(Debug, Default)]
 pub struct CoreNonCgbRenderer {
-    window_y: usize,
+    data: CoreNonCgbRendererSaveData,
 }
 
 impl CoreNonCgbRenderer {
     pub fn new() -> Self {
-        Self { window_y: 0 }
+        Self { data: CoreNonCgbRendererSaveData { window_y: 0 } }
     }
 
     pub fn scanline<PixelWriter>(&mut self, video: &VideoController, mut writer: PixelWriter)
@@ -119,7 +128,7 @@ impl CoreNonCgbRenderer {
             let window_x = (video.get_coordinates().window_position_x as usize)
                 .saturating_sub(WINDOW_X_OFFSET);
             let color = if window_enabled_for_y && (window_x <= x) {
-                self.get_window_pixel(video, x - window_x, self.window_y)
+                self.get_window_pixel(video, x - window_x, self.data.window_y)
             } else if background_enabled {
                 self.get_background_pixel(
                     video,
@@ -133,9 +142,9 @@ impl CoreNonCgbRenderer {
         }
 
         if y == (SCREEN_HEIGHT - 1) as usize {
-            self.window_y = 0;
+            self.data.window_y = 0;
         } else if window_enabled_for_y {
-            self.window_y += 1;
+            self.data.window_y += 1;
         }
 
         result
@@ -231,12 +240,6 @@ impl CoreNonCgbRenderer {
     }
 }
 
-impl Default for CoreNonCgbRenderer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Information from https://gbdev.io/pandocs/Palettes.html#ff47--bgp-non-cgb-mode-only-bg-palette-data
 fn get_non_cgb_color(index: u8, palette: u8) -> Color {
     let color = (palette >> (index * 2)) & 0b11;
@@ -250,5 +253,17 @@ fn get_non_cgb_color(index: u8, palette: u8) -> Color {
             "Non CGB color only supports value in range [0..=3], got: {}",
             index
         ),
+    }
+}
+
+impl SaveState for CoreNonCgbRenderer {
+    fn save(&self) -> Result<String, StoreError> {
+        store_to_string(&self.data)
+    }
+
+    fn load(&mut self, state: &str, _version: StorageVersion) -> Result<(), LoadError> {
+        self.data = load_from_str(state)?;
+
+        Ok(())
     }
 }

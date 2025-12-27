@@ -1,4 +1,5 @@
 use crate::cartridge::Cartridge;
+use crate::data_completion::{create_data_with_completion, CompletionStatus, DataWithCompletion};
 use crate::debugger::{Debugger, NoOpDebugger};
 use crate::generated::instructions::{get_instruction, ImmediateArgumentType};
 use crate::gui::Gui;
@@ -15,7 +16,7 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::thread;
 use std::thread::JoinHandle;
-use crate::data_completion::{CompletionStatus, DataWithCompletion};
+use std::time::Duration;
 
 pub struct InstructionUpdate {
     pub nb_cycles: u64,
@@ -129,6 +130,10 @@ fn fetch_and_execute(state: &mut EmulatorState, debugger: &mut impl Debugger) ->
 pub struct ThreadedEmulator {
     handle: JoinHandle<()>,
     sender: mpsc::Sender<Action>,
+    /// This variable only tracks the start and quit commands.
+    ///
+    /// In the case where the emulator engine crashed, this variable could contain a false positive.
+    running: bool,
 }
 
 impl Default for ThreadedEmulator {
@@ -144,13 +149,18 @@ impl ThreadedEmulator {
         let handle = thread::spawn(move || {
             thread_loop(receiver);
         });
-        Self { handle, sender }
+        Self {
+            handle,
+            sender,
+            running: false,
+        }
     }
     pub fn start(&mut self, cartridge: Cartridge, screen: Box<dyn Screen>) {
         if !self.handle.is_finished() {
             self.sender
                 .send(Action::Start((cartridge, screen)))
                 .expect("Channel is invalid");
+            self.running = true;
         }
     }
 
@@ -175,6 +185,7 @@ impl ThreadedEmulator {
             self.sender
                 .send(Action::Stop())
                 .expect("Channel is invalid");
+            self.running = false;
             true
         } else {
             false
@@ -187,6 +198,41 @@ impl ThreadedEmulator {
                 .send(Action::Inputs(input))
                 .expect("Channel is invalid");
         }
+    }
+
+    pub fn save_state(&mut self, save_path: PathBuf) -> CompletionStatus {
+        if self.handle.is_finished() {
+            CompletionStatus::Failure("Emulator is not running".to_string())
+        } else {
+            let (data, receiver) = create_data_with_completion(save_path);
+
+            self.sender
+                .send(Action::Save(data))
+                .expect("Channel is invalid");
+
+            receiver.wait_timeout(Duration::from_secs(10))
+        }
+    }
+
+    pub fn load_state(&mut self, load_path: PathBuf) -> CompletionStatus {
+        if self.handle.is_finished() {
+            CompletionStatus::Failure("Emulator is not running".to_string())
+        } else {
+            let (data, receiver) = create_data_with_completion(load_path);
+
+            self.sender
+                .send(Action::Load(data))
+                .expect("Channel is invalid");
+
+            receiver.wait_timeout(Duration::from_secs(10))
+        }
+    }
+
+    /// Returns if the emulator is running
+    ///
+    /// This method could return that the emulator is running when it is not if the engine crashed.
+    pub fn is_running(&self) -> bool {
+        self.running
     }
 }
 
@@ -247,20 +293,18 @@ fn update_state(state: &mut State, action: Action) {
         Action::Inputs(inputs) => {
             state.input.joypad = inputs;
         }
-        Action::Save(mut data) => {
-            data.process(|path| save_state(state, path))
-        }
-        Action::Load(mut data) => {
-            data.process(|path| load_state(state, path))
-        }
+        Action::Save(mut data) => data.process(|path| save_state(state, path)),
+        Action::Load(mut data) => data.process(|path| load_state(state, path)),
     }
 }
 
 fn save_state(state: &mut State, path: &mut Path) -> CompletionStatus {
     if let Some((emulator, _)) = &state.emulator {
-        match emulator.memory.save(path) {
+        match emulator.save(path) {
             Ok(_) => CompletionStatus::Success,
-            Err(error) => CompletionStatus::Failure(format!("Failed to save the data: {}", error.message))
+            Err(error) => {
+                CompletionStatus::Failure(format!("Failed to save the data: {}", error.message))
+            }
         }
     } else {
         CompletionStatus::Failure("No cartridge is running".to_string())
@@ -269,9 +313,11 @@ fn save_state(state: &mut State, path: &mut Path) -> CompletionStatus {
 
 fn load_state(state: &mut State, path: &mut Path) -> CompletionStatus {
     if let Some((emulator, _)) = &mut state.emulator {
-        match emulator.memory.load(path) {
+        match emulator.load(path) {
             Ok(_) => CompletionStatus::Success,
-            Err(error) => CompletionStatus::Failure(format!("Failed to load the data: {}", error.message))
+            Err(error) => {
+                CompletionStatus::Failure(format!("Failed to load the data: {}", error.message))
+            }
         }
     } else {
         CompletionStatus::Failure("No cartridge is running".to_string())
@@ -298,7 +344,7 @@ enum Action {
     Stop(),
     Inputs(JoypadState),
     Save(DataWithCompletion<PathBuf>),
-    Load(DataWithCompletion<PathBuf>)
+    Load(DataWithCompletion<PathBuf>),
 }
 
 struct GuiMiddleware<'a> {

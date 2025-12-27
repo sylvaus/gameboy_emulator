@@ -148,7 +148,6 @@ pub struct VideoControllerData {
     next_cycles_event: u64
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct VideoController {
     data: VideoControllerData,
 }
